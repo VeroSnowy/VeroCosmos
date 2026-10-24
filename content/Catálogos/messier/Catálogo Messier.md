@@ -1,3 +1,3 @@
 
-- [[M 12 - Nebulosa de Orión]]
+- [[M12 - Nebulosa de Orión]]
 - [[M2 - Cúmulo Globular]]

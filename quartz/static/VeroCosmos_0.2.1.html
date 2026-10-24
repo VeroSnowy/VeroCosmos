@@ -80,6 +80,7 @@ body.open #panel{width:min(48vw,720px)}
 #tip b{display:block;font:400 17px/1.2 "Iowan Old Style",Georgia,serif;margin-bottom:4px}
 #tip span{color:var(--mut);font-size:13px}
 @media(max-width:700px){body.open #panel{width:100vw;position:absolute;inset:0}}
+#all,#goHome{display:none!important}
 </style>
 </head>
 <body class="principal-page">
@@ -111,7 +112,7 @@ body.open #panel{width:min(48vw,720px)}
       <h1>Atlas Astrofotográfico</h1>
     </div>
     <div id="search-wrap"><span id="search-icon" aria-hidden="true">⌕</span><input id="search" type="search" placeholder="Buscar objetos o grupos…" autocomplete="off" aria-label="Buscar objetos o grupos" aria-controls="results"><div id="results" role="listbox"></div></div>
-    <div id="nav"><button id="back">← Inicio</button><button id="goHome">Atlas Fotogr&aacute;fico</button><button id="all">Ver todo el atlas</button></div>
+    <div id="nav"><button id="goHome">Atlas Fotogr&aacute;fico</button><button id="all">Ver todo el atlas</button></div>
     <div id="msg">Cargando…</div>
     <button id="recenter" type="button" aria-label="Restablecer orientación y zoom" title="Volver a la posición original">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -206,9 +207,10 @@ let searchTerm='',matches=new Set(),onlyMatches=false;
 const searchInput=$('search'),results=$('results');
 // La búsqueda ignora mayúsculas y tildes: catálogo y catalogo coinciden.
 function normalizeSearch(value){return value.toLocaleLowerCase('es').normalize('NFD').replace(/[\u0300-\u036f]/g,'')}
+function matchAll(n,q){const h=normalizeSearch(n.t+' '+n.s),h2=h.replace(/[\s_\-]+/g,'');return q.split(/\s+/).every(w=>h.includes(w)||h2.includes(w.replace(/[\s_\-]+/g,'')))}
 function refreshSearch(){
   const q=normalizeSearch(searchTerm.trim());
-  matches=new Set(q?baseView.filter(n=>normalizeSearch(n.t+' '+n.s).includes(q)).map(n=>n.s):[]);
+  matches=new Set(q?baseView.filter(n=>matchAll(n,q)).map(n=>n.s):[]);
   view=(q&&onlyMatches)?baseView.filter(n=>matches.has(n.s)):baseView;
   vE=E.filter(([a,b])=>view.includes(a)&&view.includes(b));
 }
@@ -216,7 +218,7 @@ function renderResults(){
   const q=normalizeSearch(searchTerm.trim());
   results.replaceChildren();
   if(!q){results.classList.remove('visible');return}
-  const found=baseView.filter(n=>normalizeSearch(n.t+' '+n.s).includes(q)).slice(0,30);
+  const found=baseView.filter(n=>matchAll(n,q)).slice(0,30);
   if(!found.length){const empty=document.createElement('div');empty.className='search-empty';empty.textContent='No hay coincidencias en este grupo.';results.append(empty)}
   else for(const n of found){
     const b=document.createElement('button');b.type='button';b.className='search-result';b.setAttribute('role','option');
@@ -240,7 +242,7 @@ function setView(f){
   const keep=f?new Set([f.s,...f.adj]):null;
   baseView=f?all.filter(n=>keep.has(n.s)):all;
   refreshSearch();renderResults();
-  $('back').style.display='block';$('goHome').style.display=home?'block':'none';$('all').style.display='block';$('goHome').classList.toggle('active',!!home&&f===home);$('all').classList.toggle('active',!f);
+  $('goHome').style.display=home?'block':'none';$('all').style.display='block';$('goHome').classList.toggle('active',!!home&&f===home);$('all').classList.toggle('active',!f);
   alpha=1;
 }
 
@@ -409,7 +411,7 @@ cv.addEventListener('click',ev=>{
 function openPanel(n){document.body.classList.add('open');$('frame').src=pageUrl(n.s)}
 function closePanel(){document.body.classList.remove('open')}
 $('close').onclick=closePanel;
-$('back').onclick=()=>{window.top.location.href='https://verosnowy.github.io/atlas-astrofotografico/'};
+
 $('all').onclick=()=>{closePanel();setView(null)};$('goHome').onclick=()=>{closePanel();setView(home)};
 // la ficha se muestra sin barras laterales ni pie, y en oscuro
 $('frame').addEventListener('load',()=>{
@@ -418,6 +420,12 @@ $('frame').addEventListener('load',()=>{
     const st=d.createElement('style');st.textContent='.sidebar,footer{display:none!important}.center{max-width:none!important;margin:0 auto!important;padding:1rem 1.4rem!important}';d.head.appendChild(st);
   }catch(e){}
 });
+/* boton unico: alterna entre Atlas Fotografico y todo el atlas */
+{const nav=$('nav'),tb=document.createElement('button');tb.id='toggleView';tb.type='button';nav.append(tb);
+const _sv=setView;
+const sync=f=>{tb.textContent=(home&&f===home)?'Ver todo el atlas':'Atlas Fotogr\u00e1fico'};
+setView=function(f){_sv(f);sync(f)};
+tb.onclick=()=>{closePanel();setView(home&&focus!==home?home:null)};}
 setView(home);
 draw();
 })();
