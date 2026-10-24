@@ -1,10 +1,6 @@
 ---
-dg-publish: true
-dg-home: true
+title: Atlas Fotográfico
 ---
-# Atlas Astrofotográfico
-Bienvenido a esto blablabla
 
 [[Catálogos]]
 [[Telescopios]]
-

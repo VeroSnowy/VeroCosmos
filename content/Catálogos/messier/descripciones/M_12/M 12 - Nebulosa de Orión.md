@@ -1,3 +1,3 @@
 [[Catálogo Messier]]
-[[Seestar S50]]
+[[Telescopios/Seestar S50/Seestar S50|Seestar S50]]
 

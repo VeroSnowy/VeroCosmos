@@ -1,2 +1,0 @@
-[[Catálogos]]
-[[Telescopios]]

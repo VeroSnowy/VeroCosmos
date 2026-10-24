@@ -1,3 +1,47 @@
 @use "./variables.scss" as *;
 
 // put your custom CSS here!
+
+/* Cielo nocturno */
+:root[saved-theme="dark"] {
+  --light: #05060f;
+  --lightgray: #1b2036;
+  --gray: #5b6385;
+  --darkgray: #c9d1f2;
+  --dark: #eef1ff;
+  --secondary: #8ab4ff;
+  --tertiary: #ffd479;
+  --highlight: rgba(138, 180, 255, 0.15);
+}
+
+:root[saved-theme="dark"] body {
+  background-color: #05060f;
+  background-image:
+    radial-gradient(1px 1px at 20px 30px, #fff, transparent),
+    radial-gradient(1px 1px at 90px 120px, #cfe0ff, transparent),
+    radial-gradient(1.5px 1.5px at 160px 70px, #fff, transparent),
+    radial-gradient(1px 1px at 230px 180px, #ffe9b8, transparent),
+    radial-gradient(1px 1px at 300px 40px, #fff, transparent);
+  background-size: 340px 220px;
+  background-attachment: fixed;
+}
+
+/* Portada: el grafo ocupa toda la pantalla */
+body[data-slug="index"] .left.sidebar,
+body[data-slug="index"] .center {
+  display: none;
+}
+body[data-slug="index"] .right.sidebar > *:not(.graph) {
+  display: none;
+}
+body[data-slug="index"] .right.sidebar,
+body[data-slug="index"] .graph,
+body[data-slug="index"] .graph > .graph-outer {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  max-width: none;
+  border: none;
+  margin: 0;
+}
