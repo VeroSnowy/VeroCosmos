@@ -26,22 +26,78 @@
   background-attachment: fixed;
 }
 
-/* Portada: el grafo ocupa toda la pantalla */
+/* Portada Vero Cosmos a pantalla completa */
+body[data-slug="index"] .page[data-frame="minimal"] > #quartz-body {
+  display: block !important;
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
 body[data-slug="index"] .left.sidebar,
-body[data-slug="index"] .center {
-  display: none;
-}
-body[data-slug="index"] .right.sidebar > *:not(.graph) {
-  display: none;
-}
 body[data-slug="index"] .right.sidebar,
-body[data-slug="index"] .graph,
-body[data-slug="index"] .graph > .graph-outer {
-  position: fixed;
-  inset: 0;
-  width: 100vw;
-  height: 100vh;
-  max-width: none;
-  border: none;
-  margin: 0;
+body[data-slug="index"] .page-header,
+body[data-slug="index"] .page-footer {
+  display: none !important;
+}
+
+body[data-slug="index"] .center.minimal {
+  display: block !important;
+  width: 100% !important;
+  min-width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+body[data-slug="index"] .center > article,
+body[data-slug="index"] .markdown-rendered {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+body[data-slug="index"] iframe {
+  display: block !important;
+  width: 100% !important;
+  height: 100vh !important;
+  min-height: 600px;
+  border: none !important;
+}
+
+/* Vero Cosmos: portada a pantalla completa */
+body[data-slug="index"] #quartz-body {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+body[data-slug="index"] .center {
+  grid-column: 1 / -1 !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+body[data-slug="index"] .center > article,
+body[data-slug="index"] .markdown-rendered {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+body[data-slug="index"] iframe {
+  display: block !important;
+  width: 100% !important;
+  height: 100vh !important;
+  min-height: 600px;
+  border: none !important;
 }

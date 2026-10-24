@@ -16,7 +16,7 @@ canvas{display:block;width:100%;height:100%}
 #focus{color:var(--mut)}
 #nav{position:absolute;top:44px;left:18px;display:flex;gap:8px}
 #nav button{display:none;background:#0e1226;color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:7px 12px;font:inherit;cursor:pointer}
-#nav button:hover{border-color:#8ab4ff}
+#nav button:hover{border-color:#8ab4ff}#nav button.active{border-color:#8ab4ff;background:#151a32}
 #msg{position:absolute;inset:auto 18px 16px;color:var(--mut)}
 #panel{width:0;background:#0b0e1f;border-left:1px solid var(--line);position:relative;overflow:hidden;transition:width .25s}
 body.open #panel{width:min(48vw,720px)}
@@ -34,7 +34,7 @@ body.open #panel{width:min(48vw,720px)}
   <div id="stage">
     <canvas id="cv"></canvas>
     <div id="head"><h1>Atlas Astrofotográfico</h1><span id="focus"></span></div>
-    <div id="nav"><button id="back">← Inicio</button><button id="all">Ver todo el atlas</button></div>
+    <div id="nav"><button id="back">← Inicio</button><button id="goHome">Atlas Fotogr&aacute;fico</button><button id="all">Ver todo el atlas</button></div>
     <div id="msg">Cargando…</div>
   </div>
   <aside id="panel"><button id="close" aria-label="Cerrar">×</button><iframe id="frame" title="Información"></iframe></aside>
@@ -73,7 +73,7 @@ function setView(f){
   const keep=f?new Set([f.s,...f.adj]):null;
   view=f?all.filter(n=>keep.has(n.s)):all;
   vE=E.filter(([a,b])=>view.includes(a)&&view.includes(b));
-  $('focus').textContent=f?'· '+f.t:'';$('back').style.display=(f&&f!==home)||(!f&&home)?'block':'none';$('all').style.display=f?'block':'none';
+  $('focus').textContent=f?'· '+f.t:'';$('back').style.display=(f&&f!==home)||(!f&&home)?'block':'none';$('all').style.display='block';$('goHome').style.display=home?'block':'none';$('goHome').classList.toggle('active',!!home&&f===home);$('all').classList.toggle('active',!f);
   alpha=1;
 }
 
@@ -163,7 +163,7 @@ function openPanel(n){document.body.classList.add('open');$('frame').src=pageUrl
 function closePanel(){document.body.classList.remove('open')}
 $('close').onclick=closePanel;
 $('back').onclick=()=>{closePanel();setView(home)};
-$('all').onclick=()=>{closePanel();setView(null)};
+$('all').onclick=()=>{closePanel();setView(null)};$('goHome').onclick=()=>{closePanel();setView(home)};
 // la ficha se muestra sin barras laterales ni pie, y en oscuro
 $('frame').addEventListener('load',()=>{
   try{

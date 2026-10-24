@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Atlas Astrofotográfico · 0.1.10</title>
+<style>
+:root{color-scheme:dark;--bg:#05060f;--fg:#eef1ff;--mut:#8f98c0;--line:#232846}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font:15px/1.4 system-ui,sans-serif;overflow:hidden}
+#app{display:flex;height:100%}
+#stage{position:relative;flex:1;min-width:0}
+canvas{display:block;width:100%;height:100%}
+#head{position:absolute;top:16px;left:18px;display:flex;align-items:baseline;pointer-events:none}
+#head h1{margin:0;color:#fff;font:400 22px/1 "Iowan Old Style",Georgia,serif;letter-spacing:.02em}
+#search-wrap{position:absolute;top:12px;right:18px;width:min(320px,calc(100% - 36px));z-index:4}
+#search{width:100%;height:38px;padding:0 13px 0 37px;border:1px solid #343b60;border-radius:8px;outline:none;background:#0e1226eF;color:var(--fg);font:inherit;box-shadow:0 5px 22px #0003}
+#search::placeholder{color:#8f98c0}
+#search:focus{border-color:#8ab4ff;box-shadow:0 0 0 2px #8ab4ff22}
+#search-icon{position:absolute;left:12px;top:10px;color:#8f98c0;pointer-events:none;font-size:16px}
+#results{display:none;position:absolute;top:44px;left:0;right:0;max-height:min(55vh,420px);overflow:auto;border:1px solid var(--line);border-radius:8px;background:#0b0e1ff5;box-shadow:0 12px 30px #0007;backdrop-filter:blur(12px)}
+#results.visible{display:block}
+.search-result{display:block;width:100%;padding:10px 12px;border:0;border-bottom:1px solid #232846;background:transparent;color:var(--fg);text-align:left;font:inherit;cursor:pointer}
+.search-result:last-child{border-bottom:0}
+.search-result:hover,.search-result:focus{background:#1a2040;outline:none}
+.search-result small{display:block;margin-top:2px;color:var(--mut);font-size:12px;overflow-wrap:anywhere}
+.search-empty{padding:12px;color:var(--mut);font-size:13px}
+#nav{position:absolute;top:44px;left:18px;display:flex;gap:8px}
+#nav button{display:none;background:#0e1226;color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:7px 12px;font:inherit;cursor:pointer}
+#nav button:hover{border-color:#8ab4ff}
+#msg{position:absolute;inset:auto 18px 16px;color:var(--mut)}
+#panel{width:0;background:#0b0e1f;border-left:1px solid var(--line);position:relative;overflow:hidden;transition:width .25s}
+body.open #panel{width:min(48vw,720px)}
+#panel iframe{width:100%;height:100%;border:0;background:#0b0e1f}
+#close{position:absolute;top:10px;right:12px;width:32px;height:32px;border-radius:50%;border:1px solid var(--line);background:#0e1226;color:var(--fg);font-size:18px;cursor:pointer;z-index:2}
+#tip{position:fixed;display:none;pointer-events:none;width:250px;background:#0e1226ee;border:1px solid var(--line);border-radius:8px;padding:10px;z-index:5}
+#tip img{display:block;width:100%;max-height:140px;object-fit:cover;border-radius:5px;margin-bottom:8px}
+#tip b{display:block;font:400 17px/1.2 "Iowan Old Style",Georgia,serif;margin-bottom:4px}
+#tip span{color:var(--mut);font-size:13px}
+@media(max-width:700px){body.open #panel{width:100vw;position:absolute;inset:0}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="stage">
+    <canvas id="cv"></canvas>
+    <div id="head"><h1>Atlas Astrofotográfico</h1></div>
+    <div id="search-wrap"><span id="search-icon" aria-hidden="true">⌕</span><input id="search" type="search" placeholder="Buscar objetos o grupos…" autocomplete="off" aria-label="Buscar objetos o grupos" aria-controls="results"><div id="results" role="listbox"></div></div>
+    <div id="nav"><button id="back">← Inicio</button><button id="all">Ver todo el atlas</button></div>
+    <div id="msg">Cargando…</div>
+  </div>
+  <aside id="panel"><button id="close" aria-label="Cerrar">×</button><iframe id="frame" title="Información"></iframe></aside>
+</div>
+<div id="tip"></div>
+<script>
+(async()=>{
+const $=id=>document.getElementById(id);
+const cv=$('cv'),ctx=cv.getContext('2d'),msg=$('msg');
+let W=1,H=1,sc=1;
+// Orientación y zoom de la bóveda celeste (se usa en «Ver todo el atlas»).
+// Cada recarga empieza con una orientación y una media esfera irregular nuevas.
+// skyCenter se recalcula a partir del centroide geométrico de todos los nodos visibles.
+let skyCenter={x:0,y:0,z:0};
+let skyYaw=Math.random()*Math.PI*2,skyPitch=(Math.random()-.5)*Math.PI*.8,skyZoom=.82+Math.random()*.36,dragging=false,dragMoved=false,lastPointer=null;
+const stars=Array.from({length:200},()=>({x:Math.random(),y:Math.random(),r:Math.random()*1.1+.2,a:Math.random()*.6+.2}));
+new ResizeObserver(()=>{const d=devicePixelRatio||1,r=cv.getBoundingClientRect();W=r.width;H=r.height;cv.width=W*d;cv.height=H*d;ctx.setTransform(d,0,0,d,0,0)}).observe(cv);
+
+// ---- Datos: salen de contentIndex.json, que Quartz genera solo
+let idx={};
+try{idx=await(await fetch('contentIndex.json')).json()}catch(e){msg.textContent='No se pudo cargar contentIndex.json. Abre esta página desde la web, no como archivo suelto.';return}
+const N={},E=[],seen=new Set();
+for(const s in idx)N[s]={s,t:idx[s].title||s,adj:new Set(),obj:/\/descripciones\//.test(s)};
+for(const s in idx)for(let t of idx[s].links||[]){
+  t=String(t).replace(/^\//,'');
+  if(!N[t])t=N[t+'/index']?t+'/index':null;
+  if(!t||t===s)continue;
+  const k=[s,t].sort().join('|');if(seen.has(k))continue;seen.add(k);
+  E.push([N[s],N[t]]);N[s].adj.add(t);N[t].adj.add(s);
+}
+const all=Object.values(N).filter(n=>n.adj.size>0);   // las carpetas automáticas sin enlaces no se dibujan
+all.forEach((n,i)=>{
+  // Cada recarga genera una nube irregular nueva, con forma aproximada de media esfera.
+  const a=Math.random()*Math.PI*2;
+  const radius=55+Math.pow(Math.random(),.72)*390;
+  n.x=Math.cos(a)*radius+(Math.random()-.5)*45;
+  n.y=Math.sin(a)*radius+(Math.random()-.5)*45;
+  n.vx=n.vy=0;
+  // Media esfera irregular: x/y conservan la distribución del atlas y z ocupa
+  // el volumen de un hemisferio, con variación aleatoria para evitar una cáscara perfecta.
+  const hemiRadius=510;
+  const radial2=n.x*n.x+n.y*n.y;
+  const cap=Math.sqrt(Math.max(0,hemiRadius*hemiRadius-radial2));
+  n.z=Math.random()*cap;
+});
+if(!all.length){msg.textContent='No hay notas con enlaces para dibujar.';return}
+msg.textContent='Pasa el ratón por una estrella. Clic en un grupo para ver su entorno; clic en un objeto para ver su ficha.';
+
+// ---- Vista (todo el atlas o un grupo local)
+const home=N['index']&&N['index'].adj.size?N['index']:null;
+let baseView=all,view=all,vE=E,focus=null,alpha=1,hov=null;
+let searchTerm='',matches=new Set(),onlyMatches=false;
+const searchInput=$('search'),results=$('results');
+// La búsqueda ignora mayúsculas y tildes: catálogo y catalogo coinciden.
+function normalizeSearch(value){return value.toLocaleLowerCase('es').normalize('NFD').replace(/[\u0300-\u036f]/g,'')}
+function refreshSearch(){
+  const q=normalizeSearch(searchTerm.trim());
+  matches=new Set(q?baseView.filter(n=>normalizeSearch(n.t+' '+n.s).includes(q)).map(n=>n.s):[]);
+  view=(q&&onlyMatches)?baseView.filter(n=>matches.has(n.s)):baseView;
+  vE=E.filter(([a,b])=>view.includes(a)&&view.includes(b));
+}
+function renderResults(){
+  const q=normalizeSearch(searchTerm.trim());
+  results.replaceChildren();
+  if(!q){results.classList.remove('visible');return}
+  const found=baseView.filter(n=>normalizeSearch(n.t+' '+n.s).includes(q)).slice(0,30);
+  if(!found.length){const empty=document.createElement('div');empty.className='search-empty';empty.textContent='No hay coincidencias en este grupo.';results.append(empty)}
+  else for(const n of found){
+    const b=document.createElement('button');b.type='button';b.className='search-result';b.setAttribute('role','option');
+    const title=document.createElement('span');title.textContent=n.t;
+    const path=document.createElement('small');path.textContent=n.obj?'Objeto · '+n.s:'Grupo · '+n.s;
+    b.append(title,path);b.addEventListener('click',()=>{results.classList.remove('visible');searchInput.blur();if(n.obj){openPanel(n)}else{closePanel();setView(n)}});results.append(b);
+  }
+  results.classList.add('visible');
+}
+searchInput.addEventListener('input',()=>{searchTerm=searchInput.value;onlyMatches=false;refreshSearch();renderResults();alpha=1});
+searchInput.addEventListener('keydown',ev=>{
+  if(ev.key==='Enter'&&searchTerm.trim()){onlyMatches=!onlyMatches;refreshSearch();results.classList.remove('visible');alpha=1;ev.preventDefault()}
+  if(ev.key==='Escape'){searchInput.value='';searchTerm='';onlyMatches=false;refreshSearch();renderResults();searchInput.blur();alpha=1}
+});
+document.addEventListener('pointerdown',ev=>{if(!$('search-wrap').contains(ev.target))results.classList.remove('visible')});
+function setView(f){
+  focus=f;
+  msg.textContent=f?'Pasa el ratón por una estrella. Clic en un objeto para ver su ficha; clic en otro grupo para explorarlo.':'Bóveda celeste 3D · Arrastra con el ratón para girar · Rueda para acercar o alejar · Clic en un objeto para abrir su ficha.';
+  const keep=f?new Set([f.s,...f.adj]):null;
+  baseView=f?all.filter(n=>keep.has(n.s)):all;
+  refreshSearch();renderResults();
+  $('back').style.display=(f&&f!==home)||(!f&&home)?'block':'none';$('all').style.display=f?'block':'none';
+  alpha=1;
+}
+
+// ---- Física sencilla de fuerzas
+function step(){
+  // Mantiene la distribución dinámica original de la red tanto en vista completa como en grupos.
+  const L=focus?120:75,rep=focus?9000:4000;
+  for(let i=0;i<view.length;i++)for(let j=i+1;j<view.length;j++){
+    const a=view[i],b=view[j];let dx=a.x-b.x,dy=a.y-b.y;const d2=dx*dx+dy*dy+.5,d=Math.sqrt(d2),f=rep/d2*alpha;
+    dx/=d;dy/=d;a.vx+=dx*f;a.vy+=dy*f;b.vx-=dx*f;b.vy-=dy*f;
+  }
+  for(const [a,b] of vE){
+    if(!view.includes(a)||!view.includes(b))continue;
+    const dx=b.x-a.x,dy=b.y-a.y,d=Math.sqrt(dx*dx+dy*dy)+.01,f=(d-L)*.02*alpha;
+    a.vx+=dx/d*f;a.vy+=dy/d*f;b.vx-=dx/d*f;b.vy-=dy/d*f;
+  }
+  for(const n of view){n.vx-=n.x*.01*alpha;n.vy-=n.y*.01*alpha;n.vx*=.85;n.vy*=.85;n.x+=n.vx;n.y+=n.vy}
+  alpha=Math.max(alpha*.994,.04);
+}
+const R=n=>n.obj?5:7+Math.min(n.adj.size,10)*.9;
+let skyExtent=220;
+function skyPoint(n){
+  const cy=Math.cos(skyYaw),sy=Math.sin(skyYaw),cx=Math.cos(skyPitch),sx=Math.sin(skyPitch);
+  // Traslada cada punto respecto al centro geométrico antes de rotarlo.
+  const nx=n.x-skyCenter.x,ny=n.y-skyCenter.y,nz=n.z-skyCenter.z;
+  const x=nx*cy+nz*sy,z0=-nx*sy+nz*cy;
+  const y=ny*cx-z0*sx,z=y*sx+z0*cx;
+  const baseScale=Math.min(W,H)*.46/(skyExtent+70)*skyZoom;
+  // Perspectiva suave: los nodos cercanos se ven algo mayores y los lejanos se comprimen.
+  const perspective=700/Math.max(360,700-z);
+  const scale=baseScale*perspective;
+  return {x:W/2+x*scale,y:H/2-y*scale,z:z/skyExtent,depth:z,perspective};
+}
+const pos=n=>{if(!focus){const p=skyPoint(n);return[p.x,p.y]}return[n.x*sc+W/2,n.y*sc+H/2]};
+
+function draw(){
+  step();
+  if(!focus){
+    // Calcula el centroide geométrico (media de x, y y z) para que la rotación
+    // permanezca centrada incluso mientras la distribución dinámica se reajusta.
+    let sx=0,sy=0,sz=0;
+    for(const n of view){sx+=n.x;sy+=n.y;sz+=n.z}
+    const count=Math.max(1,view.length);
+    skyCenter={x:sx/count,y:sy/count,z:sz/count};
+    skyExtent=1;
+    for(const n of view)skyExtent=Math.max(skyExtent,Math.abs(n.x-skyCenter.x),Math.abs(n.y-skyCenter.y),Math.abs(n.z-skyCenter.z));
+  }
+  if(focus){
+    let m=1;for(const n of view)m=Math.max(m,Math.abs(n.x),Math.abs(n.y));
+    const target=Math.min(Math.max(Math.min(W,H)/2/(m+70),.3),2.2);sc+=(target-sc)*.06;
+  }
+  ctx.clearRect(0,0,W,H);
+  const g=ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,Math.max(W,H)*.7);g.addColorStop(0,'#0c1030');g.addColorStop(1,'#05060f');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  for(const s of stars){ctx.fillStyle='rgba(220,230,255,'+s.a+')';ctx.beginPath();ctx.arc(s.x*W,s.y*H,s.r,0,6.283);ctx.fill()}
+  for(const [a,b] of vE){
+    if(!view.includes(a)||!view.includes(b))continue;
+    const on=hov&&(a===hov||b===hov),[x1,y1]=pos(a),[x2,y2]=pos(b);
+    if(!focus){
+      const za=skyPoint(a).z,zb=skyPoint(b).z;
+      ctx.strokeStyle=on?'rgba(255,212,121,.78)':(za<-.15&&zb<-.15?'rgba(138,180,255,.045)':'rgba(138,180,255,.18)');
+    }else ctx.strokeStyle=on?'rgba(255,212,121,.7)':'rgba(138,180,255,.22)';
+    ctx.lineWidth=on?1.4:.8;
+    ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+  }
+  for(const n of view){
+    const [x,y]=pos(n),r=R(n),near=hov&&(n===hov||hov.adj.has(n.s)),matched=searchTerm.trim()&&matches.has(n.s);
+    const depth=!focus?skyPoint(n).z:0;
+    ctx.globalAlpha=searchTerm.trim()&&!matched&&!onlyMatches?.3:(hov&&!near?.35:1);
+    if(!focus&&depth<-.15)ctx.globalAlpha*=.28;
+    ctx.shadowBlur=n===hov?24:(!focus&&depth<-.15?4:12);ctx.shadowColor=n.obj?'#ffd479':'#8ab4ff';
+    ctx.fillStyle=n.obj?'#ffd479':'#cfe0ff';
+    ctx.beginPath();ctx.arc(x,y,r,0,6.283);ctx.fill();ctx.shadowBlur=0;
+    if(matched){
+      // Resalta la coincidencia con un aro rojo independiente, sin teñir la estrella ni sus conexiones.
+      ctx.save();ctx.globalAlpha=1;ctx.shadowColor='#ff304f';ctx.shadowBlur=14;
+      ctx.strokeStyle='#ff304f';ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,r+5,0,6.283);ctx.stroke();ctx.restore();
+    }
+    if((!n.obj||n===hov||focus)&& (focus||depth>-.25||n===hov)){ctx.fillStyle='#c9d1f2';ctx.font='13px system-ui';ctx.textAlign='center';ctx.fillText(n.t,x,y-r-7)}
+    ctx.globalAlpha=1;
+  }
+  requestAnimationFrame(draw);
+}
+
+// ---- Vista previa al pasar el ratón: lee la propia página de la nota
+const pageUrl=s=>new URL(('../'+s.split('/').map(encodeURIComponent).join('/')).replace(/index$/,''),location.href).href;
+const cache=new Map();
+function preview(n){
+  if(!cache.has(n.s))cache.set(n.s,(async()=>{
+    try{
+      const u=pageUrl(n.s),doc=new DOMParser().parseFromString(await(await fetch(u)).text(),'text/html');
+      const art=doc.querySelector('article')||doc.body,img=art.querySelector('img');
+      const p=[...art.querySelectorAll('p')].map(x=>x.textContent.trim()).find(x=>x.length>20)||'';
+      return{img:img?new URL(img.getAttribute('src'),u).href:'',txt:p.slice(0,150)};
+    }catch(e){return{img:'',txt:''}}
+  })());
+  return cache.get(n.s);
+}
+const tip=$('tip');
+async function showTip(n,ev){
+  const pv=await preview(n);if(hov!==n)return;
+  tip.innerHTML=(pv.img?'<img src="'+pv.img+'" alt="">':'')+'<b></b><span></span>';
+  tip.querySelector('b').textContent=n.t;tip.querySelector('span').textContent=pv.txt||(n.obj?'Clic para abrir la ficha':'Clic para ver su grupo');
+  tip.style.display='block';moveTip(ev);
+}
+function moveTip(ev){const x=Math.min(ev.clientX+16,innerWidth-266),y=Math.min(ev.clientY+16,innerHeight-tip.offsetHeight-8);tip.style.left=x+'px';tip.style.top=y+'px'}
+
+// ---- Interacción
+function hit(ev){
+  const r=cv.getBoundingClientRect(),mx=ev.clientX-r.left,my=ev.clientY-r.top;let best=null,bd=1e9;
+  for(const n of view){const [x,y]=pos(n),d=Math.hypot(x-mx,y-my);if(d<R(n)+9&&d<bd){best=n;bd=d}}
+  return best;
+}
+cv.addEventListener('pointerdown',ev=>{
+  if(focus||ev.button!==0)return;
+  dragging=true;dragMoved=false;lastPointer={x:ev.clientX,y:ev.clientY};cv.setPointerCapture?.(ev.pointerId);cv.style.cursor='grabbing';
+});
+cv.addEventListener('pointermove',ev=>{
+  if(dragging&&!focus&&lastPointer){
+    const dx=ev.clientX-lastPointer.x,dy=ev.clientY-lastPointer.y;
+    if(Math.abs(dx)+Math.abs(dy)>1)dragMoved=true;
+    skyYaw+=dx*.006;skyPitch=Math.max(-Math.PI/2,Math.min(Math.PI/2,skyPitch+dy*.006));
+    lastPointer={x:ev.clientX,y:ev.clientY};
+    if(dragMoved){hov=null;tip.style.display='none';cv.style.cursor='grabbing';return}
+  }
+});
+window.addEventListener('pointerup',()=>{dragging=false;lastPointer=null;cv.style.cursor='grab'});
+cv.addEventListener('wheel',ev=>{
+  if(focus)return;ev.preventDefault();skyZoom=Math.max(.55,Math.min(2.5,skyZoom*Math.exp(-ev.deltaY*.001)));},{passive:false});
+cv.addEventListener('mousemove',ev=>{
+  if(dragging&&!focus)return;
+  const n=hit(ev);cv.style.cursor=!focus?'grab':(n?'pointer':'default');
+  if(n!==hov){hov=n;tip.style.display='none';if(n)showTip(n,ev)}else if(n)moveTip(ev);
+});
+cv.addEventListener('mouseleave',()=>{if(!dragging){hov=null;tip.style.display='none'}});
+cv.addEventListener('click',ev=>{
+  if(dragMoved){dragMoved=false;return}
+  const n=hit(ev);if(!n)return;hov=n;
+  if(n.obj)openPanel(n);else{closePanel();setView(n)}
+});
+function openPanel(n){document.body.classList.add('open');$('frame').src=pageUrl(n.s)}
+function closePanel(){document.body.classList.remove('open')}
+$('close').onclick=closePanel;
+$('back').onclick=()=>{closePanel();setView(home)};
+$('all').onclick=()=>{closePanel();setView(null)};
+// la ficha se muestra sin barras laterales ni pie, y en oscuro
+$('frame').addEventListener('load',()=>{
+  try{
+    const d=$('frame').contentDocument;d.documentElement.setAttribute('saved-theme','dark');
+    const st=d.createElement('style');st.textContent='.sidebar,footer{display:none!important}.center{max-width:none!important;margin:0 auto!important;padding:1rem 1.4rem!important}';d.head.appendChild(st);
+  }catch(e){}
+});
+setView(home);
+draw();
+})();
+</script>
+</body>
+</html>
