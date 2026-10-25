@@ -144,6 +144,51 @@ body.guide-page #head h1{display:none}
 #guide-view.play .g-right{animation-name:gInR}
 @media(prefers-reduced-motion:reduce){#guide-view.play .g-in{animation:none}}
 @media(max-width:700px){#featured-guide-link{padding:12px 14px;gap:12px}#featured-guide-link .featured-icon{width:40px;height:40px}#featured-guide-link .featured-name{font-size:17px}#featured-guide-link .featured-description{font-size:12px}#contacts{top:56px;bottom:auto;left:18px;right:18px;width:auto;display:flex;justify-content:center;gap:6px;padding:8px}#contacts h3,#contacts a span{display:none}#contacts a{padding:9px 14px}#g-search{width:calc(100% - 84px)}#g-main{padding-top:72px}}
+#guide-view{container-type:inline-size}
+#ghead{position:absolute;top:10px;left:64px;right:16px;display:flex;align-items:baseline;gap:14px;pointer-events:none}
+#ghead h2{margin:0;font:400 24px/1.1 "Iowan Old Style",Georgia,serif;color:#f5f7ff}
+#ghead p{margin:0;color:#b8c4e6;font:400 15px/1.3 "Iowan Old Style",Georgia,serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#gcols{position:absolute;top:60px;left:16px;right:16px;bottom:16px;display:grid;grid-template-columns:minmax(190px,1fr) minmax(0,2.4fr) minmax(280px,1.3fr);gap:12px}
+.gcol{display:flex;flex-direction:column;min-width:0;min-height:0;border:1px solid #2a3258;border-radius:14px;background:linear-gradient(160deg,#0f1530cc,#090c1ecc);overflow:hidden}
+.gc-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:14px 16px 8px}
+.gc-h h3{margin:0;font:400 19px/1.2 "Iowan Old Style",Georgia,serif;color:#f5f7ff}
+#oc-count{color:#8f98c0;font-size:12px;white-space:nowrap}
+.gcol-body{flex:1;min-height:0;overflow-y:auto;padding:6px 14px 14px}
+.gcol-empty{margin:6px 0;color:#8f98c0;font-size:13px;line-height:1.5}
+#ss-wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:8px}
+#ss-svg{width:100%;height:100%;display:block}
+#ss-svg text{fill:#c9d1f2;font:12px system-ui,sans-serif}
+#ss-svg .orb{fill:none;stroke:rgba(138,180,255,.24);stroke-width:1;stroke-dasharray:1}
+#ss-cap{margin:0;padding:0 16px 12px;text-align:center;color:#8f98c0;font-size:12px}
+@keyframes gDraw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+@keyframes gFade{from{opacity:0}to{opacity:1}}
+#guide-view.play .orb{animation:gDraw 1.8s cubic-bezier(.3,.6,.2,1) var(--d,0s) backwards}
+#guide-view.play .pl{animation:gFade .8s ease var(--d,0s) backwards}
+@media(prefers-reduced-motion:reduce){#guide-view.play .orb,#guide-view.play .pl{animation:none}}
+#oc-bar{display:flex;align-items:center;gap:8px;padding:2px 14px 10px}
+#oc-views{display:flex;gap:4px}
+#oc-views button{width:38px;height:38px;display:flex;align-items:center;justify-content:center;border:1px solid #343b60;border-radius:8px;background:#0e1226ef;color:#a9b9e9;cursor:pointer;padding:0}
+#oc-views button svg{width:19px;height:19px}
+#oc-views button:hover{border-color:#8ab4ff}
+#oc-views button[aria-pressed="true"]{background:#1a2040;border-color:#8ab4ff;color:#eef1ff}
+#oc-search{position:relative;flex:1;min-width:0}
+#oc-search span{position:absolute;left:11px;top:9px;color:#8f98c0;pointer-events:none;font-size:16px}
+#oc-input{width:100%;height:38px;padding:0 12px 0 34px;border:1px solid #343b60;border-radius:8px;outline:none;background:#0e1226ef;color:var(--fg);font:inherit}
+#oc-input::placeholder{color:#8f98c0}
+#oc-input:focus{border-color:#8ab4ff;box-shadow:0 0 0 2px #8ab4ff22}
+.oc{display:block;width:100%;margin:0 0 10px;padding:0;overflow:hidden;text-align:left;border:1px solid #343d63;border-radius:11px;background:linear-gradient(120deg,#111a35d9,#0b1025d9);color:var(--fg);font:inherit;cursor:pointer;transition:border-color .2s ease}
+.oc:hover,.oc:focus-visible{border-color:#8199d8;outline:none}
+.oc[hidden]{display:none!important}
+.oc .oc-img{display:block;min-height:150px;background:#080b19}
+.oc .oc-img img{display:block;width:100%;height:auto;opacity:0;transition:opacity .4s ease}
+.oc .oc-img img.ok{opacity:1}
+.oc b{display:block;padding:10px 14px 12px;font:400 17px/1.25 "Iowan Old Style",Georgia,serif;color:#f5f7ff}
+.oc small{display:none}
+#oc-list[data-mode="list"] .oc{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:6px;padding:10px 14px;border-radius:9px}
+#oc-list[data-mode="list"] .oc-img{display:none}
+#oc-list[data-mode="list"] .oc b{padding:0;font-size:15px}
+#oc-list[data-mode="list"] .oc small{display:block;color:#8f98c0;font-size:12px;white-space:nowrap}
+@container (max-width:880px){#gcols{display:flex;flex-direction:column;overflow-y:auto}#gcols .gcol{flex:none}#gcol-c{order:-1;height:min(92cqw,520px)}#gcol-r{min-height:420px}#gcol-r .gcol-body,#gcol-l .gcol-body{overflow:visible}#ghead p{display:none}}
 </style>
 </head>
 <body class="principal-page">
@@ -594,6 +639,110 @@ setPageActive=function(page){if(page!=='principal')startPrefetch();return _sp3.a
 const dist=new Map();
 if(home){const q=[home];dist.set(home.s,0);while(q.length){const a=q.shift();a.adj.forEach(s=>{if(!dist.has(s)&&N[s]){dist.set(s,dist.get(a.s)+1);q.push(N[s])}})}}
 function isParent(n,f){return n!==f&&dist.has(n.s)&&dist.has(f.s)&&dist.get(n.s)<dist.get(f.s)}
+/* Guia en tres columnas: observacion, sistema solar y objetos */
+{
+const gv=document.getElementById('guide-view');
+if(gv){
+const $o=id=>document.getElementById(id);
+const ICL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>';
+const ICC='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>';
+gv.innerHTML='<div id="ghead"><h2 class="g-in" style="--d:.1s">Gu\u00eda Astron\u00f3mica</h2><p class="g-in" style="--d:.3s">Para aquellos que empiezan desde cero.</p></div>'
++'<div id="gcols">'
++'<section id="gcol-l" class="gcol g-in" style="--d:.3s"><header class="gc-h"><h3>Gu\u00eda de Observaci\u00f3n</h3></header><div class="gcol-body"><p class="gcol-empty">Pr\u00f3ximamente: tarjetas con gu\u00edas para aprender a observar el cielo.</p></div></section>'
++'<section id="gcol-c" class="gcol g-in" style="--d:.5s"><div id="ss-wrap"></div><p id="ss-cap"></p></section>'
++'<section id="gcol-r" class="gcol g-in" style="--d:.7s"><header class="gc-h"><h3>Objetos astron\u00f3micos</h3><span id="oc-count"></span></header>'
++'<div id="oc-bar" class="g-in g-right" style="--d:1s"><div id="oc-views"><button id="v-list" type="button" aria-label="Vista de lista" title="Lista">'+ICL+'</button><button id="v-cards" type="button" aria-label="Vista de tarjetas" title="Tarjetas con foto">'+ICC+'</button></div><div id="oc-search"><span aria-hidden="true">\u2315</span><input id="oc-input" type="search" placeholder="Buscar objetos\u2026" autocomplete="off" aria-label="Buscar objetos"></div></div>'
++'<div id="oc-list" class="gcol-body" data-mode="cards"></div></section></div>';
+
+/* ---- Objetos: se crean una sola vez; filtrar y cambiar de vista solo muestra u oculta ---- */
+const list=$o('oc-list'),cnt=$o('oc-count'),inp=$o('oc-input');
+const nrm=s=>s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+const cat=s=>/\/messier\//.test(s)?'Cat\u00e1logo Messier':/\/ngc\//.test(s)?'Cat\u00e1logo NGC':/sistsolar/.test(s)?'Sistema Solar':'Otros';
+const objs=all.filter(n=>n.obj).sort((a,b)=>a.t.localeCompare(b.t,'es'));
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){io.unobserve(e.target);loadImg(e.target)}}),{rootMargin:'400px'});
+async function loadImg(el){
+  const box=el.querySelector('.oc-img'),im=box.querySelector('img');
+  try{
+    const d=await(typeof detail==='function'?detail(el._n):preview(el._n));
+    if(d&&d.img){im.decoding='async';im.onload=()=>{im.classList.add('ok');box.style.minHeight='0'};im.alt=el._n.t;im.src=d.img}
+    else box.style.display='none';
+  }catch(e){box.style.display='none'}
+}
+objs.forEach((n,i)=>{
+  const b=document.createElement('button');b.type='button';b.className='oc g-in';
+  b.style.setProperty('--d',(1.2+Math.min(i,10)*.06)+'s');b._n=n;b._k=nrm(n.t+' '+cat(n.s));
+  b.innerHTML='<span class="oc-img"><img alt=""></span><b></b><small></small>';
+  b.querySelector('b').textContent=n.t;b.querySelector('small').textContent=cat(n.s);
+  b.addEventListener('click',()=>openPanel(n));list.append(b);io.observe(b);
+});
+function filt(){
+  const ws=nrm(inp.value).split(/\s+/).filter(Boolean);let k=0;
+  list.querySelectorAll('.oc').forEach(el=>{
+    const h2=el._k.replace(/[\s_-]+/g,'');
+    const ok=ws.every(w=>el._k.includes(w)||h2.includes(w.replace(/[\s_-]+/g,'')));
+    el.hidden=!ok;if(ok)k++;
+  });
+  cnt.textContent=(ws.length?k+' de '+objs.length:objs.length)+(objs.length===1?' objeto':' objetos');
+  let em=list.querySelector('.gcol-empty');
+  if(!k){if(!em){em=document.createElement('p');em.className='gcol-empty';em.textContent='No hay coincidencias.';list.append(em)}}
+  else if(em)em.remove();
+}
+inp.addEventListener('input',filt);
+inp.addEventListener('keydown',e=>{if(e.key==='Enter'){const f=[...list.querySelectorAll('.oc')].find(x=>!x.hidden);if(f)f.click()}});
+const vl=$o('v-list'),vc=$o('v-cards');
+function setMode(m){list.dataset.mode=m;vl.setAttribute('aria-pressed',String(m==='list'));vc.setAttribute('aria-pressed',String(m==='cards'));try{localStorage.setItem('vcMode',m)}catch(e){}}
+vl.onclick=()=>setMode('list');vc.onclick=()=>setMode('cards');
+let sm='cards';try{sm=localStorage.getItem('vcMode')||'cards'}catch(e){}
+setMode(sm==='list'?'list':'cards');filt();
+
+/* ---- Sistema Solar: elementos keplerianos aproximados del JPL (validos 1800-2050) ---- */
+/*SS-START*/
+const RD=Math.PI/180;
+const EL=[
+['Mercurio','#b9b4aa',3,[0.38709927,0.00000037,0.20563593,0.00001906,7.00497902,-0.00594749,252.25032350,149472.67411175,77.45779628,0.16047689,48.33076593,-0.12534081]],
+['Venus','#f0d9a8',4.6,[0.72333566,0.00000390,0.00677672,-0.00004107,3.39467605,-0.00078890,181.97909950,58517.81538729,131.60246718,0.00268329,76.67984255,-0.27769418]],
+['Tierra','#7fb2ff',4.8,[1.00000261,0.00000562,0.01671123,-0.00004392,-0.00001531,-0.01294668,100.46457166,35999.37244981,102.93768193,0.32327364,0,0]],
+['Marte','#e4906c',3.8,[1.52371034,0.00001847,0.09339410,0.00007882,1.84969142,-0.00813131,-4.55343205,19140.30268499,-23.94362959,0.44441088,49.55953891,-0.29257343]],
+['J\u00fapiter','#e8c9a0',8.5,[5.20288700,-0.00011607,0.04838624,-0.00013253,1.30439695,-0.00183714,34.39644051,3034.74612775,14.72847983,0.21252668,100.47390909,0.20469106]],
+['Saturno','#f0dca0',7,[9.53667594,-0.00125060,0.05386179,-0.00050991,2.48599187,0.00193609,49.95424423,1222.49362201,92.59887831,-0.41897216,113.66242448,-0.28867794]],
+['Urano','#9fe0ec',5.4,[19.18916464,-0.00196176,0.04725744,-0.00004397,0.77263783,-0.00242939,313.23810451,428.48202785,170.95427630,0.40805281,74.01692503,0.04240589]],
+['Neptuno','#6f8cff',5.4,[30.06992276,0.00026291,0.00859048,0.00005105,1.77004347,0.00035372,-55.12002969,218.45945325,44.96476227,-0.32241464,131.78422574,-0.00508664]]
+];
+function kep(M,e){let E=M+e*Math.sin(M);for(let i=0;i<10;i++)E-=(E-e*Math.sin(E)-M)/(1-e*Math.cos(E));return E}
+function planetE(el,T){const e=el[2]+el[3]*T,L=el[6]+el[7]*T,wb=el[8]+el[9]*T;let M=((L-wb)%360)*RD;M=Math.atan2(Math.sin(M),Math.cos(M));return kep(M,e)}
+function xyz(el,T,E){
+  const a=el[0]+el[1]*T,e=el[2]+el[3]*T,I=(el[4]+el[5]*T)*RD,wb=(el[8]+el[9]*T)*RD,O=(el[10]+el[11]*T)*RD,w=wb-O;
+  const xp=a*(Math.cos(E)-e),yp=a*Math.sqrt(1-e*e)*Math.sin(E);
+  const cw=Math.cos(w),sw=Math.sin(w),cI=Math.cos(I),sI=Math.sin(I),cO=Math.cos(O),sO=Math.sin(O);
+  return [(cw*cO-sw*sO*cI)*xp+(-sw*cO-cw*sO*cI)*yp,(cw*sO+sw*cO*cI)*xp+(-sw*sO+cw*cO*cI)*yp,(sw*sI)*xp+(cw*sI)*yp];
+}
+/*SS-END*/
+function drawSolar(){
+  const d=new Date(),T=(d.getTime()/86400000+2440587.5-2451545)/36525,C=500,K=80;
+  const P=(x,y)=>{const r=Math.hypot(x,y)||1,s=K*Math.sqrt(r)/r;return[C+x*s,C-y*s]};
+  let o='',p='',i=0;
+  for(const [nm,col,rad,el] of EL){
+    const pts=[];
+    for(let k=0;k<=180;k++){const v=xyz(el,T,k/180*2*Math.PI),q=P(v[0],v[1]);pts.push(q[0].toFixed(1)+' '+q[1].toFixed(1))}
+    o+='<path class="orb" pathLength="1" style="--d:'+(0.9+i*.18).toFixed(2)+'s" d="M'+pts.join('L')+'Z"/>';
+    const v=xyz(el,T,planetE(el,T)),q=P(v[0],v[1]),dist=Math.hypot(v[0],v[1],v[2]);
+    const cx=q[0].toFixed(1),cy=q[1].toFixed(1);
+    p+='<g class="pl" style="--d:'+(2.2+i*.12).toFixed(2)+'s"><title>'+nm+' \u00b7 '+dist.toFixed(2).replace('.',',')+' UA del Sol</title>'
+      +'<circle cx="'+cx+'" cy="'+cy+'" r="'+(rad*2.2).toFixed(1)+'" fill="'+col+'" opacity=".35" filter="url(#ssGlow)"/>'
+      +'<circle cx="'+cx+'" cy="'+cy+'" r="'+rad+'" fill="'+col+'"/>'
+      +(nm==='Saturno'?'<ellipse cx="'+cx+'" cy="'+cy+'" rx="'+(rad*2)+'" ry="'+(rad*.65)+'" fill="none" stroke="'+col+'" stroke-opacity=".6" transform="rotate(-20 '+cx+' '+cy+')"/>':'')
+      +'<text x="'+(q[0]+rad+7).toFixed(1)+'" y="'+(q[1]-rad-3).toFixed(1)+'">'+nm+'</text></g>';
+    i++;
+  }
+  const defs='<defs><radialGradient id="ssSun"><stop offset="0" stop-color="#fff6d8"/><stop offset=".35" stop-color="#ffd479"/><stop offset="1" stop-color="#ffd479" stop-opacity="0"/></radialGradient><filter id="ssGlow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="3"/></filter></defs>';
+  const sun='<g class="pl" style="--d:.6s"><title>Sol</title><circle cx="500" cy="500" r="52" fill="url(#ssSun)"/><circle cx="500" cy="500" r="12" fill="#ffe9b8"/></g>';
+  $o('ss-wrap').innerHTML='<svg id="ss-svg" viewBox="-30 -20 1060 1040" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Posiciones actuales de los planetas del Sistema Solar">'+defs+o+sun+p+'</svg>';
+  $o('ss-cap').textContent='Posiciones calculadas para el '+d.toLocaleDateString('es-ES',{day:'numeric',month:'long',year:'numeric'})+' \u00b7 escala de distancias comprimida';
+}
+const _sp4=setPageActive;
+setPageActive=function(page){const r=_sp4.apply(this,arguments);if(page==='guide')drawSolar();return r};
+}
+}
 setView(home);
 draw();
 })();
