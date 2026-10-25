@@ -100,6 +100,12 @@ body.mini-open #mini{width:var(--mw,clamp(280px,20vw,380px))}
 body.principal-page #mini{display:none}
 @media(max-width:700px){#mini{position:absolute;left:0;right:0;bottom:0;width:auto;height:0;border-left:0;border-top:1px solid #232846;transition:height .25s}body.mini-open #mini{width:auto;height:58vh}.m-in{width:100%}}
 @media(max-width:700px){.m-img{max-height:32vh}}
+#credit{display:none;position:absolute;right:clamp(18px,4vw,48px);bottom:12px;z-index:2;margin:0;color:#8f98c0;font:12px/1.4 system-ui,sans-serif;letter-spacing:.02em}
+#credit a{color:#aebbe1;text-decoration:none}
+#credit a:hover{color:#eef1ff;text-decoration:underline}
+body.principal-page #credit{display:block}
+#contacts{bottom:calc(clamp(18px,4vh,42px) + 26px)}
+@media(max-width:700px){#credit{left:18px;right:18px;text-align:center}#featured-tools{bottom:40px}#contacts{bottom:172px}}
 </style>
 </head>
 <body class="principal-page">
@@ -117,7 +123,8 @@ body.principal-page #mini{display:none}
           <span class="featured-arrow" aria-hidden="true">→</span>
         </a>
       </div>
-    <div id="contacts" aria-label="Contacto">
+    <p id="credit">Creado con <a href="https://quartz.jzhao.xyz/" target="_blank" rel="noopener noreferrer">Quartz v5.0.0</a> &copy; 2026 &middot; <a href="https://github.com/VeroSnowy/VeroCosmos" target="_blank" rel="noopener noreferrer">GitHub</a></p>
+  <div id="contacts" aria-label="Contacto">
   <h3>Contacto</h3>
   <a href="https://www.instagram.com/vero_snowy/" target="_blank" rel="noopener noreferrer"><span>Instagram</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
   <a href="https://www.linkedin.com/in/jes%C3%BAs-leiva-romero/" target="_blank" rel="noopener noreferrer"><span>LinkedIn</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></a>
