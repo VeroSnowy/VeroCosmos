@@ -439,7 +439,7 @@ cv.addEventListener('mouseleave',()=>{if(!dragging){hov=null;tip.style.display='
 cv.addEventListener('click',ev=>{
   if(dragMoved){dragMoved=false;return}
   const n=hit(ev);if(!n)return;hov=n;
-  if(n.obj)openPanel(n);else{closePanel();setView(n)}
+  if(n.obj||(n===focus&&/seestar/i.test(n.s)))openPanel(n);else{closePanel();setView(n)}
 });
 function openFull(n){closeMini();document.body.classList.add('open');$('frame').src=pageUrl(n.s)}
 function openPanel(n){openMini(n)}
