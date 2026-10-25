@@ -86,7 +86,21 @@ body.open #panel{width:min(48vw,720px)}
 #contacts a{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:9px 10px;border-radius:7px;color:#eef1ff;text-decoration:none}
 #contacts a:hover,#contacts a:focus-visible{background:#1a2040;outline:none}
 #contacts svg{width:20px;height:20px;flex:none;color:#a9b9e9}
-@media(max-width:700px){#contacts{right:18px;left:18px;width:auto;bottom:150px}}</style>
+@media(max-width:700px){#contacts{right:18px;left:18px;width:auto;bottom:150px}}#mini{flex:none;width:0;overflow:hidden;background:#0b0e1f;border-left:1px solid #232846;transition:width .25s}
+body.mini-open #mini{width:var(--mw,clamp(280px,20vw,380px))}
+.m-in{position:relative;width:var(--mw,clamp(280px,20vw,380px));height:100%;overflow-y:auto;padding-bottom:24px}
+.m-img{display:none;width:100%;height:auto;max-height:none;object-fit:contain;background:#05060f}
+.m-body{padding:16px 18px}
+.m-title{margin:0 0 4px;font:400 21px/1.2 "Iowan Old Style",Georgia,serif;color:#f5f7ff}
+.m-date{margin:0 0 12px;color:#8f98c0;font-size:12px;letter-spacing:.04em}
+.m-text{margin:0 0 16px;color:#c9d1f2;font-size:14px;line-height:1.55;white-space:pre-line}
+#mfull{background:#151a32;color:#eef1ff;border:1px solid #343b60;border-radius:7px;padding:8px 12px;font:inherit;cursor:pointer}
+#mfull:hover{border-color:#8ab4ff}
+#mclose{position:absolute;top:8px;right:8px;z-index:2;width:30px;height:30px;border-radius:50%;border:1px solid #232846;background:#0e1226cc;color:#eef1ff;cursor:pointer;font-size:17px}
+body.principal-page #mini{display:none}
+@media(max-width:700px){#mini{position:absolute;left:0;right:0;bottom:0;width:auto;height:0;border-left:0;border-top:1px solid #232846;transition:height .25s}body.mini-open #mini{width:auto;height:58vh}.m-in{width:100%}}
+@media(max-width:700px){.m-img{max-height:32vh}}
+</style>
 </head>
 <body class="principal-page">
 <div id="app">
@@ -131,6 +145,7 @@ body.open #panel{width:min(48vw,720px)}
     </button>
   </div>
   <aside id="panel"><button id="close" aria-label="Cerrar">×</button><iframe id="frame" title="Información"></iframe></aside>
+  <aside id="mini" aria-label="Resumen del objeto"><div class="m-in"><button id="mclose" type="button" aria-label="Cerrar">&times;</button><img class="m-img" alt=""><div class="m-body"><h2 class="m-title"></h2><p class="m-date"></p><p class="m-text"></p><button id="mfull" type="button">Ver ficha completa &rarr;</button></div></div></aside>
 </div>
 <div id="tip"></div>
 <script>
@@ -342,6 +357,7 @@ function draw(){
 }
 
 // ---- Vista previa al pasar el ratón: lee la propia página de la nota
+const noLinks=x=>{const c=x.cloneNode(true);c.querySelectorAll('a').forEach(a=>a.remove());return c.textContent.trim()};
 const pageUrl=s=>new URL(('../'+s.split('/').map(encodeURIComponent).join('/')).replace(/index$/,''),location.href).href;
 const cache=new Map();
 function preview(n){
@@ -349,8 +365,8 @@ function preview(n){
     try{
       const u=pageUrl(n.s),doc=new DOMParser().parseFromString(await(await fetch(u)).text(),'text/html');
       const art=doc.querySelector('article')||doc.body,img=art.querySelector('img');
-      const p=[...art.querySelectorAll('p')].map(x=>x.textContent.trim()).find(x=>x.length>20)||'';
-      return{img:img?new URL(img.getAttribute('src'),u).href:'',txt:p.slice(0,150)};
+      const md=((doc.querySelector('meta[name="description"]')||{}).content||'').trim();const p=md||[...art.querySelectorAll('p')].filter(x=>noLinks(x).length>20).map(x=>x.textContent.trim()).find(Boolean)||'';
+      return{img:img?new URL(img.getAttribute('src'),u).href:'',txt:(p.length>320?p.slice(0,320).replace(/\s+\S*$/,"")+"\u2026":p)};
     }catch(e){return{img:'',txt:''}}
   })());
   return cache.get(n.s);
@@ -418,8 +434,40 @@ cv.addEventListener('click',ev=>{
   const n=hit(ev);if(!n)return;hov=n;
   if(n.obj)openPanel(n);else{closePanel();setView(n)}
 });
-function openPanel(n){document.body.classList.add('open');$('frame').src=pageUrl(n.s)}
-function closePanel(){document.body.classList.remove('open')}
+function openFull(n){closeMini();document.body.classList.add('open');$('frame').src=pageUrl(n.s)}
+function openPanel(n){openMini(n)}
+const mini=$('mini'),dcache=new Map();let miniTok=0,miniNode=null;
+function closeMini(){miniTok++;document.body.classList.remove('mini-open')}
+function detail(n){
+  if(!dcache.has(n.s))dcache.set(n.s,(async()=>{
+    try{
+      const u=pageUrl(n.s),doc=new DOMParser().parseFromString(await(await fetch(u)).text(),'text/html');
+      const art=doc.querySelector('article')||doc.body;
+      const imgs=[...art.querySelectorAll('img')].map(i=>{const s=i.getAttribute('src')||'';const m=decodeURIComponent(s).match(/\d{4}-\d{2}-\d{2}/);return{s,d:m?m[0]:''}}).filter(x=>x.s);
+      imgs.sort((a,b)=>b.d.localeCompare(a.d));
+      const best=imgs[0];
+      const md=((doc.querySelector('meta[name="description"]')||{}).content||'').trim();
+      const ps=[...art.querySelectorAll('p')].filter(x=>noLinks(x).length>20).map(x=>x.textContent.trim()).filter(x=>x!==md);
+      const txt=ps[0]||'';
+      
+      return{img:best?new URL(best.s,u).href:'',date:best?best.d:'',txt:txt||md};
+    }catch(e){return{img:'',date:'',txt:''}}
+  })());
+  return dcache.get(n.s);
+}
+async function openMini(n){
+  const tok=++miniTok;miniNode=n;document.body.classList.remove('open');
+  const q=s=>mini.querySelector(s),im=q('.m-img');
+  q('.m-title').textContent=n.t;q('.m-date').textContent='';q('.m-text').textContent='Cargando...';im.style.display='none';
+  document.body.classList.add('mini-open');
+  const d=await detail(n);if(tok!==miniTok)return;
+  q('.m-text').textContent=d.txt||'Esta nota a\u00fan no tiene texto.';
+  q('.m-date').textContent=d.date?'\u00daltima foto: '+d.date.split('-').reverse().join('/'):'';
+  if(d.img){im.onload=()=>{const ar=im.naturalWidth/Math.max(1,im.naturalHeight);const w=Math.round(Math.min(Math.max(innerHeight*.5*ar,280),Math.min(480,innerWidth*.4)));document.body.style.setProperty('--mw',w+'px')};im.src=d.img;im.alt=n.t;im.style.display='block'}else{document.body.style.removeProperty('--mw')}
+}
+$('mclose').onclick=closeMini;
+$('mfull').onclick=()=>{if(miniNode)openFull(miniNode)};
+function closePanel(){document.body.classList.remove('open');closeMini()}
 $('close').onclick=closePanel;
 
 $('all').onclick=()=>{closePanel();setView(null)};$('goHome').onclick=()=>{closePanel();setView(home)};

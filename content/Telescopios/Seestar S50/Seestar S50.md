@@ -2,7 +2,7 @@
 [[NGC 2024 - Nebulosa de la Flama]]
 [[NGC 253 - Galaxia Moneda de Plata]]
 [[M2 - Cúmulo Globular]]
-[[M12 - Nebulosa de Orión]]
+[[M42 - Nebulosa de Orión]]
 [[Sol]]
 [[Luna]]
 [[Saturno]]
