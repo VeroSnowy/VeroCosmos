@@ -76,7 +76,7 @@ body.open #panel{width:min(48vw,720px)}
 #panel iframe{width:100%;height:100%;border:0;background:#0b0e1f}
 #close{position:absolute;top:10px;right:12px;width:32px;height:32px;border-radius:50%;border:1px solid var(--line);background:#0e1226;color:var(--fg);font-size:18px;cursor:pointer;z-index:2}
 #tip{position:fixed;display:none;pointer-events:none;width:250px;background:#0e1226ee;border:1px solid var(--line);border-radius:8px;padding:10px;z-index:5}
-#tip img{display:block;width:100%;max-height:140px;object-fit:cover;border-radius:5px;margin-bottom:8px}
+#tip img{display:block;width:100%;height:auto;max-height:45vh;object-fit:contain;border-radius:5px;margin-bottom:8px}
 #tip b{display:block;font:400 17px/1.2 "Iowan Old Style",Georgia,serif;margin-bottom:4px}
 #tip span{color:var(--mut);font-size:13px}
 @media(max-width:700px){body.open #panel{width:100vw;position:absolute;inset:0}}
@@ -106,6 +106,44 @@ body.principal-page #mini{display:none}
 body.principal-page #credit{display:block}
 #contacts{bottom:calc(clamp(18px,4vh,42px) + 26px)}
 @media(max-width:700px){#credit{left:18px;right:18px;text-align:center}#featured-tools{bottom:40px}#contacts{bottom:172px}}
+@media(min-width:701px){#mini{position:relative}}
+#mini>#mclose{right:20px;z-index:3}
+#featured-guide-link{display:flex;align-items:center;gap:15px;margin-top:10px;padding:16px 18px;border:1px solid #343d63;border-radius:13px;background:linear-gradient(120deg,#111a35d9,#0b1025d9);color:var(--fg);text-decoration:none;box-shadow:0 12px 34px #0003;backdrop-filter:blur(12px);transition:transform .2s ease,border-color .2s ease,background .2s ease}
+#featured-guide-link:hover,#featured-guide-link:focus-visible{transform:translateY(-3px);border-color:#8199d8;background:linear-gradient(120deg,#182448ed,#101832ed);outline:none}
+#featured-guide-link .featured-icon{display:flex;align-items:center;justify-content:center;flex:none;width:46px;height:46px;border:1px solid #414e7a;border-radius:10px;background:#192443;color:#b9c9ff}
+#featured-guide-link .featured-icon svg{width:25px;height:25px}
+#featured-guide-link .featured-copy{display:flex;flex:1;min-width:0;flex-direction:column;gap:4px}
+#featured-guide-link .featured-name{font:400 19px/1.2 "Iowan Old Style",Georgia,serif;color:#f5f7ff}
+#featured-guide-link .featured-description{font-size:13px;line-height:1.45;color:#aeb9dd}
+#featured-guide-link .featured-arrow{flex:none;color:#8798c9;font-size:20px;transition:transform .2s ease}
+#featured-guide-link:hover .featured-arrow{transform:translateX(3px)}
+#guide-view{position:absolute;inset:0;display:none;overflow:hidden;background:radial-gradient(ellipse at 50% 40%,#111936 0%,#080b19 45%,#05060f 80%)}
+body.guide-page #guide-view{display:block}
+body.guide-page #cv,body.guide-page #search-wrap,body.guide-page #nav,body.guide-page #msg,body.guide-page #recenter{display:none!important}
+body.guide-page #head h1{display:none}
+#g-main{position:absolute;inset:0;overflow-y:auto;padding:84px clamp(18px,4vw,48px) 32px}
+#g-wrap{max-width:980px;margin:0 auto}
+#g-wrap h2{margin:0 0 8px;font:400 clamp(34px,6vw,64px)/1.08 "Iowan Old Style",Georgia,serif;color:#f5f7ff;text-shadow:0 0 30px #8ab4ff30}
+.g-lead{margin:0 0 28px;color:#b8c4e6;font:400 clamp(16px,2vw,21px)/1.5 "Iowan Old Style",Georgia,serif}
+#g-count{margin:0 0 12px;color:#8f98c0;font-size:13px}
+#g-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.g-empty{color:#8f98c0}
+.g-card{display:block;text-align:left;padding:14px 16px;border:1px solid #343d63;border-radius:11px;background:linear-gradient(120deg,#111a35d9,#0b1025d9);color:var(--fg);font:inherit;cursor:pointer;transition:transform .2s ease,border-color .2s ease}
+.g-card:hover,.g-card:focus-visible{transform:translateY(-2px);border-color:#8199d8;outline:none}
+.g-card b{display:block;margin-bottom:3px;font:400 17px/1.25 "Iowan Old Style",Georgia,serif;color:#f5f7ff}
+.g-card small{color:#8f98c0;font-size:12px}
+#g-search{position:absolute;top:12px;right:18px;width:min(320px,calc(100% - 36px));z-index:4}
+#g-search span{position:absolute;left:12px;top:10px;color:#8f98c0;pointer-events:none;font-size:16px}
+#g-input{width:100%;height:38px;padding:0 13px 0 37px;border:1px solid #343b60;border-radius:8px;outline:none;background:#0e1226ef;color:var(--fg);font:inherit;box-shadow:0 5px 22px #0003}
+#g-input::placeholder{color:#8f98c0}
+#g-input:focus{border-color:#8ab4ff;box-shadow:0 0 0 2px #8ab4ff22}
+@keyframes gIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@keyframes gInR{from{opacity:0;transform:translateX(48px)}to{opacity:1;transform:none}}
+#guide-view:not(.play) .g-in{opacity:0}
+#guide-view.play .g-in{animation:gIn .7s cubic-bezier(.2,.8,.2,1) var(--d,0s) backwards}
+#guide-view.play .g-right{animation-name:gInR}
+@media(prefers-reduced-motion:reduce){#guide-view.play .g-in{animation:none}}
+@media(max-width:700px){#featured-guide-link{padding:12px 14px;gap:12px}#featured-guide-link .featured-icon{width:40px;height:40px}#featured-guide-link .featured-name{font-size:17px}#featured-guide-link .featured-description{font-size:12px}#contacts{top:56px;bottom:auto;left:18px;right:18px;width:auto;display:flex;justify-content:center;gap:6px;padding:8px}#contacts h3,#contacts a span{display:none}#contacts a{padding:9px 14px}#g-search{width:calc(100% - 84px)}#g-main{padding-top:72px}}
 </style>
 </head>
 <body class="principal-page">
@@ -200,7 +238,7 @@ const homeOrientation={yaw:skyYaw,pitch:skyPitch,zoom:skyZoom};
 let groupYaw=0,groupPitch=0,groupZoom=1,dragging=false,dragMoved=false,lastPointer=null;
 let resetAnimation=null;
 const stars=Array.from({length:200},()=>({x:Math.random(),y:Math.random(),r:Math.random()*1.1+.2,a:Math.random()*.6+.2}));
-new ResizeObserver(()=>{const d=devicePixelRatio||1,r=cv.getBoundingClientRect();W=r.width;H=r.height;cv.width=W*d;cv.height=H*d;ctx.setTransform(d,0,0,d,0,0)}).observe(cv);
+new ResizeObserver(()=>{const d=devicePixelRatio||1,r=cv.getBoundingClientRect();W=r.width;H=r.height;cv.width=W*d;cv.height=H*d;ctx.setTransform(d,0,0,d,0,0);try{window.__sync=true;draw()}catch(e){}finally{window.__sync=false}}).observe(cv);
 
 // ---- Datos: salen de contentIndex.json, que Quartz genera solo
 let idx={};
@@ -272,7 +310,7 @@ function setView(f){
   groupYaw=0;groupPitch=0;groupZoom=1;sc=1;
   msg.textContent=f?'Vista de grupo 3D · Arrastra con el ratón para girar · Rueda para acercar o alejar · Clic en un objeto para abrir su ficha o en otro grupo para explorarlo.':'Bóveda celeste 3D · Arrastra con el ratón para girar · Rueda para acercar o alejar · Clic en un objeto para abrir su ficha.';
   const keep=f?new Set([f.s,...f.adj]):null;
-  baseView=f?all.filter(n=>keep.has(n.s)):all;
+  baseView=f?all.filter(n=>keep.has(n.s)&&!isParent(n,f)):all;
   refreshSearch();renderResults();
   $('goHome').style.display=home?'block':'none';$('all').style.display='block';$('goHome').classList.toggle('active',!!home&&f===home);$('all').classList.toggle('active',!f);
   alpha=1;
@@ -360,7 +398,7 @@ function draw(){
     if((!n.obj||n===hov||focus)&& (focus||depth>-.25||n===hov)){ctx.fillStyle='#c9d1f2';ctx.font='13px system-ui';ctx.textAlign='center';ctx.fillText(n.t,x,y-r-7)}
     ctx.globalAlpha=1;
   }
-  requestAnimationFrame(draw);
+  if(!window.__sync)requestAnimationFrame(draw);
 }
 
 // ---- Vista previa al pasar el ratón: lee la propia página de la nota
@@ -380,10 +418,10 @@ function preview(n){
 }
 const tip=$('tip');
 async function showTip(n,ev){
-  const pv=await preview(n);if(hov!==n)return;
+  tip.innerHTML='<b></b>';tip.firstChild.textContent=n.t;tip.style.display='block';moveTip(ev);const pv=await preview(n);if(hov!==n)return;
   tip.innerHTML=(pv.img?'<img src="'+pv.img+'" alt="">':'')+'<b></b><span></span>';
-  tip.querySelector('b').textContent=n.t;tip.querySelector('span').textContent=pv.txt||(n.obj?'Clic para abrir la ficha':'Clic para ver su grupo');
-  tip.style.display='block';moveTip(ev);
+  tip.querySelector('b').textContent=n.t;tip.querySelector('span').textContent=(n.obj?pv.txt:'')||(n.obj?'Clic para abrir la ficha':'Clic para ver su grupo');
+  tip.style.display='block';moveTip(ev);{const im=tip.querySelector('img');if(im)im.onload=()=>moveTip(ev)}
 }
 function moveTip(ev){const x=Math.min(ev.clientX+16,innerWidth-266),y=Math.min(ev.clientY+16,innerHeight-tip.offsetHeight-8);tip.style.left=x+'px';tip.style.top=y+'px'}
 
@@ -472,7 +510,7 @@ async function openMini(n){
   q('.m-date').textContent=d.date?'\u00daltima foto: '+d.date.split('-').reverse().join('/'):'';
   if(d.img){im.onload=()=>{const ar=im.naturalWidth/Math.max(1,im.naturalHeight);const w=Math.round(Math.min(Math.max(innerHeight*.5*ar,280),Math.min(480,innerWidth*.4)));document.body.style.setProperty('--mw',w+'px')};im.src=d.img;im.alt=n.t;im.style.display='block'}else{document.body.style.removeProperty('--mw')}
 }
-$('mclose').onclick=closeMini;
+$('mclose').onclick=closeMini;mini.appendChild($('mclose'));
 $('mfull').onclick=()=>{if(miniNode)openFull(miniNode)};
 function closePanel(){document.body.classList.remove('open');closeMini()}
 $('close').onclick=closePanel;
@@ -491,6 +529,71 @@ const _sv=setView;
 const sync=f=>{tb.textContent=(home&&f===home)?'Ver todo el atlas':'Atlas Fotogr\u00e1fico'};
 setView=function(f){_sv(f);sync(f)};
 tb.onclick=()=>{closePanel();setView(home&&focus!==home?home:null)};}
+/* Guia astronomica: tarjeta, entrada de menu y pantalla con buscador */
+{
+const COMPASS='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>';
+const NAME='Gu\u00eda Astron\u00f3mica';
+const menu=$('page-menu'),stage=$('stage'),ft=$('featured-tools');
+const gl=document.createElement('a');gl.id='guide-page-link';gl.href='#guia';
+gl.innerHTML='<span>'+NAME+'</span>'+COMPASS.replace('<svg ','<svg class="map-icon" ');
+menu.append(gl);
+const fc=document.createElement('a');fc.id='featured-guide-link';fc.href='#guia';fc.setAttribute('aria-label','Abrir '+NAME);
+fc.innerHTML='<span class="featured-icon" aria-hidden="true">'+COMPASS+'</span><span class="featured-copy"><span class="featured-name">'+NAME+'</span><span class="featured-description">Para aquellos que empiezan desde cero.</span></span><span class="featured-arrow" aria-hidden="true">\u2192</span>';
+ft.append(fc);
+const gv=document.createElement('section');gv.id='guide-view';gv.setAttribute('aria-label',NAME);
+gv.innerHTML='<div id="g-search" class="g-in g-right" style="--d:.7s"><span aria-hidden="true">\u2315</span><input id="g-input" type="search" placeholder="Buscar objetos\u2026" autocomplete="off" aria-label="Buscar objetos"></div><div id="g-main"><div id="g-wrap"><h2 class="g-in" style="--d:.1s">'+NAME+'</h2><p class="g-lead g-in" style="--d:.4s">Para aquellos que empiezan desde cero.</p><p id="g-count" class="g-in" style="--d:.9s"></p><div id="g-grid"></div></div></div>';
+stage.append(gv);
+const gg=$('g-grid'),gc=$('g-count'),gi=$('g-input');
+const norm=s=>s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+const cat=s=>/\/messier\//.test(s)?'Cat\u00e1logo Messier':/\/ngc\//.test(s)?'Cat\u00e1logo NGC':/sistsolar/.test(s)?'Sistema Solar':'Otros';
+const objs=all.filter(n=>n.obj).sort((a,b)=>a.t.localeCompare(b.t,'es'));
+function render(q,first){
+  const ws=norm(q).split(/\s+/).filter(Boolean);
+  const list=objs.filter(n=>{const h=norm(n.t+' '+cat(n.s)),h2=h.replace(/[\s_-]+/g,'');return ws.every(w=>h.includes(w)||h2.includes(w.replace(/[\s_-]+/g,'')))});
+  gc.textContent=(ws.length?list.length+' de '+objs.length:objs.length)+(objs.length===1?' objeto fotografiado':' objetos fotografiados');
+  gg.replaceChildren();
+  list.forEach((n,i)=>{const b=document.createElement('button');b.type='button';b.className='g-card g-in';b.style.setProperty('--d',(first?1.1+i*.07:i*.025)+'s');b.innerHTML='<b></b><small></small>';b.firstChild.textContent=n.t;b.lastChild.textContent=cat(n.s);b.addEventListener('click',()=>openPanel(n));gg.append(b)});
+  if(!list.length){const e=document.createElement('p');e.className='g-empty';e.textContent='No hay coincidencias.';gg.append(e)}
+}
+gi.addEventListener('input',()=>render(gi.value,false));
+gi.addEventListener('keydown',e=>{if(e.key==='Enter'){const b=gg.querySelector('.g-card');if(b)b.click()}});
+function playGuide(){gi.value='';render('',true);gv.classList.remove('play');void gv.offsetWidth;gv.classList.add('play')}
+const _spa=setPageActive;
+setPageActive=function(page){
+  const g=page==='guide';
+  _spa(g?'atlas':page);
+  document.body.classList.toggle('guide-page',g);
+  if(g){atlasPageLink.removeAttribute('aria-current');gl.setAttribute('aria-current','page');playGuide()}else gl.removeAttribute('aria-current');
+};
+gl.addEventListener('click',ev=>{ev.preventDefault();setPageActive('guide')});
+fc.addEventListener('click',ev=>{ev.preventDefault();setPageActive('guide')});
+}
+/* Precarga de previsualizaciones (HTML e imagenes) al entrar en el atlas o la guia */
+{
+let started=false;const keep=[];
+function startPrefetch(){
+  if(started)return;started=true;
+  if(navigator.connection&&navigator.connection.saveData)return;
+  const queue=all.filter(n=>n.obj).slice(0,60);let i=0;
+  const next=async()=>{
+    if(i>=queue.length)return;
+    const n=queue[i++];
+    try{
+      const pv=await preview(n);
+      const dd=typeof detail==='function'?await detail(n):null;
+      new Set([pv&&pv.img,dd&&dd.img].filter(Boolean)).forEach(u=>{const im=new Image();im.decoding='async';im.src=u;keep.push(im)});
+    }catch(e){}
+    setTimeout(next,250);
+  };
+  setTimeout(next,600);
+}
+const _sp3=setPageActive;
+setPageActive=function(page){if(page!=='principal')startPrefetch();return _sp3.apply(this,arguments)};
+}
+/* Grupos locales: ocultar los nodos "padre" (los mas cercanos al inicio que el grupo actual) */
+const dist=new Map();
+if(home){const q=[home];dist.set(home.s,0);while(q.length){const a=q.shift();a.adj.forEach(s=>{if(!dist.has(s)&&N[s]){dist.set(s,dist.get(a.s)+1);q.push(N[s])}})}}
+function isParent(n,f){return n!==f&&dist.has(n.s)&&dist.has(f.s)&&dist.get(n.s)<dist.get(f.s)}
 setView(home);
 draw();
 })();
