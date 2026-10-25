@@ -7,7 +7,7 @@ configuration:
   analytics:
     provider: plausible
   locale: es-ES
-  baseUrl: verosnowy.github.io/atlas-astrofotografico
+  baseUrl: verosnowy.github.io/VeroCosmos
   ignorePatterns:
     - private
     - templates
@@ -239,7 +239,7 @@ plugins:
     enabled: true
     options:
       links:
-        GitHub: https://github.com/VeroSnowy/atlas-astrofotografico
+        GitHub: https://github.com/VeroSnowy/VeroCosmos
     layout:
       position: footer
       priority: 50
