@@ -7,7 +7,7 @@ configuration:
   analytics:
     provider: plausible
   locale: es-ES
-  baseUrl: verosnowy.github.io/VeroCosmos
+  baseUrl: verocosmos.com
   ignorePatterns:
     - private
     - templates
@@ -240,6 +240,7 @@ plugins:
     options:
       links:
         GitHub: https://github.com/VeroSnowy/VeroCosmos
+        Quienes somos: https://verocosmos.com/static/quienes-somos.html
     layout:
       position: footer
       priority: 50

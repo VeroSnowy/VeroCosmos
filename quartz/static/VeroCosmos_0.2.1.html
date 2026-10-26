@@ -50,7 +50,7 @@ body.principal-page #cv,body.principal-page #search-wrap,body.principal-page #na
 body.principal-page #principal-view{display:flex}
 body.principal-page #head h1{display:none}
 body.principal-page #panel{display:none}
-#search-wrap{position:absolute;top:12px;right:18px;width:min(320px,calc(100% - 36px));z-index:4}
+#search-wrap{position:absolute;top:12px;right:64px;width:min(320px,calc(100% - 36px));z-index:4}
 #search{width:100%;height:38px;padding:0 13px 0 37px;border:1px solid #343b60;border-radius:8px;outline:none;background:#0e1226eF;color:var(--fg);font:inherit;box-shadow:0 5px 22px #0003}
 #search::placeholder{color:#8f98c0}
 #search:focus{border-color:#8ab4ff;box-shadow:0 0 0 2px #8ab4ff22}
@@ -145,7 +145,7 @@ body.guide-page #head h1{display:none}
 @media(prefers-reduced-motion:reduce){#guide-view.play .g-in{animation:none}}
 @media(max-width:700px){#featured-guide-link{padding:12px 14px;gap:12px}#featured-guide-link .featured-icon{width:40px;height:40px}#featured-guide-link .featured-name{font-size:17px}#featured-guide-link .featured-description{font-size:12px}#contacts{top:56px;bottom:auto;left:18px;right:18px;width:auto;display:flex;justify-content:center;gap:6px;padding:8px}#contacts h3,#contacts a span{display:none}#contacts a{padding:9px 14px}#g-search{width:calc(100% - 84px)}#g-main{padding-top:72px}}
 #guide-view{container-type:inline-size}
-#ghead{position:absolute;top:10px;left:64px;right:16px;display:flex;align-items:baseline;gap:14px;pointer-events:none}
+#ghead{position:absolute;top:10px;left:64px;right:64px;display:flex;align-items:baseline;gap:14px;pointer-events:none}
 #ghead h2{margin:0;font:400 24px/1.1 "Iowan Old Style",Georgia,serif;color:#f5f7ff}
 #ghead p{margin:0;color:#b8c4e6;font:400 15px/1.3 "Iowan Old Style",Georgia,serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #gcols{position:absolute;top:60px;left:16px;right:16px;bottom:16px;display:grid;grid-template-columns:minmax(190px,1fr) minmax(0,2.4fr) minmax(280px,1.3fr);gap:12px}
@@ -224,14 +224,43 @@ body.guide-page #head h1{display:none}
 @media(max-width:700px){
 #cv{touch-action:none}
 body:not(.principal-page):not(.guide-page) #head h1{display:none}
-#search-wrap{left:62px;right:12px;width:auto}
+#search-wrap{left:62px;right:60px;width:auto}
 #nav{top:58px;left:12px;flex-wrap:wrap}
 #msg{display:none}
 body.mini-open #stage{height:42vh;flex:none;width:100%;align-self:flex-start}
 #gcols{left:10px;right:10px;bottom:10px}
 #ghead{left:60px}
 }
+.gk{display:flex;align-items:center;gap:14px;width:100%;margin:0 0 10px;padding:14px 16px;text-align:left;border:1px solid #343d63;border-radius:13px;background:linear-gradient(120deg,#111a35d9,#0b1025d9);color:var(--fg);font:inherit;cursor:pointer;transition:transform .2s ease,border-color .2s ease,background .2s ease}
+.gk:hover,.gk:focus-visible{transform:translateY(-2px);border-color:#8199d8;background:linear-gradient(120deg,#182448ed,#101832ed);outline:none}
+.gk-ic{display:flex;align-items:center;justify-content:center;flex:none;width:44px;height:44px;border:1px solid #414e7a;border-radius:10px;background:#192443;color:#b9c9ff}
+.gk-ic svg{width:24px;height:24px}
+.gk-t{font:400 17px/1.25 "Iowan Old Style",Georgia,serif;color:#f5f7ff}
+@supports(height:100dvh){html,body,#app{height:100dvh}}
+@media(max-width:700px){
+#recenter{right:14px;bottom:calc(24px + env(safe-area-inset-bottom))}
+body.mini-open #stage{height:42dvh}
+#mini{position:fixed}
+body.mini-open #mini{height:58dvh}
+.m-in{padding-bottom:calc(28px + env(safe-area-inset-bottom))}
+#mfull{position:sticky;bottom:10px;box-shadow:0 0 0 10px #0b0e1f}
+body.open #panel{position:fixed;inset:0;width:100vw;height:100dvh}
+body.principal-page #principal-view{justify-content:flex-start;overflow-y:auto;overflow-x:hidden;padding:max(72px,13vh) 0 calc(28px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch}
+body.principal-page #principal-view::before{position:fixed}
+body.principal-page #principal-title{order:1;flex:none}
+body.principal-page #principal-subtitle{order:2;flex:none}
+body.principal-page #featured-tools{order:3;position:static;width:calc(100% - 36px);max-width:420px;margin:34px 0 0}
+body.principal-page #contacts{order:4;position:static;flex:none;display:block;width:calc(100% - 36px);max-width:420px;margin:22px 0 0;padding:14px 10px 10px}
+body.principal-page #contacts h3{display:block}
+body.principal-page #contacts a span{display:inline}
+body.principal-page #contacts a{padding:9px 10px}
+body.principal-page #credit{order:5;position:static;display:block;margin:20px 18px 0;text-align:center}
+}
+#logo-btn{position:absolute;top:12px;right:16px;z-index:7;display:flex;align-items:center;justify-content:center;width:40px;height:40px;padding:4px;border:1px solid #343b60;border-radius:11px;background:#0e1226ef;box-shadow:0 5px 22px #0003;transition:border-color .18s ease,transform .18s ease}
+#logo-btn:hover,#logo-btn:focus-visible{border-color:#8ab4ff;transform:scale(1.05);outline:none}
+#logo-btn img{display:block;width:100%;height:100%;object-fit:contain}
 </style>
+<link rel="icon" type="image/png" href="icon.png">
 </head>
 <body class="principal-page">
 <div id="app">
@@ -239,7 +268,7 @@ body.mini-open #stage{height:42vh;flex:none;width:100%;align-self:flex-start}
     <canvas id="cv"></canvas>
     <section id="principal-view" aria-label="Página principal">
       <h2 id="principal-title">Vero Cosmos</h2>
-      <p id="principal-subtitle">De dónde confluye el sueño de las estrellas fugaces...</p>
+      <p id="principal-subtitle">De donde confluye el sueño de las estrellas fugaces...</p>
       <div id="featured-tools" aria-label="Herramientas destacadas">
         <h3>Herramientas destacadas</h3>
         <a id="featured-atlas-link" href="#atlas" aria-label="Abrir Atlas Astrofotográfico">
@@ -542,7 +571,7 @@ cv.addEventListener('pointerdown',ev=>{
 cv.addEventListener('pointermove',ev=>{
   if(dragging&&lastPointer){
     const dx=ev.clientX-lastPointer.x,dy=ev.clientY-lastPointer.y;
-    if(Math.abs(dx)+Math.abs(dy)>1)dragMoved=true;
+    if(Math.abs(dx)+Math.abs(dy)>(NOHOVER?10:1))dragMoved=true;
     if(focus){groupYaw+=dx*.006;groupPitch+=dy*.006;}
     else{skyYaw+=dx*.006;skyPitch+=dy*.006;}
     lastPointer={x:ev.clientX,y:ev.clientY};
@@ -558,12 +587,12 @@ cv.addEventListener('wheel',ev=>{
 cv.addEventListener('mousemove',ev=>{
   if(dragging)return;
   const n=hit(ev);cv.style.cursor=n?'pointer':'grab';
-  if(n!==hov){hov=n;tip.style.display='none';if(n)showTip(n,ev)}else if(n)moveTip(ev);
+  if(NOHOVER)return;if(n!==hov){hov=n;tip.style.display='none';if(n)showTip(n,ev)}else if(n)moveTip(ev);
 });
 cv.addEventListener('mouseleave',()=>{if(!dragging){hov=null;tip.style.display='none'}});
 cv.addEventListener('click',ev=>{
   if(dragMoved){dragMoved=false;return}
-  const n=hit(ev);if(!n)return;hov=n;
+  const n=hit(ev);if(!n)return;hov=NOHOVER?null:n;
   if(n.obj||(n===focus&&/seestar/i.test(n.s)))openPanel(n);else{closePanel();setView(n)}
 });
 function openFull(n){closeMini();document.body.classList.add('open');$('frame').src=pageUrl(n.s)}
@@ -937,28 +966,91 @@ function openAstro(nm){
   dcache.set(sl,Promise.resolve({img:'',date:'',txt:'Todav\u00eda no hay ficha de este astro. Cuando a\u00f1adas una nota con su nombre dentro de una carpeta descripciones, aparecer\u00e1 aqu\u00ed.'}));
   openPanel(n);
 }
+/* Tierra-Luna v4: continentes, nubes, polos, craters, mares y estrellas */
+const ER=100,MR=36,LAT0=20*RD,SL0=Math.sin(LAT0),CL0=Math.cos(LAT0);
+function dens(pl){const o=[];for(let i=0;i<pl.length;i++){const a=pl[i],b=pl[(i+1)%pl.length],n=Math.max(1,Math.ceil(Math.max(Math.abs(b[0]-a[0]),Math.abs(b[1]-a[1]))/10));for(let k=0;k<n;k++)o.push([(a[0]+(b[0]-a[0])*k/n)*RD,(a[1]+(b[1]-a[1])*k/n)*RD])}return o}
+const LAND=[
+[[-168,66],[-162,70],[-150,71],[-140,69],[-128,70],[-115,68],[-100,70],[-90,68],[-82,66],[-78,62],[-65,60],[-60,55],[-56,52],[-60,47],[-66,45],[-70,42],[-74,38],[-76,35],[-80,32],[-81,26],[-82,29],[-85,30],[-90,29],[-94,29],[-97,26],[-97,21],[-92,18],[-88,21],[-87,16],[-83,15],[-83,10],[-79,9],[-77,8],[-83,8],[-86,12],[-92,14],[-100,17],[-105,20],[-109,25],[-112,29],[-115,31],[-117,33],[-121,35],[-124,40],[-124,46],[-125,49],[-130,54],[-135,58],[-142,60],[-150,60],[-156,57],[-164,55],[-165,60]],
+[[-77,8],[-72,12],[-64,10],[-58,7],[-52,5],[-50,0],[-44,-2],[-35,-6],[-35,-9],[-39,-14],[-41,-22],[-48,-26],[-49,-29],[-53,-34],[-58,-35],[-57,-38],[-62,-39],[-65,-41],[-67,-46],[-69,-51],[-72,-54],[-75,-50],[-74,-42],[-73,-37],[-71,-30],[-70,-20],[-76,-14],[-80,-7],[-81,-3],[-80,1],[-78,4]],
+[[-17,21],[-16,28],[-10,30],[-6,35],[0,36],[10,37],[11,33],[20,32],[25,32],[32,31],[34,28],[38,20],[43,12],[51,12],[48,5],[41,-2],[40,-10],[40,-15],[35,-23],[32,-28],[27,-34],[20,-35],[18,-32],[14,-23],[12,-14],[13,-6],[9,-1],[10,4],[5,5],[-4,5],[-8,4],[-13,8],[-17,14]],
+[[-9,37],[-9,43],[-2,44],[-4,48],[2,51],[8,54],[10,57],[8,58],[5,60],[6,63],[14,68],[22,70],[30,71],[40,67],[44,68],[55,68],[68,72],[80,73],[100,77],[113,74],[130,72],[142,72],[160,70],[172,67],[180,66],[176,62],[165,60],[160,54],[156,51],[155,59],[143,59],[137,54],[141,49],[135,43],[130,42],[129,35],[126,35],[125,39],[121,40],[122,37],[119,35],[121,31],[122,28],[119,24],[113,22],[108,21],[107,17],[109,12],[105,9],[103,12],[100,13],[99,8],[103,1.5],[100,3],[98,8],[98,16],[94,17],[92,22],[90,22],[87,21],[84,18],[80,15],[80,10],[77,8],[75,12],[73,17],[72,21],[69,22],[67,25],[61,25],[57,26],[56,27],[52,28],[50,30],[48,30],[50,26],[53,24],[56,25],[59,22],[57,18],[52,16],[45,13],[43,15],[39,21],[35,28],[34,31],[36,36],[32,36],[28,37],[26,40],[24,40],[22,37],[21,40],[19,42],[14,45],[13,44],[16,41],[18,40],[16,38],[12,42],[9,44],[3,43],[0,39],[-5,36]],
+[[114,-22],[122,-18],[130,-12],[136,-12],[142,-11],[146,-19],[153,-26],[151,-34],[146,-39],[140,-38],[135,-34],[130,-32],[124,-33],[115,-34],[114,-27]],
+[[-6,50],[1,51],[-2,57],[-5,58],[-6,55],[-3,54]],
+[[131,31],[135,34],[140,35],[142,40],[141,45],[139,41],[136,37],[132,34]],
+[[95,5],[98,4],[104,-2],[106,-6],[101,-3],[96,2]],
+[[109,1],[114,5],[118,6],[117,1],[116,-4],[111,-3]],
+[[131,-1],[141,-3],[150,-10],[142,-9],[135,-4]],
+[[44,-25],[48,-25],[50,-15],[49,-12],[44,-16]]
+].map(dens);
+const ICE=[
+[[-72,78],[-60,82],[-30,83],[-18,76],[-22,70],[-40,65],[-44,60],[-50,63],[-54,68],[-58,75]],
+[[-180,-70],[-120,-73],[-60,-65],[-58,-72],[0,-70],[60,-67],[120,-66],[180,-70],[180,-90],[-180,-90]]
+].map(dens);
+const CLD=[[-60,35,18,5],[20,50,22,6],[100,35,20,5],[150,-10,18,6],[-120,-20,22,6],[-10,-35,20,5],[60,0,16,5],[-150,45,20,5]].map((c,i)=>{const p=[];for(let k=0;k<10;k++){const a=k/10*2*Math.PI;p.push([(c[0]+c[2]*Math.cos(a)*(1+.3*Math.sin(3*a+i)))*RD,(c[1]+c[3]*Math.sin(a)*(1+.3*Math.cos(2*a+i)))*RD])}return p});
+const MARIA=[[-9,-9,10,7,-20],[6,-10,6,6,0],[12,-1,8,6,10],[18,9,5,4,0],[-18,3,8,13,-10],[-3,15,6,5,0],[-6,0,5,4,0]];
+const CRAT=[[-4,25,4],[-13,-2,3.4],[-21,-4,2.4],[-17,-12,2.4],[10,20,3],[22,-14,3],[0,-24,2.6],[26,4,2.6],[-24,12,3.4],[14,12,2.2],[-8,8,2],[4,-4,2],[19,19,2.2],[-27,-6,2]];
+let eLand=null,eIce=null,eCloud=null,eL0=0;
+function orth(lo,la,l0){const dl=lo-l0,cl=Math.cos(la),sl=Math.sin(la);return[cl*Math.sin(dl),CL0*sl-SL0*cl*Math.cos(dl),SL0*sl+CL0*cl*Math.cos(dl)]}
+/* contorno proyectado sobre la esfera: lo que queda detras se une siguiendo el borde del disco */
+function ppath(poly,l0){
+  const n=poly.length,Q=poly.map(p=>orth(p[0],p[1],l0));
+  let s0=-1;for(let i=0;i<n;i++)if(Q[i][2]>0){s0=i;break}
+  if(s0<0)return '';
+  const pts=[];let hid=null,ex=0;
+  for(let k=0;k<=n;k++){
+    const q=Q[(s0+k)%n];
+    if(q[2]>0){
+      if(hid!==null){const da=Math.atan2(Math.sin(hid-ex),Math.cos(hid-ex)),m=Math.max(1,Math.ceil(Math.abs(da)/.3));for(let j=0;j<=m;j++){const a=ex+da*j/m;pts.push([Math.cos(a),Math.sin(a)])}hid=null}
+      if(k<n)pts.push([q[0],q[1]]);
+    }else{
+      const a=Math.atan2(q[1],q[0]);
+      if(hid===null){ex=a;pts.push([Math.cos(a),Math.sin(a)])}
+      hid=a;
+    }
+  }
+  let s='';
+  for(let i=0;i<pts.length;i++)s+=(i?'L':'M')+(OX+ER*pts[i][0]).toFixed(1)+' '+(OY-ER*pts[i][1]).toFixed(1);
+  return s+'Z';
+}
+function drawEarth(l0){
+  if(!eLand)return;
+  let d='';for(const p of LAND)d+=ppath(p,l0);eLand.setAttribute('d',d);
+  d='';for(const p of ICE)d+=ppath(p,l0);eIce.setAttribute('d',d);
+  d='';for(const p of CLD)d+=ppath(p,l0*1.12);eCloud.setAttribute('d',d);
+}
 function buildEarth(){
   const d=new Date(),T=(d.getTime()/86400000+2440587.5-2451545)/36525,S=Math.sin;
   const Lm=218.3164477+481267.88123421*T,D=297.8501921+445267.1114034*T,Ms=357.5291092+35999.0502909*T,Mm=134.9633964+477198.8675055*T;
   eLam=(Lm+6.289*S(Mm*RD)+1.274*S((2*D-Mm)*RD)+0.658*S(2*D*RD)+0.214*S(2*Mm*RD)-0.186*S(Ms*RD))*RD;
+  eL0=(12-d.getUTCHours()-d.getUTCMinutes()/60)*15*RD;
   const te=EL[2][3],ev=xyz(te,T,planetE(te,T)),sunA=Math.atan2(-ev[1],-ev[0]);
   const lx=Math.cos(sunA),ly=-Math.sin(sunA)*.6,nn=Math.hypot(lx,ly)||1,ux=lx/nn,uy=ly/nn;
   const g1='x1="'+(.5+ux*.5).toFixed(3)+'" y1="'+(.5+uy*.5).toFixed(3)+'" x2="'+(.5-ux*.5).toFixed(3)+'" y2="'+(.5-uy*.5).toFixed(3)+'"';
-  const defs='<defs><linearGradient id="eGrad" '+g1+'><stop offset="0" stop-color="#8fc0ff"/><stop offset=".5" stop-color="#2a63c4"/><stop offset="1" stop-color="#050b22"/></linearGradient>'
-   +'<linearGradient id="mGrad" '+g1+'><stop offset="0" stop-color="#f4f0e8"/><stop offset=".5" stop-color="#9d998f"/><stop offset="1" stop-color="#15182a"/></linearGradient>'
+  let sd=11;const rnd=()=>{sd=(sd*16807)%2147483647;return sd/2147483647};
+  let st='';for(let i=0;i<46;i++)st+='<circle cx="'+(rnd()*1000).toFixed(0)+'" cy="'+(rnd()*700).toFixed(0)+'" r="'+(.5+rnd()*1.1).toFixed(1)+'" fill="#dce5ff" opacity="'+(.25+rnd()*.6).toFixed(2)+'"/>';
+  const defs='<defs><linearGradient id="lShade" '+g1+'><stop offset="0" stop-color="#ffffff" stop-opacity=".06"/><stop offset=".45" stop-color="#05081a" stop-opacity=".12"/><stop offset=".75" stop-color="#05081a" stop-opacity=".6"/><stop offset="1" stop-color="#02040f" stop-opacity=".92"/></linearGradient>'
+   +'<radialGradient id="lLimb"><stop offset=".62" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".5"/></radialGradient>'
    +'<radialGradient id="eBlue"><stop offset="0" stop-color="#2f7bff" stop-opacity=".95"/><stop offset=".55" stop-color="#2f7bff" stop-opacity=".55"/><stop offset="1" stop-color="#2f7bff" stop-opacity="0"/></radialGradient>'
-   +'<radialGradient id="eAtm"><stop offset=".74" stop-color="#4d94ff" stop-opacity="0"/><stop offset=".88" stop-color="#4d94ff" stop-opacity=".5"/><stop offset="1" stop-color="#4d94ff" stop-opacity="0"/></radialGradient></defs>';
+   +'<radialGradient id="eAtm"><stop offset=".74" stop-color="#4d94ff" stop-opacity="0"/><stop offset=".88" stop-color="#4d94ff" stop-opacity=".5"/><stop offset="1" stop-color="#4d94ff" stop-opacity="0"/></radialGradient>'
+   +'<clipPath id="eClip"><circle cx="'+OX+'" cy="'+OY+'" r="'+ER+'"/></clipPath><clipPath id="mClip"><circle r="'+MR+'"/></clipPath></defs>';
   const back='M'+(OX-ORX)+' '+OY+' A'+ORX+' '+ORY+' 0 0 1 '+(OX+ORX)+' '+OY,front='M'+(OX+ORX)+' '+OY+' A'+ORX+' '+ORY+' 0 0 1 '+(OX-ORX)+' '+OY;
-  esvg.innerHTML=defs+'<path class="eorb back" d="'+back+'"/><g id="e-back"></g>'
-   +'<g class="pl" tabindex="0" role="button" data-n="Tierra" aria-label="Tierra"><title>Tierra</title><circle class="halo" cx="'+OX+'" cy="'+OY+'" r="175" fill="url(#eBlue)"/><circle cx="'+OX+'" cy="'+OY+'" r="132" fill="url(#eAtm)"/><circle cx="'+OX+'" cy="'+OY+'" r="95" fill="url(#eGrad)"/>'
-   +'<ellipse cx="'+OX+'" cy="'+OY+'" rx="95" ry="32" fill="none" stroke="#fff" stroke-opacity=".12"/><ellipse cx="'+OX+'" cy="'+OY+'" rx="95" ry="64" fill="none" stroke="#fff" stroke-opacity=".08"/><ellipse cx="'+OX+'" cy="'+OY+'" rx="40" ry="95" fill="none" stroke="#fff" stroke-opacity=".08"/>'
-   +'<text x="'+OX+'" y="'+(OY+95+36)+'" text-anchor="middle">Tierra</text></g>'
+  let mm='';
+  for(const m of MARIA)mm+='<ellipse cx="'+m[0]+'" cy="'+m[1]+'" rx="'+m[2]+'" ry="'+m[3]+'" transform="rotate('+m[4]+' '+m[0]+' '+m[1]+')" fill="#6d6a66" opacity=".55"/>';
+  mm+='<path d="M-4 25L-2 52M-4 25L-26 46M-4 25L16 46M-4 25L-32 30M-4 25L24 36" stroke="#ffffff" stroke-opacity=".22" stroke-width="1" fill="none"/>';
+  for(const c of CRAT)mm+='<circle cx="'+c[0]+'" cy="'+c[1]+'" r="'+c[2]+'" fill="rgba(15,17,28,.22)" stroke="rgba(255,255,255,.3)" stroke-width=".8"/>';
+  esvg.innerHTML=defs+st+'<path class="eorb back" d="'+back+'"/><g id="e-back"></g>'
+   +'<g class="pl" tabindex="0" role="button" data-n="Tierra" aria-label="Tierra"><title>Tierra</title><circle class="halo" cx="'+OX+'" cy="'+OY+'" r="175" fill="url(#eBlue)"/><circle cx="'+OX+'" cy="'+OY+'" r="'+(ER*1.38)+'" fill="url(#eAtm)"/><circle cx="'+OX+'" cy="'+OY+'" r="'+ER+'" fill="#2d6fd0"/>'
+   +'<g clip-path="url(#eClip)"><path id="e-land" fill="#4a9a52" stroke="#2f6f3a" stroke-width=".8" stroke-linejoin="round"/><path id="e-ice" fill="#e8f1f8" opacity=".95"/><path id="e-cloud" fill="#ffffff" opacity=".42"/></g>'
+   +'<circle cx="'+OX+'" cy="'+OY+'" r="'+ER+'" fill="url(#lShade)"/><circle cx="'+OX+'" cy="'+OY+'" r="'+ER+'" fill="url(#lLimb)"/>'
+   +'<text x="'+OX+'" y="'+(OY+ER+38)+'" text-anchor="middle">Tierra</text></g>'
    +'<path class="eorb" d="'+front+'"/><g id="e-front"></g>'
-   +'<g id="e-moon" class="pl" tabindex="0" role="button" data-n="Luna" aria-label="Luna"><title>Luna</title><circle class="halo" r="68" fill="url(#eBlue)"/><circle r="40" fill="transparent"/><circle r="26" fill="url(#mGrad)"/><text x="36" y="-30">Luna</text></g>';
+   +'<g id="e-moon" class="pl" tabindex="0" role="button" data-n="Luna" aria-label="Luna"><title>Luna</title><circle class="halo" r="80" fill="url(#eBlue)"/><circle r="46" fill="transparent"/>'
+   +'<g clip-path="url(#mClip)"><circle r="'+MR+'" fill="#bdb8ae"/>'+mm+'<circle r="'+MR+'" fill="url(#lShade)"/><circle r="'+MR+'" fill="url(#lLimb)"/></g><text x="46" y="-40">Luna</text></g>';
   moonG=esvg.querySelector('#e-moon');backL=esvg.querySelector('#e-back');frontL=esvg.querySelector('#e-front');moonFront=false;
+  eLand=esvg.querySelector('#e-land');eIce=esvg.querySelector('#e-ice');eCloud=esvg.querySelector('#e-cloud');
   backL.appendChild(moonG);
-  ecap.textContent='Posici\u00f3n actual de la Luna \u00b7 movimiento acelerado \u00b7 tama\u00f1os y distancias no est\u00e1n a escala';
-  placeMoon(eLam);
+  ecap.textContent='Posici\u00f3n actual de la Luna \u00b7 rotaci\u00f3n y \u00f3rbita aceleradas \u00b7 tama\u00f1os y distancias no est\u00e1n a escala';
+  placeMoon(eLam);drawEarth(eL0);
 }
 function placeMoon(th){
   if(!moonG)return;
@@ -968,7 +1060,9 @@ function placeMoon(th){
 }
 function eTick(now){
   if(!inEarth)return;
-  placeMoon(eLam+((now-eT0)/1000)*(2*Math.PI/26));
+  const t=(now-eT0)/1000;
+  placeMoon(eLam+t*(2*Math.PI/26));
+  drawEarth(eL0-t*(2*Math.PI/24));
   eRaf=requestAnimationFrame(eTick);
 }
 function openEarth(){
@@ -1047,6 +1141,35 @@ window.addEventListener('pointermove',e=>{
 const upA=e=>{pt.delete(e.pointerId)};
 window.addEventListener('pointerup',upA,true);window.addEventListener('pointercancel',upA,true);
 cvEl.addEventListener('click',e=>{if(pinched){e.stopImmediatePropagation();e.preventDefault();pinched=false}},true);
+}
+}
+/* Guia de Observacion: tarjetas con icono */
+{
+const lb=document.querySelector('#gcol-l .gcol-body');
+if(lb){
+const TEL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13.5l11.5-6 2.2 4.3-11.5 6z"/><path d="M14.4 8.6l2.2 4.3"/><path d="M5 13.5l-1.8 1"/><path d="M12.9 15L9 21M12.9 15L16.5 21M12.9 15V21"/></svg>';
+const PIN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>';
+const PEN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6"/><path d="M17 5l3 3-9 9-4 1 1-4z"/><path d="M15.5 6.5l3 3"/></svg>';
+const items=[['Uso de telescopios',TEL],['Lugar para observar',PIN],['Posprocesado de im\u00e1genes',PEN]];
+lb.innerHTML='';
+items.forEach((it,i)=>{
+  const b=document.createElement('button');b.type='button';b.className='gk g-in';b.title='Pr\u00f3ximamente';
+  b.style.setProperty('--d',(.9+i*.12)+'s');
+  b.innerHTML='<span class="gk-ic" aria-hidden="true">'+it[1]+'</span><span class="gk-t"></span>';
+  b.querySelector('.gk-t').textContent=it[0];lb.append(b);
+});
+}
+}
+/* Movil: sin previsualizacion al pasar el dedo y toques mas tolerantes */
+const NOHOVER=typeof matchMedia==='function'&&matchMedia('(hover: none)').matches;
+/* Logo: boton arriba a la derecha que abre "Quienes somos" */
+{
+const st=document.getElementById('stage');
+if(st){
+const a=document.createElement('a');a.id='logo-btn';a.href='quienes-somos.html';a.target='_top';
+a.setAttribute('aria-label','\u00bfQui\u00e9nes somos?');a.title='\u00bfQui\u00e9nes somos?';
+a.innerHTML='<img src="logo.png" alt="">';
+st.append(a);
 }
 }
 setView(home);
