@@ -279,6 +279,9 @@ body.open #panel{z-index:40}
 body.mini-open #stage{height:100dvh}
 body.mini-open #mini{height:100dvh}
 }
+/* zoom-cuadrado */
+#ss-zoom-in,#ss-zoom-out{border-radius:11px;font-size:0;line-height:0}
+#ss-zoom-in svg,#ss-zoom-out svg{display:block;width:18px;height:18px}
 </style>
 <link rel="icon" type="image/png" href="icon.png">
 </head>
@@ -1138,7 +1141,7 @@ btn.addEventListener('click',()=>{if(inEarth||busy)return;animateTo({yaw:HOME.ya
 const zi=document.createElement('button'),zo=document.createElement('button');
 zi.id='ss-zoom-in';zo.id='ss-zoom-out';zi.type='button';zo.type='button';
 zi.setAttribute('aria-label','Acercar');zo.setAttribute('aria-label','Alejar');zi.title='Acercar';zo.title='Alejar';
-zi.textContent='+';zo.textContent='\u2212';
+zi.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';zo.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg>';
 col.append(zi);col.append(zo);
 const zstep=f=>{if(inEarth||busy)return;const z=Math.max(.5,Math.min(3,zoom*f));animateTo({yaw:yaw,pitch:pitch,zoom:z,vx:vx,vy:vy},200,null)};
 zi.addEventListener('click',()=>zstep(1.3));zo.addEventListener('click',()=>zstep(1/1.3));
