@@ -1,3 +1,3 @@
 
 [[Telescopios/Seestar S50/Seestar S50|Seestar S50]]
-[[Atlas Fotográfico]]
+[[Atlas Astrofotográfico]]
