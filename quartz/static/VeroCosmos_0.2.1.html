@@ -282,6 +282,11 @@ body.mini-open #mini{height:100dvh}
 /* zoom-cuadrado */
 #ss-zoom-in,#ss-zoom-out{border-radius:11px;font-size:0;line-height:0}
 #ss-zoom-in svg,#ss-zoom-out svg{display:block;width:18px;height:18px}
+#ss-wrap,#ss-wrap *,#earth-view,#earth-view *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+#ss-svg,#earth-svg{-webkit-user-drag:none}
+#guide-view.play #earth-svg .pl{animation:none}
+#earth-svg .eorb,#earth-svg .eorb.back{stroke:url(#eOrb);stroke-opacity:1;stroke-width:1.8}
+@media(hover:none){.pl:hover .halo{opacity:0}}
 </style>
 <link rel="icon" type="image/png" href="icon.png">
 </head>
@@ -665,7 +670,7 @@ $('frame').addEventListener('load',()=>{
 /* boton unico: alterna entre Atlas Fotografico y todo el atlas */
 {const nav=$('nav'),tb=document.createElement('button');tb.id='toggleView';tb.type='button';nav.append(tb);
 const _sv=setView;
-const sync=f=>{tb.textContent=(home&&f===home)?'Ver todo el atlas':'Atlas Fotogr\u00e1fico'};
+const sync=f=>{tb.textContent=(home&&f===home)?'Ver Atlas Completo':'Vista por grupos'};
 setView=function(f){_sv(f);sync(f)};
 tb.onclick=()=>{closePanel();setView(home&&focus!==home?home:null)};}
 /* Guia astronomica: tarjeta, entrada de menu y pantalla con buscador */
@@ -932,10 +937,11 @@ function labels(){
 }
 function schedule(){if(!raf)raf=requestAnimationFrame(render)}
 function grp(nm,c2,rad,dl,delay){
-  const sun=nm==='Sol';
+  const sun=nm==='Sol',gid='ssg'+nm.replace(/[^A-Za-z]/g,''),touch=typeof matchMedia==='function'&&matchMedia('(pointer: coarse)').matches,hr=touch?Math.max(rad*2,22):Math.max(rad*2.6,28);
   return '<g class="pl" tabindex="0" role="button" data-n="'+nm+'" aria-label="'+nm+'" style="--d:'+delay+'s"><title>'+nm+(dl?' \u00b7 '+dl+' UA del Sol':'')+'</title>'
-   +'<circle class="halo" r="'+(rad*3+10)+'" fill="url(#ssBlue)"/><circle r="'+Math.max(rad*2.6,28)+'" fill="transparent"/>'
-   +(sun?'<circle r="44" fill="url(#ssSun)"/><circle r="11" fill="#ffe9b8"/>':'<circle r="'+(rad*2.2).toFixed(1)+'" fill="'+c2+'" opacity=".35" filter="url(#ssGlow)"/><circle r="'+rad+'" fill="'+c2+'"/>')
+   +'<defs><radialGradient id="'+gid+'"><stop offset="0" stop-color="'+c2+'" stop-opacity=".6"/><stop offset=".45" stop-color="'+c2+'" stop-opacity=".22"/><stop offset="1" stop-color="'+c2+'" stop-opacity="0"/></radialGradient></defs>'
+   +'<circle class="halo" r="'+(rad*3+10)+'" fill="url(#ssBlue)"/><circle r="'+hr+'" fill="#000" fill-opacity="0" pointer-events="all"/>'
+   +(sun?'<circle r="44" fill="url(#ssSun)"/><circle r="11" fill="#ffe9b8"/>':'<circle r="'+(rad*3.2).toFixed(1)+'" fill="url(#'+gid+')"/><circle r="'+rad+'" fill="'+c2+'"/>')
    +(nm==='Saturno'?'<ellipse class="ring" rx="'+(rad*2)+'" ry="'+(rad*.65).toFixed(2)+'" fill="none" stroke="'+c2+'" stroke-opacity=".6"/>':'')
    +'</g>';
 }
@@ -1055,7 +1061,7 @@ function buildEarth(){
    +'<radialGradient id="lLimb"><stop offset=".62" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".5"/></radialGradient>'
    +'<radialGradient id="eBlue"><stop offset="0" stop-color="#2f7bff" stop-opacity=".95"/><stop offset=".55" stop-color="#2f7bff" stop-opacity=".55"/><stop offset="1" stop-color="#2f7bff" stop-opacity="0"/></radialGradient>'
    +'<radialGradient id="eAtm"><stop offset=".74" stop-color="#4d94ff" stop-opacity="0"/><stop offset=".88" stop-color="#4d94ff" stop-opacity=".5"/><stop offset="1" stop-color="#4d94ff" stop-opacity="0"/></radialGradient>'
-   +'<clipPath id="eClip"><circle cx="'+OX+'" cy="'+OY+'" r="'+ER+'"/></clipPath><clipPath id="mClip"><circle r="'+MR+'"/></clipPath></defs>';
+   +'<linearGradient id="eOrb" gradientUnits="userSpaceOnUse" x1="0" y1="'+(OY-ORY)+'" x2="0" y2="'+(OY+ORY)+'"><stop offset="0" stop-color="#6a7bff" stop-opacity=".25"/><stop offset=".5" stop-color="#7fa8ff" stop-opacity=".55"/><stop offset="1" stop-color="#a8e0ff" stop-opacity=".95"/></linearGradient><clipPath id="eClip"><circle cx="'+OX+'" cy="'+OY+'" r="'+ER+'"/></clipPath><clipPath id="mClip"><circle r="'+MR+'"/></clipPath></defs>';
   const back='M'+(OX-ORX)+' '+OY+' A'+ORX+' '+ORY+' 0 0 1 '+(OX+ORX)+' '+OY,front='M'+(OX+ORX)+' '+OY+' A'+ORX+' '+ORY+' 0 0 1 '+(OX-ORX)+' '+OY;
   let mm='';
   for(const m of MARIA)mm+='<ellipse cx="'+m[0]+'" cy="'+m[1]+'" rx="'+m[2]+'" ry="'+m[3]+'" transform="rotate('+m[4]+' '+m[0]+' '+m[1]+')" fill="#6d6a66" opacity=".55"/>';
@@ -1068,18 +1074,48 @@ function buildEarth(){
    +'<text x="'+OX+'" y="'+(OY+ER+38)+'" text-anchor="middle">Tierra</text></g>'
    +'<path class="eorb" d="'+front+'"/><g id="e-front"></g>'
    +'<g id="e-moon" class="pl" tabindex="0" role="button" data-n="Luna" aria-label="Luna"><title>Luna</title><circle class="halo" r="80" fill="url(#eBlue)"/><circle r="46" fill="transparent"/>'
-   +'<g clip-path="url(#mClip)"><circle r="'+MR+'" fill="#bdb8ae"/>'+mm+'<circle r="'+MR+'" fill="url(#lShade)"/><circle r="'+MR+'" fill="url(#lLimb)"/></g><text x="46" y="-40">Luna</text></g>';
+   +'<g clip-path="url(#mClip)"><circle r="'+MR+'" fill="#bdb8ae"/>'+'<path id="m-maria" fill="#6d6a66" opacity=".55"/><path id="m-crat" fill="rgba(15,17,28,.22)" stroke="rgba(255,255,255,.3)" stroke-width=".8" stroke-linejoin="round"/>'+'<circle r="'+MR+'" fill="url(#lShade)"/><circle r="'+MR+'" fill="url(#lLimb)"/></g><text x="46" y="-40">Luna</text></g>';
   moonG=esvg.querySelector('#e-moon');backL=esvg.querySelector('#e-back');frontL=esvg.querySelector('#e-front');moonFront=false;
-  eLand=esvg.querySelector('#e-land');eIce=esvg.querySelector('#e-ice');eCloud=esvg.querySelector('#e-cloud');
+  eLand=esvg.querySelector('#e-land');eIce=esvg.querySelector('#e-ice');eCloud=esvg.querySelector('#e-cloud');moonMaria=esvg.querySelector('#m-maria');moonCrat=esvg.querySelector('#m-crat');
   backL.appendChild(moonG);
   ecap.textContent='Posici\u00f3n actual de la Luna \u00b7 rotaci\u00f3n y \u00f3rbita aceleradas \u00b7 tama\u00f1os y distancias no est\u00e1n a escala';
   placeMoon(eLam);drawEarth(eL0);
+}
+/* Luna v5: siempre la misma cara hacia la Tierra */
+let moonMaria=null,moonCrat=null;
+function blob(lo,la,rx,ry,rot,n){const p=[],cr=Math.cos(rot*RD),sr=Math.sin(rot*RD),cl=Math.max(.3,Math.cos(la*RD));for(let k=0;k<n;k++){const a=k/n*2*Math.PI,x=rx*Math.cos(a),y=ry*Math.sin(a);p.push([(lo+(x*cr-y*sr)/cl)*RD,(la+(x*sr+y*cr))*RD])}return p}
+const MMAR=[[-16,33,17,11,-20],[18,28,9,8,0],[31,9,12,9,10],[51,-5,8,6,0],[-57,18,13,22,-10],[-15,-21,10,8,0],[59,17,9,7,0],[-39,-24,9,8,0],[34,-15,6,5,0],[-3,3,7,6,0],[-93,-19,8,8,0]].map(m=>blob(m[0],m[1],m[2],m[3],m[4],14));
+const MCRA=[[-11,-43,3.4],[-20,10,2.8],[-38,8,2.2],[-47,23,2.2],[-9,51,3.6],[-68,-6,3.2],[61,-9,2.6],[-14,-58,4.5],[129,-20,4],[147,27,3.2],[-151,-36,3.6],[10,20,2],[25,-30,2.4],[40,-40,2.6],[-30,-35,2.4],[75,30,2.6],[-75,40,2.8],[110,5,3],[-120,10,3],[20,60,3]].map(c=>blob(c[0],c[1],c[2],c[2],0,10));
+function ppathM(poly,l0){
+  const n=poly.length,Q=poly.map(p=>orth(p[0],p[1],l0));
+  let s0=-1;for(let i=0;i<n;i++)if(Q[i][2]>0){s0=i;break}
+  if(s0<0)return '';
+  const pts=[];let hid=null,ex=0;
+  for(let k=0;k<=n;k++){
+    const q=Q[(s0+k)%n];
+    if(q[2]>0){
+      if(hid!==null){const da=Math.atan2(Math.sin(hid-ex),Math.cos(hid-ex)),m=Math.max(1,Math.ceil(Math.abs(da)/.3));for(let j=0;j<=m;j++){const a=ex+da*j/m;pts.push([Math.cos(a),Math.sin(a)])}hid=null}
+      if(k<n)pts.push([q[0],q[1]]);
+    }else{
+      const a=Math.atan2(q[1],q[0]);
+      if(hid===null){ex=a;pts.push([Math.cos(a),Math.sin(a)])}
+      hid=a;
+    }
+  }
+  let s='';
+  for(let i=0;i<pts.length;i++)s+=(i?'L':'M')+(MR*pts[i][0]).toFixed(1)+' '+(-MR*pts[i][1]).toFixed(1);
+  return s+'Z';
 }
 function placeMoon(th){
   if(!moonG)return;
   const sn=Math.sin(th),X=OX+ORX*Math.cos(th),Y=OY-ORY*sn,front=sn<0;
   moonG.setAttribute('transform','translate('+X.toFixed(1)+' '+Y.toFixed(1)+') scale('+(1-sn*.16).toFixed(3)+')');
   if(front!==moonFront){moonFront=front;(front?frontL:backL).appendChild(moonG)}
+  if(moonMaria){
+    const l0=Math.PI/2-th;let d='';
+    for(const p of MMAR)d+=ppathM(p,l0);moonMaria.setAttribute('d',d);
+    d='';for(const p of MCRA)d+=ppathM(p,l0);moonCrat.setAttribute('d',d);
+  }
 }
 function eTick(now){
   if(!inEarth)return;
@@ -1105,23 +1141,24 @@ eback.addEventListener('click',closeEarth);
 esvg.addEventListener('click',e=>{const g=e.target.closest?e.target.closest('.pl'):null;if(g&&g.dataset.n)openAstro(g.dataset.n)});
 esvg.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){const g=e.target.closest?e.target.closest('.pl'):null;if(g&&g.dataset.n){e.preventDefault();openAstro(g.dataset.n)}}});
 /* ---- interaccion: arrastrar (1 dedo / raton) y pellizcar (2 dedos) ---- */
-const ptr=new Map();let pd=0,pz=1;
+function zmax(){return (typeof matchMedia==='function'&&(matchMedia('(pointer: coarse)').matches||matchMedia('(max-width: 700px)').matches))?12:3}
+const ptr=new Map();let pd=0,pz=1,pm=null;
 wrap.addEventListener('pointerdown',e=>{
   if(e.button!==0||inEarth||busy)return;
   if(anim){cancelAnimationFrame(anim);anim=0}
   ptr.set(e.pointerId,{x:e.clientX,y:e.clientY});
   if(ptr.size===1){drag={x:e.clientX,y:e.clientY};moved=false}
-  else if(ptr.size===2){const a=[...ptr.values()];pd=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y);pz=zoom;moved=true;drag=null}
+  else if(ptr.size===2){const a=[...ptr.values()];pd=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y);pz=zoom;pm=[(a[0].x+a[1].x)/2,(a[0].y+a[1].y)/2];moved=true;drag=null}
 });
 window.addEventListener('pointermove',e=>{
   const p=ptr.get(e.pointerId);if(!p)return;
-  if(ptr.size>=2){p.x=e.clientX;p.y=e.clientY;const a=[...ptr.values()],d=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y);if(pd>0){zoom=Math.max(.5,Math.min(3,pz*d/pd));schedule()}return}
+  if(ptr.size>=2){p.x=e.clientX;p.y=e.clientY;const a=[...ptr.values()],d=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y),mx=(a[0].x+a[1].x)/2,my=(a[0].y+a[1].y)/2;if(pd>0)zoom=Math.max(.5,Math.min(zmax(),pz*d/pd));if(pm){vx-=(mx-pm[0])/(kS*zoom);vy-=(my-pm[1])/(kS*zoom)}pm=[mx,my];schedule();return}
   if(!drag)return;
   const dx=e.clientX-drag.x,dy=e.clientY-drag.y;
   if(!moved&&Math.abs(dx)+Math.abs(dy)<=3)return;
   moved=true;yaw+=dx*.006;pitch+=dy*.006;drag={x:e.clientX,y:e.clientY};p.x=e.clientX;p.y=e.clientY;schedule();
 });
-const up=e=>{ptr.delete(e.pointerId);if(!ptr.size)drag=null;else if(ptr.size===1){const a=[...ptr.values()][0];drag={x:a.x,y:a.y}}};
+const up=e=>{ptr.delete(e.pointerId);pm=null;if(!ptr.size)drag=null;else if(ptr.size===1){const a=[...ptr.values()][0];drag={x:a.x,y:a.y}}};
 window.addEventListener('pointerup',up);window.addEventListener('pointercancel',up);
 wrap.addEventListener('click',e=>{
   if(moved){e.stopPropagation();e.preventDefault();moved=false;return}
@@ -1205,6 +1242,22 @@ a.innerHTML='<img src="logo.png" alt="">';
 st.append(a);
 }
 }
+/* Boton de recentrar visible en movil: lo sube si la barra del navegador tapa la parte de abajo */
+function fixRecenter(){
+  const b=document.getElementById('recenter');if(!b||!b.offsetParent)return;
+  const small=innerWidth<=700||(typeof matchMedia==='function'&&matchMedia('(pointer: coarse)').matches);
+  if(!small){b.style.bottom='';return}
+  let vis=innerHeight;
+  try{if(window.top!==window&&window.frameElement){vis=Math.min(innerHeight,window.top.innerHeight-window.frameElement.getBoundingClientRect().top)}}catch(e){}
+  if(window.visualViewport)vis=Math.min(vis,window.visualViewport.height+window.visualViewport.offsetTop);
+  const r=b.offsetParent.getBoundingClientRect(),over=Math.max(0,r.bottom-vis);
+  b.style.bottom='calc('+Math.round(over+24)+'px + env(safe-area-inset-bottom))';
+}
+['resize','orientationchange'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(fixRecenter,60)));
+if(window.visualViewport){window.visualViewport.addEventListener('resize',fixRecenter);window.visualViewport.addEventListener('scroll',fixRecenter)}
+try{if(window.top!==window)window.top.addEventListener('resize',fixRecenter)}catch(e){}
+setInterval(fixRecenter,900);
+fixRecenter();
 setView(home);
 draw();
 })();
