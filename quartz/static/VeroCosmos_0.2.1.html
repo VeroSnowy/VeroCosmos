@@ -287,6 +287,9 @@ body.mini-open #mini{height:100dvh}
 #guide-view.play #earth-svg .pl{animation:none}
 #earth-svg .eorb,#earth-svg .eorb.back{stroke:url(#eOrb);stroke-opacity:1;stroke-width:1.8}
 @media(hover:none){.pl:hover .halo{opacity:0}}
+#ss-svg .pg{mix-blend-mode:screen}
+#ss-cap{font-size:11px;line-height:1.35}
+@container (max-width:880px){#gcol-c{height:min(105cqw,66vh)}}
 </style>
 <link rel="icon" type="image/png" href="icon.png">
 </head>
@@ -896,6 +899,7 @@ function proj(p){const r=rel(p);return[C+(r[0]-vx)*zoom,C+(r[1]-vy)*zoom,r[2],r[
 function measure(){
   const r=wrap.getBoundingClientRect(),w=(typeof innerWidth==='number'?innerWidth:900);
   kS=Math.max(.05,Math.min((r.width||600)/1060,(r.height||600)/1040));
+  LB.x0=C-(r.width||600)/2/kS+6;LB.x1=C+(r.width||600)/2/kS-6;LB.y0=C-(r.height||600)/2/kS+4;LB.y1=C+(r.height||600)/2/kS-4;
   mk=Math.min(2.2,Math.max(1,.62/kS));
   fs=Math.min(40,Math.max(13,(w<700?11:12)/kS));
   if(data)for(const b of data.bodies)if(b.lb)b.lb.style.fontSize=fs.toFixed(1)+'px';
@@ -922,7 +926,7 @@ function labels(){
         const al=deg*RD,ca=Math.cos(al),sa=Math.sin(al),ax=px+dist*ca,ay=py+dist*sa;
         const a=ca>.3?'start':(ca<-.3?'end':'middle'),y=sa>.3?ay+h*.85:(sa<-.3?ay:ay+h*.35);
         const x0=a==='start'?ax:(a==='end'?ax-w:ax-w/2),r={x0:x0,x1:x0+w,y0:y-h*.85,y1:y+h*.25};
-        if(r.x0<-25||r.x1>1035||r.y0<-15||r.y1>1025)continue;
+        if(r.x0<LB.x0||r.x1>LB.x1||r.y0<LB.y0||r.y1>LB.y1)continue;
         if(!placed.some(p=>r.x0<p.x1+2&&r.x1>p.x0-2&&r.y0<p.y1+1&&r.y1>p.y0-1)){pick={x:ax,y:y,a:a,r:r,far:extra>0};break outer}
       }
     }
@@ -936,12 +940,27 @@ function labels(){
   }
 }
 function schedule(){if(!raf)raf=requestAnimationFrame(render)}
+const LB={x0:-25,x1:1035,y0:-15,y1:1025};
+function smallScreen(){return (typeof innerWidth==='number'&&innerWidth<=700)||(typeof matchMedia==='function'&&matchMedia('(pointer: coarse)').matches)}
+/* ajusta la vista inicial para que el sistema ocupe el espacio disponible (solo en pantallas pequenas) */
+function fitHome(){
+  const cyh=Math.cos(HOME.yaw),syh=Math.sin(HOME.yaw),cph=Math.cos(HOME.pitch),sph=Math.sin(HOME.pitch);
+  let mnx=1e9,mxx=-1e9,mny=1e9,mxy=-1e9;
+  for(const o of data.orbs)for(const p of o.pts){
+    const x1=p[0]*cyh-p[1]*syh,y1=p[0]*syh+p[1]*cyh,up=y1*cph+p[2]*sph,dep=-y1*sph+p[2]*cph,f=3500/(3500-dep),x=x1*f,y=-up*f;
+    if(x<mnx)mnx=x;if(x>mxx)mxx=x;if(y<mny)mny=y;if(y>mxy)mxy=y;
+  }
+  const r=wrap.getBoundingClientRect(),hw=(r.width||300)/2/kS,hh=(r.height||300)/2/kS;
+  HOME.zoom=Math.max(1,Math.min(4,.92*Math.min(hw/((mxx-mnx)/2),hh/((mxy-mny)/2))));
+  HOME.vx=(mnx+mxx)/2;HOME.vy=(mny+mxy)/2;
+}
+function applyFit(){if(!smallScreen()){HOME.zoom=1;HOME.vx=0;HOME.vy=0;return}fitHome()}
 function grp(nm,c2,rad,dl,delay){
   const sun=nm==='Sol',gid='ssg'+nm.replace(/[^A-Za-z]/g,''),touch=typeof matchMedia==='function'&&matchMedia('(pointer: coarse)').matches,hr=touch?Math.max(rad*2,22):Math.max(rad*2.6,28);
   return '<g class="pl" tabindex="0" role="button" data-n="'+nm+'" aria-label="'+nm+'" style="--d:'+delay+'s"><title>'+nm+(dl?' \u00b7 '+dl+' UA del Sol':'')+'</title>'
-   +'<defs><radialGradient id="'+gid+'"><stop offset="0" stop-color="'+c2+'" stop-opacity=".6"/><stop offset=".45" stop-color="'+c2+'" stop-opacity=".22"/><stop offset="1" stop-color="'+c2+'" stop-opacity="0"/></radialGradient></defs>'
+   +'<defs><radialGradient id="'+gid+'"><stop offset="0" stop-color="'+c2+'" stop-opacity=".5"/><stop offset=".45" stop-color="'+c2+'" stop-opacity=".2"/><stop offset="1" stop-color="'+c2+'" stop-opacity="0"/></radialGradient></defs>'
    +'<circle class="halo" r="'+(rad*3+10)+'" fill="url(#ssBlue)"/><circle r="'+hr+'" fill="#000" fill-opacity="0" pointer-events="all"/>'
-   +(sun?'<circle r="44" fill="url(#ssSun)"/><circle r="11" fill="#ffe9b8"/>':'<circle r="'+(rad*3.2).toFixed(1)+'" fill="url(#'+gid+')"/><circle r="'+rad+'" fill="'+c2+'"/>')
+   +(sun?'<circle r="44" fill="url(#ssSun)"/><circle r="11" fill="#ffe9b8"/>':'<circle class="pg" r="'+(rad*3.2).toFixed(1)+'" fill="url(#'+gid+')"/><circle r="'+rad+'" fill="'+c2+'"/>')
    +(nm==='Saturno'?'<ellipse class="ring" rx="'+(rad*2)+'" ry="'+(rad*.65).toFixed(2)+'" fill="none" stroke="'+c2+'" stroke-opacity=".6"/>':'')
    +'</g>';
 }
@@ -965,8 +984,8 @@ function build(){
   data={orbs:[],bodies:[]};
   pts.forEach((P,i)=>data.orbs.push({el:els[i],pts:P}));
   gs.forEach((el,i)=>data.bodies.push({g:el,p:i?pos[i-1]:[0,0,0],nm:i?EL[i-1][0]:'Sol',rad:i?EL[i-1][2]:18,ring:el.querySelector('.ring'),lb:i?ls[i-1]:null,ll:i?ln[i-1]:null}));
-  measure();render();
-  if(cap)cap.textContent='Posiciones calculadas para el '+d.toLocaleDateString('es-ES',{day:'numeric',month:'long',year:'numeric'})+' \u00b7 escala de distancias comprimida \u00b7 arrastra para girar, rueda o pellizco para acercar';
+  measure();applyFit();zoom=HOME.zoom;vx=HOME.vx;vy=HOME.vy;render();
+  if(cap)cap.textContent='Posiciones calculadas para el '+d.toLocaleDateString('es-ES',{day:'numeric',month:'long',year:'numeric'})+(smallScreen()?' \u00b7 escala comprimida \u00b7 arrastra para girar, pellizca para acercar':' \u00b7 escala de distancias comprimida \u00b7 arrastra para girar, rueda o pellizco para acercar');
 }
 function animateTo(tg,dur,done){
   if(anim)cancelAnimationFrame(anim);busy=true;
@@ -1174,7 +1193,7 @@ const btn=document.createElement('button');
 btn.id='ss-recenter';btn.type='button';btn.setAttribute('aria-label','Volver a centrar');btn.title='Volver a la posici\u00f3n original';
 btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.2"/><path d="M12 1.8v4M12 18.2v4M1.8 12h4M18.2 12h4"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/></svg>';
 col.append(btn);
-btn.addEventListener('click',()=>{if(inEarth||busy)return;animateTo({yaw:HOME.yaw,pitch:HOME.pitch,zoom:1,vx:0,vy:0},520,null)});
+btn.addEventListener('click',()=>{if(inEarth||busy)return;(measure(),applyFit(),animateTo({yaw:HOME.yaw,pitch:HOME.pitch,zoom:HOME.zoom,vx:HOME.vx,vy:HOME.vy},520,null))});
 const zi=document.createElement('button'),zo=document.createElement('button');
 zi.id='ss-zoom-in';zo.id='ss-zoom-out';zi.type='button';zo.type='button';
 zi.setAttribute('aria-label','Acercar');zo.setAttribute('aria-label','Alejar');zi.title='Acercar';zo.title='Alejar';
