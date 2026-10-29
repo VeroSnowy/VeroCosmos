@@ -292,6 +292,7 @@ body.mini-open #mini{height:100dvh}
 @container (max-width:880px){#gcol-c{height:min(105cqw,66vh)}}
 </style>
 <link rel="icon" type="image/png" href="icon.png">
+<meta name="color-scheme" content="dark">
 </head>
 <body class="principal-page">
 <div id="app">
@@ -955,13 +956,16 @@ function fitHome(){
   HOME.vx=(mnx+mxx)/2;HOME.vy=(mny+mxy)/2;
 }
 function applyFit(){if(!smallScreen()){HOME.zoom=1;HOME.vx=0;HOME.vy=0;return}fitHome()}
+function mixc(h,t){const n=parseInt(h.slice(1),16),f=c=>Math.round(c+(255-c)*t).toString(16).padStart(2,'0');return '#'+f(n>>16)+f((n>>8)&255)+f(n&255)}
 function grp(nm,c2,rad,dl,delay){
-  const sun=nm==='Sol',gid='ssg'+nm.replace(/[^A-Za-z]/g,''),touch=typeof matchMedia==='function'&&matchMedia('(pointer: coarse)').matches,hr=touch?Math.max(rad*2,22):Math.max(rad*2.6,28);
-  return '<g class="pl" tabindex="0" role="button" data-n="'+nm+'" aria-label="'+nm+'" style="--d:'+delay+'s"><title>'+nm+(dl?' \u00b7 '+dl+' UA del Sol':'')+'</title>'
-   +'<defs><radialGradient id="'+gid+'"><stop offset="0" stop-color="'+c2+'" stop-opacity=".5"/><stop offset=".45" stop-color="'+c2+'" stop-opacity=".2"/><stop offset="1" stop-color="'+c2+'" stop-opacity="0"/></radialGradient></defs>'
+  const sun=nm==='Sol',id=nm.replace(/[^A-Za-z]/g,''),touch=typeof matchMedia==='function'&&matchMedia('(pointer: coarse)').matches,hr=touch?Math.max(rad*2,22):Math.max(rad*2.6,28);
+  const defs='<defs><radialGradient id="ssg'+id+'"><stop offset="0" stop-color="'+c2+'" stop-opacity=".5"/><stop offset=".45" stop-color="'+c2+'" stop-opacity=".2"/><stop offset="1" stop-color="'+c2+'" stop-opacity="0"/></radialGradient>'
+   +(sun?'<radialGradient id="ssc'+id+'"><stop offset="0" stop-color="#fffaf0"/><stop offset="1" stop-color="#ffe9b8"/></radialGradient>':'<radialGradient id="ssb'+id+'" cx=".38" cy=".34" r=".78"><stop offset="0" stop-color="'+mixc(c2,.4)+'"/><stop offset="1" stop-color="'+c2+'"/></radialGradient>')
+   +(nm==='Saturno'?'<linearGradient id="ssr'+id+'"><stop offset="0" stop-color="'+c2+'"/><stop offset="1" stop-color="'+c2+'"/></linearGradient>':'')+'</defs>';
+  return '<g class="pl" tabindex="0" role="button" data-n="'+nm+'" aria-label="'+nm+'" style="--d:'+delay+'s"><title>'+nm+(dl?' \u00b7 '+dl+' UA del Sol':'')+'</title>'+defs
    +'<circle class="halo" r="'+(rad*3+10)+'" fill="url(#ssBlue)"/><circle r="'+hr+'" fill="#000" fill-opacity="0" pointer-events="all"/>'
-   +(sun?'<circle r="44" fill="url(#ssSun)"/><circle r="11" fill="#ffe9b8"/>':'<circle class="pg" r="'+(rad*3.2).toFixed(1)+'" fill="url(#'+gid+')"/><circle r="'+rad+'" fill="'+c2+'"/>')
-   +(nm==='Saturno'?'<ellipse class="ring" rx="'+(rad*2)+'" ry="'+(rad*.65).toFixed(2)+'" fill="none" stroke="'+c2+'" stroke-opacity=".6"/>':'')
+   +(sun?'<circle r="44" fill="url(#ssSun)"/><circle r="11" fill="url(#ssc'+id+')"/>':'<circle class="pg" r="'+(rad*3.2).toFixed(1)+'" fill="url(#ssg'+id+')"/><circle r="'+rad+'" fill="url(#ssb'+id+')"/>')
+   +(nm==='Saturno'?'<ellipse class="ring" rx="'+(rad*2)+'" ry="'+(rad*.65).toFixed(2)+'" fill="none" stroke="url(#ssr'+id+')" stroke-opacity=".6"/>':'')
    +'</g>';
 }
 function build(){
@@ -1075,12 +1079,12 @@ function buildEarth(){
   const lx=Math.cos(sunA),ly=-Math.sin(sunA)*.6,nn=Math.hypot(lx,ly)||1,ux=lx/nn,uy=ly/nn;
   const g1='x1="'+(.5+ux*.5).toFixed(3)+'" y1="'+(.5+uy*.5).toFixed(3)+'" x2="'+(.5-ux*.5).toFixed(3)+'" y2="'+(.5-uy*.5).toFixed(3)+'"';
   let sd=11;const rnd=()=>{sd=(sd*16807)%2147483647;return sd/2147483647};
-  let st='';for(let i=0;i<46;i++)st+='<circle cx="'+(rnd()*1000).toFixed(0)+'" cy="'+(rnd()*700).toFixed(0)+'" r="'+(.5+rnd()*1.1).toFixed(1)+'" fill="#dce5ff" opacity="'+(.25+rnd()*.6).toFixed(2)+'"/>';
+  let st='';for(let i=0;i<46;i++)st+='<circle cx="'+(rnd()*1000).toFixed(0)+'" cy="'+(rnd()*700).toFixed(0)+'" r="'+(.5+rnd()*1.1).toFixed(1)+'" fill="url(#fStar)" opacity="'+(.25+rnd()*.6).toFixed(2)+'"/>';
   const defs='<defs><linearGradient id="lShade" '+g1+'><stop offset="0" stop-color="#ffffff" stop-opacity=".06"/><stop offset=".45" stop-color="#05081a" stop-opacity=".12"/><stop offset=".75" stop-color="#05081a" stop-opacity=".6"/><stop offset="1" stop-color="#02040f" stop-opacity=".92"/></linearGradient>'
    +'<radialGradient id="lLimb"><stop offset=".62" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".5"/></radialGradient>'
    +'<radialGradient id="eBlue"><stop offset="0" stop-color="#2f7bff" stop-opacity=".95"/><stop offset=".55" stop-color="#2f7bff" stop-opacity=".55"/><stop offset="1" stop-color="#2f7bff" stop-opacity="0"/></radialGradient>'
    +'<radialGradient id="eAtm"><stop offset=".74" stop-color="#4d94ff" stop-opacity="0"/><stop offset=".88" stop-color="#4d94ff" stop-opacity=".5"/><stop offset="1" stop-color="#4d94ff" stop-opacity="0"/></radialGradient>'
-   +'<linearGradient id="eOrb" gradientUnits="userSpaceOnUse" x1="0" y1="'+(OY-ORY)+'" x2="0" y2="'+(OY+ORY)+'"><stop offset="0" stop-color="#6a7bff" stop-opacity=".25"/><stop offset=".5" stop-color="#7fa8ff" stop-opacity=".55"/><stop offset="1" stop-color="#a8e0ff" stop-opacity=".95"/></linearGradient><clipPath id="eClip"><circle cx="'+OX+'" cy="'+OY+'" r="'+ER+'"/></clipPath><clipPath id="mClip"><circle r="'+MR+'"/></clipPath></defs>';
+   +'<linearGradient id="eOrb" gradientUnits="userSpaceOnUse" x1="0" y1="'+(OY-ORY)+'" x2="0" y2="'+(OY+ORY)+'"><stop offset="0" stop-color="#6a7bff" stop-opacity=".25"/><stop offset=".5" stop-color="#7fa8ff" stop-opacity=".55"/><stop offset="1" stop-color="#a8e0ff" stop-opacity=".95"/></linearGradient><radialGradient id="fIce"><stop offset="0" stop-color="#f4f9fd"/><stop offset="1" stop-color="#dfeaf3"/></radialGradient><radialGradient id="fCloud"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#f1f4f8"/></radialGradient><radialGradient id="fStar"><stop offset="0" stop-color="#eef2ff"/><stop offset="1" stop-color="#cdd8ff"/></radialGradient><radialGradient id="fMoon" cx=".42" cy=".4" r=".75"><stop offset="0" stop-color="#cfcabf"/><stop offset="1" stop-color="#a9a49a"/></radialGradient><clipPath id="eClip"><circle cx="'+OX+'" cy="'+OY+'" r="'+ER+'"/></clipPath><clipPath id="mClip"><circle r="'+MR+'"/></clipPath></defs>';
   const back='M'+(OX-ORX)+' '+OY+' A'+ORX+' '+ORY+' 0 0 1 '+(OX+ORX)+' '+OY,front='M'+(OX+ORX)+' '+OY+' A'+ORX+' '+ORY+' 0 0 1 '+(OX-ORX)+' '+OY;
   let mm='';
   for(const m of MARIA)mm+='<ellipse cx="'+m[0]+'" cy="'+m[1]+'" rx="'+m[2]+'" ry="'+m[3]+'" transform="rotate('+m[4]+' '+m[0]+' '+m[1]+')" fill="#6d6a66" opacity=".55"/>';
@@ -1088,12 +1092,12 @@ function buildEarth(){
   for(const c of CRAT)mm+='<circle cx="'+c[0]+'" cy="'+c[1]+'" r="'+c[2]+'" fill="rgba(15,17,28,.22)" stroke="rgba(255,255,255,.3)" stroke-width=".8"/>';
   esvg.innerHTML=defs+st+'<path class="eorb back" d="'+back+'"/><g id="e-back"></g>'
    +'<g class="pl" tabindex="0" role="button" data-n="Tierra" aria-label="Tierra"><title>Tierra</title><circle class="halo" cx="'+OX+'" cy="'+OY+'" r="175" fill="url(#eBlue)"/><circle cx="'+OX+'" cy="'+OY+'" r="'+(ER*1.38)+'" fill="url(#eAtm)"/><circle cx="'+OX+'" cy="'+OY+'" r="'+ER+'" fill="#2d6fd0"/>'
-   +'<g clip-path="url(#eClip)"><path id="e-land" fill="#4a9a52" stroke="#2f6f3a" stroke-width=".8" stroke-linejoin="round"/><path id="e-ice" fill="#e8f1f8" opacity=".95"/><path id="e-cloud" fill="#ffffff" opacity=".42"/></g>'
+   +'<g clip-path="url(#eClip)"><path id="e-land" fill="#4a9a52" stroke="#2f6f3a" stroke-width=".8" stroke-linejoin="round"/><path id="e-ice" fill="url(#fIce)" opacity=".95"/><path id="e-cloud" fill="url(#fCloud)" opacity=".42"/></g>'
    +'<circle cx="'+OX+'" cy="'+OY+'" r="'+ER+'" fill="url(#lShade)"/><circle cx="'+OX+'" cy="'+OY+'" r="'+ER+'" fill="url(#lLimb)"/>'
    +'<text x="'+OX+'" y="'+(OY+ER+38)+'" text-anchor="middle">Tierra</text></g>'
    +'<path class="eorb" d="'+front+'"/><g id="e-front"></g>'
    +'<g id="e-moon" class="pl" tabindex="0" role="button" data-n="Luna" aria-label="Luna"><title>Luna</title><circle class="halo" r="80" fill="url(#eBlue)"/><circle r="46" fill="transparent"/>'
-   +'<g clip-path="url(#mClip)"><circle r="'+MR+'" fill="#bdb8ae"/>'+'<path id="m-maria" fill="#6d6a66" opacity=".55"/><path id="m-crat" fill="rgba(15,17,28,.22)" stroke="rgba(255,255,255,.3)" stroke-width=".8" stroke-linejoin="round"/>'+'<circle r="'+MR+'" fill="url(#lShade)"/><circle r="'+MR+'" fill="url(#lLimb)"/></g><text x="46" y="-40">Luna</text></g>';
+   +'<g clip-path="url(#mClip)"><circle r="'+MR+'" fill="url(#fMoon)"/>'+'<path id="m-maria" fill="#6d6a66" opacity=".55"/><path id="m-crat" fill="rgba(15,17,28,.22)" stroke="rgba(255,255,255,.3)" stroke-width=".8" stroke-linejoin="round"/>'+'<circle r="'+MR+'" fill="url(#lShade)"/><circle r="'+MR+'" fill="url(#lLimb)"/></g><text x="46" y="-40">Luna</text></g>';
   moonG=esvg.querySelector('#e-moon');backL=esvg.querySelector('#e-back');frontL=esvg.querySelector('#e-front');moonFront=false;
   eLand=esvg.querySelector('#e-land');eIce=esvg.querySelector('#e-ice');eCloud=esvg.querySelector('#e-cloud');moonMaria=esvg.querySelector('#m-maria');moonCrat=esvg.querySelector('#m-crat');
   backL.appendChild(moonG);
