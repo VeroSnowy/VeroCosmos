@@ -32,6 +32,7 @@ html,body{margin:0;height:100%;background:#05060f;color:#eef1ff;font:15px/1.4 sy
 </head>
 <body>
 <div id="base"></div>
+<iframe id="prev" src="VeroCosmos_0.2.2.html" title="" aria-hidden="true" tabindex="-1" style="position:fixed;inset:0;width:100%;height:100%;border:0;visibility:hidden;pointer-events:none"></iframe>
 <div id="reveal"><div class="nv"></div><div class="pu"></div><div class="st"></div></div>
 <main id="txt"><div id="txtin"><h1>&iquest;Qui&eacute;nes somos?</h1><div id="rule"></div><div id="below"></div></div></main>
 <img id="logo" src="icon.png" alt="Vero Cosmos" draggable="false">
@@ -85,7 +86,16 @@ function go(){
 function leave(){
   if(reduce||!reveal.animate){go();return}
   logo.classList.remove('fl');
+  /* la pantalla de origen queda debajo mientras el borde se recoge hacia el boton */
+  $('prev').style.visibility='visible';
   const r=rect(innerWidth,innerHeight),b=btnRect(),T={duration:540,easing:'cubic-bezier(.6,0,.3,1)',fill:'forwards'};
+  const W=innerWidth,H=innerHeight,bd=document.createElement('div');
+  bd.style.cssText='position:fixed;z-index:4;pointer-events:none;box-sizing:border-box;border:1px solid #8ab4ff;border-radius:11px;box-shadow:0 0 18px rgba(138,180,255,.45),inset 0 0 18px rgba(138,180,255,.25)';
+  document.body.append(bd);
+  bd.animate([
+    {top:'0px',right:'0px',bottom:'0px',left:'0px',borderWidth:'6px',borderRadius:'0px'},
+    {top:b.y+'px',right:'16px',bottom:(H-b.y-b.s)+'px',left:b.x+'px',borderWidth:'1px',borderRadius:'11px'}
+  ],T);
   reveal.animate([{clipPath:FULL},{clipPath:clip0()}],T);
   logo.animate([{left:r.x+'px',top:r.y+'px',width:r.s+'px',height:r.s+'px'},{left:b.x+'px',top:b.y+'px',width:b.s+'px',height:b.s+'px'}],T);
   txtin.animate([{opacity:1},{opacity:0}],{duration:240,fill:'forwards'});
@@ -96,6 +106,8 @@ back.addEventListener('click',leave);
 document.addEventListener('keydown',e=>{if(e.key==='Escape')leave()});
 addEventListener('resize',place);
 intro();
+/* Al avanzar/retroceder desde bfcache, reiniciar la pagina para no dejarla a medias de una animacion */
+addEventListener('pageshow',e=>{if(e.persisted)location.reload()});
 })();
 </script>
 </body>
