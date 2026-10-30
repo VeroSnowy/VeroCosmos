@@ -2,7 +2,7 @@
 configuration:
   pageTitle: Vero Cosmos
   pageTitleSuffix: ""
-  enableSPA: true
+  enableSPA: false
   enablePopovers: true
   analytics:
     provider: plausible
