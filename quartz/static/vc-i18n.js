@@ -246,8 +246,15 @@ const FLAGS={
 };
 const LABEL={es:'Idioma',en:'Language',fr:'Langue'};
 const ORDER=['es','en','fr'],ATTRS=['aria-label','title','placeholder','alt'];
-let lang='es';
+/* idioma inicial: 1) el que el visitante eligio con el boton; 2) el idioma de su navegador: es -> es, fr -> fr, cualquier otro -> en */
+function detect(langs){
+  const first=String((langs&&langs[0])||'').toLowerCase();
+  return first.indexOf('es')===0?'es':first.indexOf('fr')===0?'fr':'en';
+}
+let lang;
 try{const s=localStorage.getItem('vc-lang');if(ORDER.includes(s))lang=s}catch(e){}
+if(!lang)lang=detect(navigator.languages&&navigator.languages.length?navigator.languages:[navigator.language]);
+try{document.documentElement.lang=lang}catch(e){}
 
 /* Frases con numeros o fechas: se reconocen por patron sobre el texto original en espanol */
 const MESES={enero:0,febrero:1,marzo:2,abril:3,mayo:4,junio:5,julio:6,agosto:7,septiembre:8,octubre:9,noviembre:10,diciembre:11};
@@ -394,5 +401,5 @@ function mount(parent){
 function start(){apply();mo.observe(document.body,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:ATTRS})}
 if(document.body)start();else document.addEventListener('DOMContentLoaded',start);
 window.addEventListener('storage',e=>{if(e.key==='vc-lang'&&ORDER.includes(e.newValue)&&e.newValue!==lang){lang=e.newValue;document.documentElement.lang=lang;apply();refreshUI();window.dispatchEvent(new CustomEvent('vc-lang',{detail:lang}))}});
-window.vcI18n={mount,setLang,t:tr,get lang(){return lang},DICT};
+window.vcI18n={mount,setLang,detect,t:tr,get lang(){return lang},DICT};
 })();
