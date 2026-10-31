@@ -102,6 +102,23 @@ ul.l{margin:0;padding:0;list-style:none}
 #others button:hover b,#others button:focus-visible b{text-decoration:underline}
 #sky svg{display:block;width:100%;max-height:300px}
 .note{margin:10px 0 0;font-size:12.5px;color:var(--mut)}
+.loc{position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px;font-size:12.5px;color:var(--mut)}
+.loc svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.lk{border:0;background:none;color:var(--acc);font:inherit;font-size:12.5px;text-decoration:underline;cursor:pointer;padding:2px 4px}
+.locpop{position:absolute;left:0;bottom:30px;z-index:8;width:min(300px,100%);padding:12px;border:1px solid #232846;border-radius:10px;background:#0b0e1ff5;box-shadow:0 12px 30px #0008;backdrop-filter:blur(12px);color:var(--fg)}
+.locpop[hidden]{display:none}
+.locpop button#geo{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:#151a32;color:var(--fg);font:inherit;cursor:pointer}
+.locpop button#geo:hover{border-color:var(--acc)}
+.locpop label{display:block;margin-top:10px;font-size:12px;color:var(--mut)}
+.locpop select{display:block;width:100%;margin-top:4px;padding:8px;border:1px solid var(--line);border-radius:8px;background:#0e1226;color:var(--fg);font:inherit}
+.locpop .note{margin:8px 0 0}
+.locpop input{display:block;width:100%;margin-top:4px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#0e1226;color:var(--fg);font:inherit;outline:none}
+.locpop input:focus{border-color:var(--acc)}
+.locres{max-height:190px;overflow:auto;margin-top:4px;border-radius:8px}
+.locres button{display:block;width:100%;padding:8px 10px;border:0;border-bottom:1px solid #232846;background:#10163a;color:var(--fg);font:inherit;font-size:13px;text-align:left;cursor:pointer}
+.locres button small{color:var(--mut);margin-left:6px}
+.locres button:hover,.locres button:focus-visible{background:#1a2040;outline:none}
+.locres .none{padding:8px 10px;font-size:12.5px;color:var(--mut)}
 .heat{display:grid;grid-template-columns:34px repeat(14,minmax(0,1fr));gap:2px;font-size:10.5px;color:var(--mut)}
 .heat .h{text-align:center}
 .heat .m{display:flex;align-items:center;white-space:nowrap}
@@ -172,10 +189,12 @@ ul.l{margin:0;padding:0;list-style:none}
       <div class="blk"><h2>Trivia</h2><ul class="l" id="trivia"></ul></div>
     </section>
     <section class="card sk"><h2>Ubicación celeste</h2><div id="sky"></div><p class="note" id="skytxt"></p></section>
-    <section class="card hm"><h2>Mejores días y horas para observarlo</h2><div id="heat"></div><div class="lg" id="lg"></div><p class="note" id="besttxt"></p></section>
+    <section class="card hm"><h2>Mejores días y horas para observarlo</h2><div id="heat"></div><div class="lg" id="lg"></div><p class="note" id="besttxt"></p>
+      <div class="loc"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><span id="locname"></span><button type="button" class="lk" id="locbtn" aria-expanded="false">Cambiar</button>
+        <div class="locpop" id="locpop" hidden><button type="button" id="geo">Usar mi ubicación</button><label>Busca tu municipio<input type="search" id="locq" placeholder="Busca tu municipio…" autocomplete="off" autocapitalize="none" spellcheck="false" aria-label="Busca tu municipio"></label><div id="locres" class="locres" role="listbox"></div><p class="note" id="locmsg"></p></div></div></section>
   </main>
 </div>
-<script src="vc-i18n.js?v=28"></script>
+<script src="vc-i18n.js?v=30"></script>
 <script>
 const $=id=>document.getElementById(id);
 const slug=decodeURIComponent(location.hash.slice(1));
@@ -185,7 +204,29 @@ const T=s=>window.vcI18n?vcI18n.t(s):s;
 const C=()=>(window.vcI18n&&vcI18n.lang==='fr')?' : ':': ';
 let photoDate='';
 const pageUrl=s=>new URL(('../'+s.split('/').map(encodeURIComponent).join('/')).replace(/index$/,''),location.href).href;
-const OBS={name:'Sevilla',lat:37.39,lon:-5.98,tz:'Europe/Madrid'};
+/* ciudades para elegir [nombre, latitud, longitud, zona horaria] */
+const CITIES=[
+['Madrid',40.42,-3.70,'Europe/Madrid'],['Sevilla',37.39,-5.98,'Europe/Madrid'],['Barcelona',41.39,2.17,'Europe/Madrid'],['Valencia',39.47,-0.38,'Europe/Madrid'],['Bilbao',43.26,-2.93,'Europe/Madrid'],['Málaga',36.72,-4.42,'Europe/Madrid'],['Zaragoza',41.65,-0.89,'Europe/Madrid'],['Palma',39.57,2.65,'Europe/Madrid'],['Las Palmas',28.12,-15.43,'Atlantic/Canary'],['Santa Cruz de Tenerife',28.47,-16.25,'Atlantic/Canary'],
+['Lisboa',38.72,-9.14,'Europe/Lisbon'],['París',48.86,2.35,'Europe/Paris'],['Marsella',43.30,5.37,'Europe/Paris'],['Londres',51.51,-0.13,'Europe/London'],['Berlín',52.52,13.40,'Europe/Berlin'],['Roma',41.90,12.50,'Europe/Rome'],
+['Ciudad de México',19.43,-99.13,'America/Mexico_City'],['Guadalajara',20.67,-103.35,'America/Mexico_City'],['Bogotá',4.71,-74.07,'America/Bogota'],['Medellín',6.25,-75.56,'America/Bogota'],['Lima',-12.05,-77.04,'America/Lima'],['Quito',-0.18,-78.47,'America/Guayaquil'],['Caracas',10.48,-66.90,'America/Caracas'],
+['Santiago de Chile',-33.45,-70.67,'America/Santiago'],['Buenos Aires',-34.60,-58.38,'America/Argentina/Buenos_Aires'],['Montevideo',-34.90,-56.19,'America/Montevideo'],['Asunción',-25.26,-57.58,'America/Asuncion'],['La Paz',-16.50,-68.15,'America/La_Paz'],
+['San José',9.93,-84.08,'America/Costa_Rica'],['Panamá',8.98,-79.52,'America/Panama'],['Guatemala',14.63,-90.51,'America/Guatemala'],['La Habana',23.11,-82.37,'America/Havana'],['Santo Domingo',18.49,-69.93,'America/Santo_Domingo'],['San Juan',18.47,-66.11,'America/Puerto_Rico'],
+['Miami',25.76,-80.19,'America/New_York'],['Nueva York',40.71,-74.01,'America/New_York'],['Los Ángeles',34.05,-118.24,'America/Los_Angeles'],['Toronto',43.65,-79.38,'America/Toronto'],['Sídney',-33.87,151.21,'Australia/Sydney']
+];
+const browserTz=()=>{try{return Intl.DateTimeFormat().resolvedOptions().timeZone||''}catch(e){return ''}};
+function offNow(tz){try{const p=new Intl.DateTimeFormat('en-GB',{timeZone:tz,hourCycle:'h23',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}).formatToParts(new Date()).reduce((o,x)=>(o[x.type]=x.value,o),{});return(Date.UTC(+p.year,+p.month-1,+p.day,+p.hour,+p.minute)-Math.floor(Date.now()/60000)*60000)/60000}catch(e){return null}}
+/* sin permisos: ciudad de tu zona horaria (o, si no coincide, la de la misma hora) */
+function guessObs(){
+  const tz=browserTz();let c=CITIES.find(x=>x[3]===tz);
+  if(!c&&tz){const o=offNow(tz);if(o!==null)c=CITIES.find(x=>offNow(x[3])===o)}
+  if(!c)c=CITIES[0];
+  return{name:c[0],lat:c[1],lon:c[2],tz:tz||c[3],src:'tz'};
+}
+function loadObs(){
+  try{const s=JSON.parse(localStorage.getItem('vc-loc')||'null');if(s&&isFinite(s.lat)&&isFinite(s.lon)&&s.tz)return s}catch(e){}
+  return guessObs();
+}
+let OBS=loadObs();
 let data=null;
 
 /* ---------- fondo de estrellas ---------- */
@@ -698,7 +739,6 @@ function heat(){
     :lgx('#2a3470','15–30°')+lgx('#3f5fb8','30–40°')+lgx('#6fa8ff','>40°')+lgx(hatch,T('con luz'))
      +(top.size?sym('★',T('Mejor época')):'')+sym('✦',T('Mejor hora')));
   /* una sola linea corta debajo */
-  const loc=T('Calculado para')+' '+T(OBS.name)+' ('+(window.vcI18n&&vcI18n.lang==='en'?String(OBS.lat):String(OBS.lat).replace('.',','))+'° N)';
   const parts=[];
   if(kind==='sun')parts.push('⚠ '+T('Nunca lo mires sin un filtro solar certificado.'));
   else if(kind==='moon'){
@@ -710,9 +750,67 @@ function heat(){
     const cul=90-Math.abs(OBS.lat-bodyPos(Date.now()).dec);
     if(cul<35)parts.push('▾ '+T('Siempre bajo: culmina a')+' '+Math.round(cul)+'°');
   }
-  parts.push(loc);
   $('besttxt').textContent=parts.join(' · ');
+  showLoc();
 }
+/* ---- ubicacion: texto, selector y GPS ---- */
+const fmtLat=l=>{const a=Math.abs(l).toFixed(2),s=(window.vcI18n&&vcI18n.lang==='en')?a:a.replace('.',',');return s+'° '+(l>=0?'N':'S')};
+function showLoc(){
+  $('locname').textContent=T('Calculado para')+' '+T(OBS.name)+' ('+fmtLat(OBS.lat)+')'+(OBS.src==='tz'?' · '+T('según tu zona horaria'):(OBS.src==='gps'&&OBS.name!=='Tu ubicación'?' · '+T('el más cercano a ti'):''));
+}
+function setObs(o,save){
+  OBS=o;if(save){try{localStorage.setItem('vc-loc',JSON.stringify(o))}catch(e){}}
+  heat();
+}
+const COUNTRY={'Europe/Madrid':'España','Atlantic/Canary':'España','Europe/Lisbon':'Portugal','Europe/Paris':'Francia','Europe/London':'Reino Unido','Europe/Berlin':'Alemania','Europe/Rome':'Italia','America/Mexico_City':'México','America/Bogota':'Colombia','America/Lima':'Perú','America/Guayaquil':'Ecuador','America/Caracas':'Venezuela','America/Santiago':'Chile','America/Argentina/Buenos_Aires':'Argentina','America/Montevideo':'Uruguay','America/Asuncion':'Paraguay','America/La_Paz':'Bolivia','America/Costa_Rica':'Costa Rica','America/Panama':'Panamá','America/Guatemala':'Guatemala','America/Havana':'Cuba','America/Santo_Domingo':'Rep. Dominicana','America/Puerto_Rico':'Puerto Rico','America/New_York':'EE. UU.','America/Los_Angeles':'EE. UU.','America/Toronto':'Canadá','Australia/Sydney':'Australia'};
+const hav=(a,b,c,d)=>{const r=Math.PI/180,x=Math.sin((c-a)*r/2)**2+Math.cos(a*r)*Math.cos(c*r)*Math.sin((d-b)*r/2)**2;return 12742*Math.asin(Math.sqrt(x))};
+(function(){
+  const pop=$('locpop'),msg=$('locmsg'),q=$('locq'),box=$('locres');
+  window.addEventListener('vc-lang',showLoc);
+  const open=v=>{pop.hidden=!v;$('locbtn').setAttribute('aria-expanded',String(v));if(v){msg.textContent='';setTimeout(()=>{try{q.focus()}catch(e){}},60)}};
+  $('locbtn').addEventListener('click',()=>open(pop.hidden));
+  document.addEventListener('pointerdown',e=>{if(!pop.hidden&&!pop.contains(e.target)&&e.target!==$('locbtn'))open(false)});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!pop.hidden){open(false);e.stopPropagation()}},true);
+  /* lista unica: los 785 municipios de Andalucia + las ciudades de la lista (se descarga la primera vez) */
+  let ALL=null,hits=[];
+  const nrm=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[-_.,']/g,' ').replace(/\s+/g,' ').trim();
+  async function load(){
+    if(ALL)return ALL;
+    let m=[];try{m=(await(await fetch('municipios-andalucia.json?v=1')).json()).m}catch(e){}
+    const and=m.map(x=>({n:x[0],sub:x[1],lat:x[2],lon:x[3],tz:'Europe/Madrid',and:1,label:x[0]===x[1]?x[0]:x[0]+', '+x[1],k:nrm(x[0]),hay:nrm(x[0]+' '+x[1])}));
+    const have=new Set(and.map(x=>x.k));
+    const others=CITIES.filter(c=>!have.has(nrm(c[0]))).map(c=>({n:c[0],sub:COUNTRY[c[3]]||'',lat:c[1],lon:c[2],tz:c[3],and:0,label:c[0],k:nrm(c[0]),hay:nrm(c[0]+' '+(COUNTRY[c[3]]||''))}));
+    ALL=and.concat(others);return ALL;
+  }
+  q.addEventListener('focus',load);
+  const pick=x=>{setObs({name:x.label,lat:x.lat,lon:x.lon,tz:x.tz,src:'city'},true);q.value='';box.replaceChildren();hits=[];open(false)};
+  async function search(){
+    const qn=nrm(q.value);box.replaceChildren();hits=[];
+    if(!qn)return;
+    const all=await load(),words=qn.split(' ');
+    hits=all.filter(x=>words.every(w=>x.hay.includes(w))).sort((a,b)=>(b.k.startsWith(qn)-a.k.startsWith(qn))||(b.and-a.and)||a.n.localeCompare(b.n,'es')).slice(0,8);
+    if(!hits.length){const d=document.createElement('div');d.className='none';d.textContent='No hay coincidencias.';box.append(d);return}
+    for(const x of hits){
+      const b=document.createElement('button');b.type='button';b.setAttribute('role','option');
+      b.append(x.n);const s=document.createElement('small');s.textContent=x.sub;b.append(s);
+      b.addEventListener('click',()=>pick(x));box.append(b);
+    }
+  }
+  q.addEventListener('input',search);
+  q.addEventListener('keydown',e=>{if(e.key==='Enter'&&hits[0]){e.preventDefault();pick(hits[0])}});
+  /* "Usar mi ubicacion": se queda con el municipio cargado mas cercano (si estas muy lejos de todos, usa tus coordenadas) */
+  $('geo').addEventListener('click',()=>{
+    if(!navigator.geolocation){msg.textContent=T('Tu navegador no permite obtener la ubicación. Busca tu municipio.');return}
+    msg.textContent=T('Buscando tu ubicación…');
+    navigator.geolocation.getCurrentPosition(async p=>{
+      const la=p.coords.latitude,lo=p.coords.longitude,all=await load();
+      let best=null,bd=1e9;for(const x of all){const d=hav(la,lo,x.lat,x.lon);if(d<bd){bd=d;best=x}}
+      if(best&&bd<=150)setObs({name:best.label,lat:best.lat,lon:best.lon,tz:best.tz,src:'gps'},true);
+      else setObs({name:'Tu ubicación',lat:+la.toFixed(3),lon:+lo.toFixed(3),tz:browserTz()||OBS.tz,src:'gps'},true);
+      open(false);
+    },()=>{msg.textContent=T('No se pudo obtener tu ubicación. Busca tu municipio.')},{timeout:12000,maximumAge:3600000});
+  });
+})();
 
 function startModel(){
   const m=data.model,norm=v=>{const l=Math.hypot(...v);return v.map(x=>x/l)};
