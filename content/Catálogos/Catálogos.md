@@ -1,4 +1,4 @@
 [[Catálogo Messier]]
 [[Catálogo NGC]]
 [[Catálogo Sistema Solar]]
-[[Atlas Astrofotográfico]]
+[[atlas-astrofotografico|Atlas Astrofotográfico]]
