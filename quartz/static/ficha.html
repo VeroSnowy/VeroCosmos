@@ -194,7 +194,7 @@ ul.l{margin:0;padding:0;list-style:none}
         <div class="locpop" id="locpop" hidden><button type="button" id="geo">Usar mi ubicación</button><label>Busca tu municipio<input type="search" id="locq" placeholder="Busca tu municipio…" autocomplete="off" autocapitalize="none" spellcheck="false" aria-label="Busca tu municipio"></label><div id="locres" class="locres" role="listbox"></div><p class="note" id="locmsg"></p></div></div></section>
   </main>
 </div>
-<script src="vc-i18n.js?v=30"></script>
+<script src="vc-i18n.js?v=31"></script>
 <script>
 const $=id=>document.getElementById(id);
 const slug=decodeURIComponent(location.hash.slice(1));
@@ -771,16 +771,21 @@ const hav=(a,b,c,d)=>{const r=Math.PI/180,x=Math.sin((c-a)*r/2)**2+Math.cos(a*r)
   $('locbtn').addEventListener('click',()=>open(pop.hidden));
   document.addEventListener('pointerdown',e=>{if(!pop.hidden&&!pop.contains(e.target)&&e.target!==$('locbtn'))open(false)});
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!pop.hidden){open(false);e.stopPropagation()}},true);
-  /* lista unica: los 785 municipios de Andalucia + las ciudades de la lista (se descarga la primera vez) */
+  /* lista unica: todos los municipios de Espana + ciudades de otros paises (se descarga la primera vez) */
   let ALL=null,hits=[];
   const nrm=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[-_.,']/g,' ').replace(/\s+/g,' ').trim();
   async function load(){
     if(ALL)return ALL;
-    let m=[];try{m=(await(await fetch('municipios-andalucia.json?v=1')).json()).m}catch(e){}
-    const and=m.map(x=>({n:x[0],sub:x[1],lat:x[2],lon:x[3],tz:'Europe/Madrid',and:1,label:x[0]===x[1]?x[0]:x[0]+', '+x[1],k:nrm(x[0]),hay:nrm(x[0]+' '+x[1])}));
-    const have=new Set(and.map(x=>x.k));
-    const others=CITIES.filter(c=>!have.has(nrm(c[0]))).map(c=>({n:c[0],sub:COUNTRY[c[3]]||'',lat:c[1],lon:c[2],tz:c[3],and:0,label:c[0],k:nrm(c[0]),hay:nrm(c[0]+' '+(COUNTRY[c[3]]||''))}));
-    ALL=and.concat(others);return ALL;
+    let d={p:[],m:[],c:[]};try{d=await(await fetch('municipios-espana.json?v=4')).json()}catch(e){}
+    const AND=new Set(['Almería','Cádiz','Córdoba','Granada','Huelva','Jaén','Málaga','Sevilla']),CAN=new Set(['Las Palmas','Santa Cruz de Tenerife']);
+    /* nombres en ingles y frances (de las traducciones) para poder buscar "London" o "Londres" */
+    const D=(window.vcI18n&&vcI18n.DICT)||{},als=n=>[D.en&&D.en[n],D.fr&&D.fr[n]].filter(Boolean);
+    const and=d.m.map(x=>{const pr=d.p[x[1]]||'',al=(x[4]||'').split('|').filter(Boolean).concat(als(x[0]));return{n:x[0],sub:pr,lat:x[2],lon:x[3],tz:CAN.has(pr)?'Atlantic/Canary':'Europe/Madrid',and:AND.has(pr)?1:0,label:x[0]===pr?x[0]:x[0]+', '+pr,k:nrm(x[0]),al:al.map(nrm),hay:nrm(x[0]+' '+pr+' '+al.join(' '))}});
+    const have=new Set();
+    const mk=(n,sub,lat,lon,tz)=>{const al=als(n),sa=als(sub);have.add(nrm(n)+"|"+nrm(sub));return{n,sub,lat,lon,tz,and:0,label:n,k:nrm(n),al:al.map(nrm),hay:nrm(n+' '+sub+' '+al.join(' ')+' '+sa.join(' '))}};
+    const world=(d.c||[]).filter(c=>!have.has(nrm(c[0])+"|"+nrm(c[1]))).map(c=>mk(c[0],c[1],c[2],c[3],c[4]));
+    const others=CITIES.filter(c=>!['Europe/Madrid','Atlantic/Canary'].includes(c[3])&&!have.has(nrm(c[0])+'|'+nrm(COUNTRY[c[3]]||''))).map(c=>mk(c[0],COUNTRY[c[3]]||'',c[1],c[2],c[3]));
+    ALL=and.concat(world,others);return ALL;
   }
   q.addEventListener('focus',load);
   const pick=x=>{setObs({name:x.label,lat:x.lat,lon:x.lon,tz:x.tz,src:'city'},true);q.value='';box.replaceChildren();hits=[];open(false)};
@@ -788,7 +793,8 @@ const hav=(a,b,c,d)=>{const r=Math.PI/180,x=Math.sin((c-a)*r/2)**2+Math.cos(a*r)
     const qn=nrm(q.value);box.replaceChildren();hits=[];
     if(!qn)return;
     const all=await load(),words=qn.split(' ');
-    hits=all.filter(x=>words.every(w=>x.hay.includes(w))).sort((a,b)=>(b.k.startsWith(qn)-a.k.startsWith(qn))||(b.and-a.and)||a.n.localeCompare(b.n,'es')).slice(0,8);
+    const rank=x=>x.k===qn||x.al.includes(qn)?0:x.k.startsWith(qn)||x.al.some(a=>a.startsWith(qn))?1:x.k.includes(qn)?2:3;
+    hits=all.filter(x=>words.every(w=>x.hay.includes(w))).map(x=>[rank(x),x]).sort((a,b)=>(a[0]-b[0])||(b[1].and-a[1].and)||a[1].n.localeCompare(b[1].n,'es')).slice(0,8).map(r=>r[1]);
     if(!hits.length){const d=document.createElement('div');d.className='none';d.textContent='No hay coincidencias.';box.append(d);return}
     for(const x of hits){
       const b=document.createElement('button');b.type='button';b.setAttribute('role','option');
