@@ -1,0 +1,1477 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="theme-color" content="#05060f">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vero Cosmos · Atlas astrofotográfico 0.2.1</title>
+<style>
+:root{color-scheme:only light;scrollbar-color:#3a4270 transparent;--bg:#05060f;--fg:#eef1ff;--mut:#8f98c0;--line:#232846}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font:15px/1.4 system-ui,sans-serif;overflow:hidden}
+#app{display:flex;height:100%}
+#stage{position:relative;flex:1;min-width:0}
+canvas{display:block;width:100%;height:100%}
+#head{position:absolute;top:12px;left:18px;display:flex;align-items:center;gap:10px;z-index:6;pointer-events:auto}
+#head h1{margin:0;color:#fff;font:400 22px/1 "Iowan Old Style",Georgia,serif;letter-spacing:.02em}
+#menu-wrap{position:relative}
+#menu-toggle{position:relative;display:flex;align-items:center;justify-content:center;width:34px;height:34px;border:1px solid transparent;border-radius:7px;background:transparent;color:#eef1ff;cursor:pointer;padding:0;transition:background .18s ease,border-color .18s ease}
+#menu-toggle:hover,#menu-toggle[aria-expanded="true"]{background:#151a32;border-color:#343b60}
+#menu-toggle .menu-lines{position:relative;width:19px;height:18px;display:block}
+#menu-toggle .menu-line{position:absolute;left:1px;width:17px;height:1.7px;border-radius:2px;background:currentColor;transform-origin:center;transition:top .22s ease,transform .22s cubic-bezier(.2,.8,.2,1),opacity .14s ease}
+#menu-toggle .menu-line:nth-child(1){top:3px}
+#menu-toggle .menu-line:nth-child(2){top:8px}
+#menu-toggle .menu-line:nth-child(3){top:13px}
+#menu-toggle[aria-expanded="true"] .menu-line:nth-child(1){top:8px;transform:rotate(45deg)}
+#menu-toggle[aria-expanded="true"] .menu-line:nth-child(2){opacity:0;transform:scaleX(.3)}
+#menu-toggle[aria-expanded="true"] .menu-line:nth-child(3){top:8px;transform:rotate(-45deg)}
+#page-menu{position:absolute;top:42px;left:0;min-width:210px;padding:5px;border:1px solid #232846;border-radius:9px;background:#0b0e1ff5;box-shadow:0 12px 30px #0008;backdrop-filter:blur(12px);opacity:0;visibility:hidden;pointer-events:none;transform:translateY(-8px) scale(.98);transform-origin:top left;transition:opacity .17s ease,transform .22s cubic-bezier(.2,.8,.2,1),visibility 0s linear .22s}
+#page-menu.open{opacity:1;visibility:visible;pointer-events:auto;transform:translateY(0) scale(1);transition:opacity .17s ease,transform .22s cubic-bezier(.2,.8,.2,1),visibility 0s}
+#page-menu a{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:10px 11px;border-radius:6px;color:#eef1ff;text-decoration:none;font:inherit;white-space:nowrap}
+#page-menu a:hover,#page-menu a:focus{background:#1a2040;outline:none}
+#page-menu .map-icon{width:18px;height:18px;flex:none;color:#a9b9e9}
+#page-menu .home-icon{width:18px;height:18px;flex:none;color:#a9b9e9}
+#principal-view{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;background:radial-gradient(ellipse at 50% 45%,#111936 0%,#080b19 42%,#05060f 78%);}
+#principal-view{isolation:isolate}
+#sky{position:fixed;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none}
+#principal-view::before{content:"";position:absolute;inset:0;background-image:radial-gradient(1px 1px at 12% 20%,#dce5ff99 99%,transparent),radial-gradient(1px 1px at 73% 16%,#dce5ff80 99%,transparent),radial-gradient(1.5px 1.5px at 82% 72%,#dce5ff99 99%,transparent),radial-gradient(1px 1px at 27% 78%,#dce5ff80 99%,transparent),radial-gradient(1px 1px at 55% 61%,#dce5ff80 99%,transparent),radial-gradient(1px 1px at 91% 37%,#dce5ff80 99%,transparent);opacity:.65;pointer-events:none}
+#principal-title{position:relative;margin:0;padding:0 24px 12px;color:#f5f7ff;text-align:center;font:400 clamp(52px,10vw,120px)/1.05 "Iowan Old Style",Georgia,serif;letter-spacing:.025em;text-shadow:0 0 35px #8ab4ff30}
+#principal-subtitle{position:relative;margin:0;padding:0 24px;color:#b8c4e6;text-align:center;font:400 clamp(16px,2.4vw,25px)/1.5 "Iowan Old Style",Georgia,serif;letter-spacing:.035em;text-shadow:0 0 22px #8ab4ff22;opacity:.92}
+#featured-tools{position:absolute;left:clamp(18px,4vw,48px);bottom:clamp(18px,4vh,42px);z-index:2;width:min(390px,calc(100% - 36px));text-align:left}
+#featured-tools h3{margin:0 0 12px;color:#aebbe1;font-size:11px;font-weight:650;letter-spacing:.17em;text-transform:uppercase}
+#featured-atlas-link{display:flex;align-items:center;gap:15px;padding:16px 18px;border:1px solid #343d63;border-radius:13px;background:linear-gradient(120deg,#111a35d9,#0b1025d9);color:var(--fg);text-decoration:none;box-shadow:0 12px 34px #0003;backdrop-filter:blur(12px);transition:transform .2s ease,border-color .2s ease,background .2s ease}
+#featured-atlas-link:hover,#featured-atlas-link:focus-visible{transform:translateY(-3px);border-color:#8199d8;background:linear-gradient(120deg,#182448ed,#101832ed);outline:none}
+#featured-atlas-link .featured-icon{display:flex;align-items:center;justify-content:center;flex:none;width:46px;height:46px;border:1px solid #414e7a;border-radius:10px;background:#192443;color:#b9c9ff}
+#featured-atlas-link .featured-icon svg{width:25px;height:25px}
+#featured-atlas-link .featured-copy{display:flex;flex:1;min-width:0;flex-direction:column;gap:4px}
+#featured-atlas-link .featured-name{font:400 19px/1.2 "Iowan Old Style",Georgia,serif;color:#f5f7ff}
+#featured-atlas-link .featured-description{font-size:13px;line-height:1.45;color:#aeb9dd}
+#featured-atlas-link .featured-arrow{flex:none;color:#8798c9;font-size:20px;transition:transform .2s ease}
+#featured-atlas-link:hover .featured-arrow{transform:translateX(3px)}
+@media(max-width:700px){#featured-tools{left:18px;bottom:18px;width:calc(100% - 36px)}#featured-tools h3{margin-bottom:8px}#featured-atlas-link{padding:12px 14px;gap:12px}#featured-atlas-link .featured-icon{width:40px;height:40px}#featured-atlas-link .featured-name{font-size:17px}#featured-atlas-link .featured-description{font-size:12px}}
+body.principal-page #cv,body.principal-page #search-wrap,body.principal-page #nav,body.principal-page #msg,body.principal-page #recenter{display:none!important}
+body.principal-page #principal-view{display:flex}
+body.principal-page #head h1{display:none}
+body.principal-page #panel{display:none}
+#search-wrap{position:absolute;top:12px;right:64px;width:min(320px,calc(100% - 36px));z-index:4}
+#search{width:100%;height:38px;padding:0 13px 0 37px;border:1px solid #343b60;border-radius:8px;outline:none;background:#0e1226eF;color:var(--fg);font:inherit;box-shadow:0 5px 22px #0003}
+#search::placeholder{color:#8f98c0}
+#search:focus{border-color:#8ab4ff;box-shadow:0 0 0 2px #8ab4ff22}
+#search-icon{position:absolute;left:12px;top:10px;color:#8f98c0;pointer-events:none;font-size:16px}
+#results{display:none;position:absolute;top:44px;left:0;right:0;max-height:min(55vh,420px);overflow:auto;border:1px solid var(--line);border-radius:8px;background:#0b0e1ff5;box-shadow:0 12px 30px #0007;backdrop-filter:blur(12px)}
+#results.visible{display:block}
+.search-result{display:block;width:100%;padding:10px 12px;border:0;border-bottom:1px solid #232846;background:transparent;color:var(--fg);text-align:left;font:inherit;cursor:pointer}
+.search-result:last-child{border-bottom:0}
+.search-result:hover,.search-result:focus{background:#1a2040;outline:none}
+.search-result small{display:block;margin-top:2px;color:var(--mut);font-size:12px;overflow-wrap:anywhere}
+.search-empty{padding:12px;color:var(--mut);font-size:13px}
+#nav{position:absolute;top:44px;left:18px;display:flex;gap:8px}
+#nav button{display:block;background:#0e1226;color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:7px 12px;font:inherit;cursor:pointer}
+#nav button:hover{border-color:#8ab4ff}#nav button.active{border-color:#8ab4ff;background:#151a32}
+#msg{position:absolute;inset:auto 18px 16px;color:var(--mut);padding-right:58px}
+#recenter{position:absolute;right:18px;bottom:18px;z-index:5;width:42px;height:42px;display:flex;align-items:center;justify-content:center;border:1px solid #343b60;border-radius:50%;background:#0e1226eF;color:#dce5ff;box-shadow:0 5px 20px #0005;cursor:pointer;transition:background .18s ease,border-color .18s ease,transform .18s ease}
+#recenter:hover{background:#1a2040;border-color:#8ab4ff;transform:scale(1.06)}
+#recenter:active{transform:scale(.96)}
+#recenter svg{width:21px;height:21px;display:block}
+#recenter:focus-visible{outline:2px solid #8ab4ff;outline-offset:3px}
+#panel{width:0;background:#0b0e1f;border-left:1px solid var(--line);position:relative;overflow:hidden;transition:width .25s}
+body.open #panel{width:min(48vw,720px)}
+#panel iframe{width:100%;height:100%;border:0;background:#0b0e1f}
+#close{position:absolute;top:10px;right:12px;width:32px;height:32px;border-radius:50%;border:1px solid var(--line);background:#0e1226;color:var(--fg);font-size:18px;cursor:pointer;z-index:2}
+#tip{position:fixed;display:none;pointer-events:none;width:250px;background:#0e1226ee;border:1px solid var(--line);border-radius:8px;padding:10px;z-index:5}
+#tip img{display:block;width:100%;height:auto;max-height:45vh;object-fit:contain;border-radius:5px;margin-bottom:8px}
+#tip b{display:block;font:400 17px/1.2 "Iowan Old Style",Georgia,serif;margin-bottom:4px}
+#tip span{color:var(--mut);font-size:13px}
+@media(max-width:700px){body.open #panel{width:100vw;position:absolute;inset:0}}
+#all,#goHome{display:none!important}
+#contacts{position:absolute;right:clamp(18px,4vw,48px);bottom:clamp(18px,4vh,42px);z-index:2;width:min(260px,calc(100% - 36px));padding:14px 10px 10px;border:1px solid #343d63;border-radius:13px;background:linear-gradient(120deg,#111a35d9,#0b1025d9);backdrop-filter:blur(12px)}
+#contacts h3{margin:0 0 8px 10px;color:#aebbe1;font-size:11px;font-weight:650;letter-spacing:.17em;text-transform:uppercase}
+#contacts a{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:9px 10px;border-radius:7px;color:#eef1ff;text-decoration:none}
+@media(min-width:701px) and (max-height:760px){#contacts{padding:10px 8px 6px}#contacts h3{margin-bottom:4px}#contacts a{padding:5px 10px}}
+#contacts a:hover,#contacts a:focus-visible{background:#1a2040;outline:none}
+#contacts svg{width:20px;height:20px;flex:none;color:#a9b9e9}
+@media(max-width:700px){#contacts{right:18px;left:18px;width:auto;bottom:150px}}#mini{flex:none;width:0;overflow:hidden;background:#0b0e1f;border-left:1px solid #232846;transition:width .25s}
+body.mini-open #mini{width:var(--mw,clamp(280px,20vw,380px))}
+.m-in{position:relative;width:var(--mw,clamp(280px,20vw,380px));height:100%;overflow-y:auto;padding-bottom:24px}
+.m-img{display:none;width:100%;height:auto;max-height:none;object-fit:contain;background:#05060f}
+.m-body{padding:16px 18px}
+.m-title{margin:0 0 4px;font:400 21px/1.2 "Iowan Old Style",Georgia,serif;color:#f5f7ff}
+.m-date{margin:0 0 12px;color:#8f98c0;font-size:12px;letter-spacing:.04em}
+.m-text{margin:0 0 16px;color:#c9d1f2;font-size:14px;line-height:1.55;white-space:pre-line}
+#mfull{background:#151a32;color:#eef1ff;border:1px solid #343b60;border-radius:7px;padding:8px 12px;font:inherit;cursor:pointer}
+#mfull:hover{border-color:#8ab4ff}
+#mclose{position:absolute;top:8px;right:8px;z-index:2;width:30px;height:30px;border-radius:50%;border:1px solid #232846;background:#0e1226cc;color:#eef1ff;cursor:pointer;font-size:17px}
+body.principal-page #mini{display:none}
+@media(max-width:700px){#mini{position:absolute;left:0;right:0;bottom:0;width:auto;height:0;border-left:0;border-top:1px solid #232846;transition:height .25s}body.mini-open #mini{width:auto;height:58vh}.m-in{width:100%}}
+@media(max-width:700px){.m-img{max-height:32vh}}
+#credit{display:none;position:absolute;right:clamp(18px,4vw,48px);bottom:12px;z-index:2;margin:0;color:#8f98c0;font:12px/1.4 system-ui,sans-serif;letter-spacing:.02em}
+#credit a{color:#aebbe1;text-decoration:none}
+#credit a:hover{color:#eef1ff;text-decoration:underline}
+body.principal-page #credit{display:block}
+#contacts{bottom:calc(clamp(18px,4vh,42px) + 26px)}
+@media(max-width:700px){#credit{left:18px;right:18px;text-align:center}#featured-tools{bottom:40px}#contacts{bottom:172px}}
+@media(min-width:701px){#mini{position:relative}}
+#mini>#mclose{right:20px;z-index:3}
+#featured-guide-link{display:flex;align-items:center;gap:15px;margin-top:10px;padding:16px 18px;border:1px solid #343d63;border-radius:13px;background:linear-gradient(120deg,#111a35d9,#0b1025d9);color:var(--fg);text-decoration:none;box-shadow:0 12px 34px #0003;backdrop-filter:blur(12px);transition:transform .2s ease,border-color .2s ease,background .2s ease}
+#featured-guide-link:hover,#featured-guide-link:focus-visible{transform:translateY(-3px);border-color:#8199d8;background:linear-gradient(120deg,#182448ed,#101832ed);outline:none}
+#featured-guide-link .featured-icon{display:flex;align-items:center;justify-content:center;flex:none;width:46px;height:46px;border:1px solid #414e7a;border-radius:10px;background:#192443;color:#b9c9ff}
+#featured-guide-link .featured-icon svg{width:25px;height:25px}
+#featured-guide-link .featured-copy{display:flex;flex:1;min-width:0;flex-direction:column;gap:4px}
+#featured-guide-link .featured-name{font:400 19px/1.2 "Iowan Old Style",Georgia,serif;color:#f5f7ff}
+#featured-guide-link .featured-description{font-size:13px;line-height:1.45;color:#aeb9dd}
+#featured-guide-link .featured-arrow{flex:none;color:#8798c9;font-size:20px;transition:transform .2s ease}
+#featured-guide-link:hover .featured-arrow{transform:translateX(3px)}
+#guide-view{position:absolute;inset:0;display:none;overflow:hidden;background:radial-gradient(ellipse at 50% 40%,#111936 0%,#080b19 45%,#05060f 80%)}
+body.guide-page #guide-view{display:block}
+body.guide-page #cv,body.guide-page #search-wrap,body.guide-page #nav,body.guide-page #msg,body.guide-page #recenter{display:none!important}
+body.guide-page #head h1{display:none}
+#g-main{position:absolute;inset:0;overflow-y:auto;padding:84px clamp(18px,4vw,48px) 32px}
+#g-wrap{max-width:980px;margin:0 auto}
+#g-wrap h2{margin:0 0 8px;font:400 clamp(34px,6vw,64px)/1.08 "Iowan Old Style",Georgia,serif;color:#f5f7ff;text-shadow:0 0 30px #8ab4ff30}
+.g-lead{margin:0 0 28px;color:#b8c4e6;font:400 clamp(16px,2vw,21px)/1.5 "Iowan Old Style",Georgia,serif}
+#g-count{margin:0 0 12px;color:#8f98c0;font-size:13px}
+#g-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.g-empty{color:#8f98c0}
+.g-card{display:block;text-align:left;padding:14px 16px;border:1px solid #343d63;border-radius:11px;background:linear-gradient(120deg,#111a35d9,#0b1025d9);color:var(--fg);font:inherit;cursor:pointer;transition:transform .2s ease,border-color .2s ease}
+.g-card:hover,.g-card:focus-visible{transform:translateY(-2px);border-color:#8199d8;outline:none}
+.g-card b{display:block;margin-bottom:3px;font:400 17px/1.25 "Iowan Old Style",Georgia,serif;color:#f5f7ff}
+.g-card small{color:#8f98c0;font-size:12px}
+#g-search{position:absolute;top:12px;right:18px;width:min(320px,calc(100% - 36px));z-index:4}
+#g-search span{position:absolute;left:12px;top:10px;color:#8f98c0;pointer-events:none;font-size:16px}
+#g-input{width:100%;height:38px;padding:0 13px 0 37px;border:1px solid #343b60;border-radius:8px;outline:none;background:#0e1226ef;color:var(--fg);font:inherit;box-shadow:0 5px 22px #0003}
+#g-input::placeholder{color:#8f98c0}
+#g-input:focus{border-color:#8ab4ff;box-shadow:0 0 0 2px #8ab4ff22}
+@keyframes gIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@keyframes gInR{from{opacity:0;transform:translateX(48px)}to{opacity:1;transform:none}}
+#guide-view:not(.play) .g-in{opacity:0}
+#guide-view.play .g-in{animation:gIn .7s cubic-bezier(.2,.8,.2,1) var(--d,0s) backwards}
+#guide-view.play .g-right{animation-name:gInR}
+@media(prefers-reduced-motion:reduce){#guide-view.play .g-in{animation:none}}
+@media(max-width:700px){#featured-guide-link{padding:12px 14px;gap:12px}#featured-guide-link .featured-icon{width:40px;height:40px}#featured-guide-link .featured-name{font-size:17px}#featured-guide-link .featured-description{font-size:12px}#contacts{top:56px;bottom:auto;left:18px;right:18px;width:auto;display:flex;justify-content:center;gap:6px;padding:8px}#contacts h3,#contacts a span{display:none}#contacts a{padding:9px 14px}#g-search{width:calc(100% - 84px)}#g-main{padding-top:72px}}
+#guide-view{container-type:inline-size}
+#ghead{position:absolute;top:10px;left:64px;right:64px;display:flex;align-items:baseline;gap:14px;pointer-events:none}
+#ghead h2{margin:0;font:400 24px/1.1 "Iowan Old Style",Georgia,serif;color:#f5f7ff}
+#ghead p{margin:0;color:#b8c4e6;font:400 15px/1.3 "Iowan Old Style",Georgia,serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#gcols{position:absolute;top:60px;left:16px;right:16px;bottom:16px;display:grid;grid-template-columns:minmax(190px,1fr) minmax(0,2.4fr) minmax(280px,1.3fr);gap:12px}
+.gcol{display:flex;flex-direction:column;min-width:0;min-height:0;border:1px solid #2a3258;border-radius:14px;background:linear-gradient(160deg,#0f1530cc,#090c1ecc);overflow:hidden}
+.gc-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:14px 16px 8px}
+.gc-h h3{margin:0;font:400 19px/1.2 "Iowan Old Style",Georgia,serif;color:#f5f7ff}
+#oc-count{color:#8f98c0;font-size:12px;white-space:nowrap}
+.gcol-body{flex:1;min-height:0;overflow-y:auto;padding:6px 14px 14px}
+.gcol-empty{margin:6px 0;color:#8f98c0;font-size:13px;line-height:1.5}
+#ss-wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:8px}
+#ss-svg{width:100%;height:100%;display:block}
+#ss-svg text{fill:#c9d1f2;font:12px system-ui,sans-serif}
+#ss-svg .orb{fill:none;stroke:rgba(138,180,255,.24);stroke-width:1;stroke-dasharray:1}
+#ss-cap{margin:0;padding:0 16px 12px;text-align:center;color:#8f98c0;font-size:12px}
+@keyframes gDraw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+@keyframes gFade{from{opacity:0}to{opacity:1}}
+#guide-view.play .orb{animation:gDraw 1.8s cubic-bezier(.3,.6,.2,1) var(--d,0s) backwards}
+#guide-view.play .pl{animation:gFade .8s ease var(--d,0s) backwards}
+@media(prefers-reduced-motion:reduce){#guide-view.play .orb,#guide-view.play .pl{animation:none}}
+#oc-bar{display:flex;align-items:center;gap:8px;padding:2px 14px 10px}
+#oc-views{display:flex;gap:4px}
+#oc-views button{width:38px;height:38px;display:flex;align-items:center;justify-content:center;border:1px solid #343b60;border-radius:8px;background:#0e1226ef;color:#a9b9e9;cursor:pointer;padding:0}
+#oc-views button svg{width:19px;height:19px}
+#oc-views button:hover{border-color:#8ab4ff}
+#oc-views button[aria-pressed="true"]{background:#1a2040;border-color:#8ab4ff;color:#eef1ff}
+#oc-search{position:relative;flex:1;min-width:0}
+#oc-search span{position:absolute;left:11px;top:9px;color:#8f98c0;pointer-events:none;font-size:16px}
+#oc-input{width:100%;height:38px;padding:0 12px 0 34px;border:1px solid #343b60;border-radius:8px;outline:none;background:#0e1226ef;color:var(--fg);font:inherit}
+#oc-input::placeholder{color:#8f98c0}
+#oc-input:focus{border-color:#8ab4ff;box-shadow:0 0 0 2px #8ab4ff22}
+.oc{display:block;width:100%;margin:0 0 10px;padding:0;overflow:hidden;text-align:left;border:1px solid #343d63;border-radius:11px;background:linear-gradient(120deg,#111a35d9,#0b1025d9);color:var(--fg);font:inherit;cursor:pointer;transition:border-color .2s ease}
+.oc:hover,.oc:focus-visible{border-color:#8199d8;outline:none}
+.oc[hidden]{display:none!important}
+.oc .oc-img{display:block;min-height:150px;background:#080b19}
+.oc .oc-img img{display:block;width:100%;height:auto;opacity:0;transition:opacity .4s ease}
+.oc .oc-img img.ok{opacity:1}
+.oc b{display:block;padding:10px 14px 12px;font:400 17px/1.25 "Iowan Old Style",Georgia,serif;color:#f5f7ff}
+.oc small{display:none}
+#oc-list[data-mode="list"] .oc{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:6px;padding:10px 14px;border-radius:9px}
+#oc-list[data-mode="list"] .oc-img{display:none}
+#oc-list[data-mode="list"] .oc b{padding:0;font-size:15px}
+#oc-list[data-mode="list"] .oc small{display:block;color:#8f98c0;font-size:12px;white-space:nowrap}
+@container (max-width:880px){#gcols{display:flex;flex-direction:column;overflow-y:auto}#gcols .gcol{flex:none}#gcol-c{order:-1;height:min(92cqw,520px)}#gcol-r{min-height:420px}#gcol-r .gcol-body,#gcol-l .gcol-body{overflow:visible}#ghead p{display:none}}
+.pl{cursor:pointer;outline:none}
+.pl text{pointer-events:none}
+.pl .halo{opacity:0;transition:opacity .2s ease;pointer-events:none}
+.pl:hover .halo,.pl:focus-visible .halo{opacity:1}
+#gcol-c{position:relative}
+#ss-wrap{touch-action:none;cursor:grab}
+#ss-recenter{position:absolute;right:14px;top:14px;z-index:3;width:42px;height:42px;display:flex;align-items:center;justify-content:center;border:1px solid #343b60;border-radius:50%;background:#0e1226ef;color:#dce5ff;box-shadow:0 5px 20px #0005;cursor:pointer;padding:0;transition:background .18s ease,border-color .18s ease,transform .18s ease}
+#ss-recenter:hover{background:#1a2040;border-color:#8ab4ff;transform:scale(1.06)}
+#ss-recenter:active{transform:scale(.96)}
+#ss-recenter svg{width:21px;height:21px;display:block}
+#ss-recenter:focus-visible{outline:2px solid #8ab4ff;outline-offset:3px}
+#oc-list[data-mode="cards"]{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;align-content:start;align-items:start}
+#oc-list[data-mode="cards"] .oc{margin:0}
+#oc-list[data-mode="cards"] .oc .oc-img{min-height:100px}
+#oc-list[data-mode="cards"] .oc b{padding:8px 10px 10px;font-size:14px}
+#oc-list[data-mode="cards"] .gcol-empty{grid-column:1/-1}
+@container (max-width:520px){#oc-list[data-mode="cards"]{grid-template-columns:repeat(2,minmax(0,1fr))}}
+#ss-svg .ll{stroke:rgba(201,209,242,.4);stroke-width:1.5}
+#ss-svg .lb{paint-order:stroke;stroke:#080b19;stroke-width:4px;stroke-linejoin:round}
+#guide-view.play .lb{animation:gFade .8s ease 2.6s backwards}
+#ss-wrap,#ss-cap{transition:opacity .45s ease}
+#gcol-c.earth-on #ss-wrap,#gcol-c.earth-on #ss-cap{opacity:0;pointer-events:none}
+#earth-view{position:absolute;inset:0;z-index:4;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;visibility:hidden;pointer-events:none;background:radial-gradient(ellipse at 50% 45%,#0f1736 0%,#080b19 60%,#05060f 100%);transition:opacity .5s ease,visibility 0s linear .5s}
+#gcol-c.earth-on #earth-view{opacity:1;visibility:visible;pointer-events:auto;transition:opacity .5s ease}
+#gcol-c.earth-on #ss-recenter{display:none}
+#earth-back{position:absolute;top:14px;left:14px;z-index:5;padding:9px 14px;border:1px solid #343b60;border-radius:9px;background:#0e1226ef;color:#eef1ff;font:inherit;cursor:pointer}
+#earth-back:hover{border-color:#8ab4ff}
+#earth-svg{width:100%;flex:1;min-height:0;display:block}
+#earth-svg text{fill:#c9d1f2;font:22px system-ui,sans-serif;pointer-events:none}
+#earth-svg .eorb{fill:none;stroke:rgba(138,180,255,.4);stroke-width:1.4}
+#earth-svg .eorb.back{stroke-opacity:.45}
+#earth-cap{margin:0;padding:4px 16px 14px;text-align:center;color:#8f98c0;font-size:12px}
+@media(max-width:700px){
+#cv{touch-action:none}
+body:not(.principal-page):not(.guide-page) #head h1{display:none}
+#search-wrap{left:62px;right:108px;width:auto}
+#ghead h2{font-size:20px;max-width:calc(100vw - 176px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#nav{top:58px;left:12px;flex-wrap:wrap}
+#msg{display:none}
+body.mini-open #stage{height:42vh;flex:none;width:100%;align-self:flex-start}
+#gcols{left:10px;right:10px;bottom:10px}
+#ghead{left:60px}
+}
+.gk{display:flex;align-items:center;gap:14px;width:100%;margin:0 0 10px;padding:14px 16px;text-align:left;border:1px solid #343d63;border-radius:13px;background:linear-gradient(120deg,#111a35d9,#0b1025d9);color:var(--fg);font:inherit;cursor:pointer;transition:transform .2s ease,border-color .2s ease,background .2s ease}
+.gk:hover,.gk:focus-visible{transform:translateY(-2px);border-color:#8199d8;background:linear-gradient(120deg,#182448ed,#101832ed);outline:none}
+.gk-ic{display:flex;align-items:center;justify-content:center;flex:none;width:44px;height:44px;border:1px solid #414e7a;border-radius:10px;background:#192443;color:#b9c9ff}
+.gk-ic svg{width:24px;height:24px}
+.gk-t{font:400 17px/1.25 "Iowan Old Style",Georgia,serif;color:#f5f7ff}
+@supports(height:100dvh){html,body,#app{height:100dvh}}
+@media(max-width:700px){
+#recenter{right:14px;bottom:calc(24px + env(safe-area-inset-bottom))}
+body.mini-open #stage{height:42dvh}
+#mini{position:fixed}
+body.mini-open #mini{height:58dvh}
+.m-in{padding-bottom:calc(28px + env(safe-area-inset-bottom))}
+#mfull{position:sticky;bottom:10px;box-shadow:0 0 0 10px #0b0e1f}
+body.open #panel{position:fixed;inset:0;width:100vw;height:100dvh}
+body.principal-page #principal-view{justify-content:flex-start;overflow-y:auto;overflow-x:hidden;padding:max(72px,13vh) 0 calc(28px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch}
+body.principal-page #principal-view::before{position:fixed}
+body.principal-page #principal-title{order:1;flex:none}
+body.principal-page #principal-subtitle{order:2;flex:none}
+body.principal-page #featured-tools{order:3;position:static;width:calc(100% - 36px);max-width:420px;margin:34px 0 0}
+body.principal-page #contacts{order:4;position:static;flex:none;display:block;width:calc(100% - 36px);max-width:420px;margin:22px 0 0;padding:14px 10px 10px}
+body.principal-page #contacts h3{display:block}
+body.principal-page #contacts a span{display:inline}
+body.principal-page #contacts a{padding:9px 10px}
+body.principal-page #credit{order:5;position:static;display:block;margin:20px 18px 0;text-align:center}
+}
+#logo-btn{position:absolute;top:12px;right:16px;z-index:7;display:flex;align-items:center;justify-content:center;width:40px;height:40px;padding:4px;border:1px solid #343b60;border-radius:11px;background:#0e1226ef;box-shadow:0 5px 22px #0003;transition:border-color .18s ease,transform .18s ease}
+#logo-btn:hover,#logo-btn:focus-visible{border-color:#8ab4ff;transform:scale(1.05);outline:none}
+#logo-btn img{display:block;width:100%;height:100%;object-fit:contain}
+#ss-zoom-in,#ss-zoom-out{position:absolute;right:14px;z-index:3;width:42px;height:42px;display:flex;align-items:center;justify-content:center;border:1px solid #343b60;border-radius:50%;background:#0e1226ef;color:#dce5ff;box-shadow:0 5px 20px #0005;cursor:pointer;padding:0;font:400 22px/1 system-ui,sans-serif;transition:background .18s ease,border-color .18s ease,transform .18s ease}
+#ss-zoom-in{top:64px}
+#ss-zoom-out{top:114px}
+#ss-zoom-in:hover,#ss-zoom-out:hover{background:#1a2040;border-color:#8ab4ff;transform:scale(1.06)}
+#ss-zoom-in:active,#ss-zoom-out:active{transform:scale(.96)}
+#ss-zoom-in:focus-visible,#ss-zoom-out:focus-visible{outline:2px solid #8ab4ff;outline-offset:3px}
+#gcol-c.earth-on #ss-zoom-in,#gcol-c.earth-on #ss-zoom-out{display:none}
+@media(hover:none),(pointer:coarse){#ss-zoom-in,#ss-zoom-out{display:none}}
+@media(max-width:700px){
+#mfull{position:static;box-shadow:none;margin-top:auto;align-self:flex-start}
+.m-in{display:flex;flex-direction:column}
+.m-img{flex:none}
+.m-body{flex:1;display:flex;flex-direction:column}
+#mini{z-index:30}
+body.open #panel{z-index:40}
+}
+@media(max-width:700px) and (orientation:portrait){
+body.mini-open #stage{height:100dvh}
+body.mini-open #mini{height:100dvh}
+}
+/* zoom-cuadrado */
+#ss-zoom-in,#ss-zoom-out{border-radius:11px;font-size:0;line-height:0}
+#ss-zoom-in svg,#ss-zoom-out svg{display:block;width:18px;height:18px}
+#ss-wrap,#ss-wrap *,#earth-view,#earth-view *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+#ss-svg,#earth-svg{-webkit-user-drag:none}
+#guide-view.play #earth-svg .pl{animation:none}
+#earth-svg .eorb,#earth-svg .eorb.back{stroke:url(#eOrb);stroke-opacity:1;stroke-width:1.8}
+@media(hover:none){.pl:hover .halo{opacity:0}}
+#ss-svg .pg{mix-blend-mode:screen}
+#ss-cap{font-size:11px;line-height:1.35}
+@container (max-width:880px){#gcol-c{height:min(105cqw,66vh)}}
+</style>
+<link rel="icon" type="image/png" href="icon.png">
+<meta name="color-scheme" content="only light">
+</head>
+<body class="principal-page">
+<div id="app">
+  <div id="stage">
+    <canvas id="cv"></canvas>
+    <section id="principal-view" aria-label="Página principal"><canvas id="sky" aria-hidden="true"></canvas>
+      <h2 id="principal-title">Vero Cosmos</h2>
+      <p id="principal-subtitle">De donde confluye el sueño de las estrellas fugaces...</p>
+      <div id="featured-tools" aria-label="Herramientas destacadas">
+        <h3>Herramientas destacadas</h3>
+        <a id="featured-atlas-link" href="#atlas" aria-label="Abrir Atlas Astrofotográfico">
+          <span class="featured-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15M15 6v15"/></svg></span>
+          <span class="featured-copy"><span class="featured-name">Atlas Astrofotográfico</span><span class="featured-description">Descubrir el universo por catálogos.</span></span>
+          <span class="featured-arrow" aria-hidden="true">→</span>
+        </a>
+      </div>
+    <p id="credit">Creado con <a href="https://quartz.jzhao.xyz/" target="_blank" rel="noopener noreferrer">Quartz v5.0.0</a> &copy; 2026 &middot; <a href="https://github.com/VeroSnowy/VeroCosmos" target="_blank" rel="noopener noreferrer">GitHub</a></p>
+  <div id="contacts" aria-label="Contacto">
+  <h3>Contacto</h3>
+  <a href="https://www.instagram.com/vero_snowy/" target="_blank" rel="noopener noreferrer"><span>Instagram</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+  <a href="https://www.linkedin.com/in/jes%C3%BAs-leiva-romero/" target="_blank" rel="noopener noreferrer"><span>LinkedIn</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></a>
+  <a href="https://github.com/VeroSnowy/VeroCosmos" target="_blank" rel="noopener noreferrer"><span>GitHub</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg></a>
+  <a href="https://ko-fi.com/verosnowy" target="_blank" rel="noopener noreferrer"><span>¡Dona! :)</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><path d="M6 1v3M10 1v3M14 1v3"/></svg></a>
+</div></section>
+    <div id="head">
+      <div id="menu-wrap">
+        <button id="menu-toggle" type="button" aria-label="Abrir menú de páginas" aria-expanded="false" aria-controls="page-menu">
+          <span class="menu-lines" aria-hidden="true"><span class="menu-line"></span><span class="menu-line"></span><span class="menu-line"></span></span>
+        </button>
+        <nav id="page-menu" aria-label="Páginas del atlas">
+          <a id="principal-page-link" href="#principal"><span>Principal</span><svg class="home-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 10 9-7 9 7"/><path d="M5 9v12h14V9M9 21v-7h6v7"/></svg></a>
+          <a id="atlas-page-link" href="#atlas" aria-current="page"><span>Atlas</span><svg class="map-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15M15 6v15"/></svg></a>
+        </nav>
+      </div>
+      <h1>Atlas Astrofotográfico</h1>
+    </div>
+    <div id="search-wrap"><span id="search-icon" aria-hidden="true">⌕</span><input id="search" type="search" placeholder="Buscar objetos o grupos…" autocomplete="off" aria-label="Buscar objetos o grupos" aria-controls="results"><div id="results" role="listbox"></div></div>
+    <div id="nav"><button id="goHome">Atlas Fotogr&aacute;fico</button><button id="all">Ver todo el atlas</button></div>
+    <div id="msg">Cargando…</div>
+    <button id="recenter" type="button" aria-label="Restablecer orientación y zoom" title="Volver a la posición original">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.2"/><path d="M12 1.8v4M12 18.2v4M1.8 12h4M18.2 12h4"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/>
+      </svg>
+    </button>
+  </div>
+  <aside id="panel"><button id="close" aria-label="Cerrar">×</button><iframe id="frame" title="Información"></iframe></aside>
+  <aside id="mini" aria-label="Resumen del objeto"><div class="m-in"><button id="mclose" type="button" aria-label="Cerrar">&times;</button><img class="m-img" alt=""><div class="m-body"><h2 class="m-title"></h2><p class="m-date"></p><p class="m-text"></p><button id="mfull" type="button">Ver ficha completa &rarr;</button></div></div></aside>
+</div>
+<div id="tip"></div>
+<script>
+(async()=>{
+const $=id=>document.getElementById(id);
+const cv=$('cv'),ctx=cv.getContext('2d'),msg=$('msg');
+// Menú de páginas: Principal y Atlas.
+const menuToggle=$('menu-toggle'),pageMenu=$('page-menu'),atlasPageLink=$('atlas-page-link'),principalPageLink=$('principal-page-link');
+const featuredAtlasLink=$('featured-atlas-link');
+atlasPageLink.href='#atlas';
+menuToggle.addEventListener('click',()=>{
+  const open=pageMenu.classList.toggle('open');
+  menuToggle.setAttribute('aria-expanded',String(open));
+  menuToggle.setAttribute('aria-label',open?'Cerrar menú de páginas':'Abrir menú de páginas');
+});
+document.addEventListener('pointerdown',ev=>{
+  if(!$('menu-wrap').contains(ev.target)){
+    pageMenu.classList.remove('open');menuToggle.setAttribute('aria-expanded','false');menuToggle.setAttribute('aria-label','Abrir menú de páginas');
+  }
+});
+document.addEventListener('keydown',ev=>{
+  if(ev.key==='Escape'){
+    pageMenu.classList.remove('open');menuToggle.setAttribute('aria-expanded','false');menuToggle.setAttribute('aria-label','Abrir menú de páginas');
+  }
+});
+function closePageMenu(){pageMenu.classList.remove('open');menuToggle.setAttribute('aria-expanded','false');menuToggle.setAttribute('aria-label','Abrir menú de páginas')}
+function setPageActive(page){
+  const isPrincipal=page==='principal';
+  document.body.classList.toggle('principal-page',isPrincipal);
+  if(isPrincipal){closePanel();$('principal-page-link').setAttribute('aria-current','page');atlasPageLink.removeAttribute('aria-current')}
+  else{$('principal-page-link').removeAttribute('aria-current');atlasPageLink.setAttribute('aria-current','page');closePanel();setView(null)}
+  closePageMenu();
+}
+principalPageLink.addEventListener('click',ev=>{ev.preventDefault();setPageActive('principal')});
+atlasPageLink.addEventListener('click',ev=>{ev.preventDefault();setPageActive('atlas')});
+featuredAtlasLink.addEventListener('click',ev=>{ev.preventDefault();setPageActive('atlas');setView(home)});
+let W=1,H=1,sc=1;
+// Orientación y zoom 3D compartidos por todas las vistas del atlas.
+// Cada recarga empieza con una orientación y una media esfera irregular nuevas.
+// skyCenter se recalcula a partir del centroide geométrico de todos los nodos visibles.
+let skyCenter={x:0,y:0,z:0};
+let skyYaw=Math.random()*Math.PI*2,skyPitch=(Math.random()-.5)*Math.PI*.8,skyZoom=.82+Math.random()*.36;
+const homeOrientation={yaw:skyYaw,pitch:skyPitch,zoom:skyZoom};
+// Las vistas de grupo conservan su distribución 2D original al abrirse; la rotación y el zoom son opcionales.
+let groupYaw=0,groupPitch=0,groupZoom=1,dragging=false,dragMoved=false,lastPointer=null;
+let resetAnimation=null;
+const stars=Array.from({length:200},()=>({x:Math.random(),y:Math.random(),r:Math.random()*1.1+.2,a:Math.random()*.6+.2}));
+new ResizeObserver(()=>{const d=devicePixelRatio||1,r=cv.getBoundingClientRect();W=r.width;H=r.height;cv.width=W*d;cv.height=H*d;ctx.setTransform(d,0,0,d,0,0);try{window.__sync=true;draw()}catch(e){}finally{window.__sync=false}}).observe(cv);
+
+// ---- Datos: salen de contentIndex.json, que Quartz genera solo
+let idx={};
+try{idx=await(await fetch('contentIndex.json')).json()}catch(e){msg.textContent='No se pudo cargar contentIndex.json. Abre esta página desde la web, no como archivo suelto.';return}
+const N={},E=[],seen=new Set();
+for(const s in idx)N[s]={s,t:idx[s].title||s,adj:new Set(),obj:/\/descripciones\//.test(s)};
+for(const s in idx)for(let t of idx[s].links||[]){
+  t=String(t).replace(/^\//,'');
+  if(!N[t])t=N[t+'/index']?t+'/index':null;
+  if(!t||t===s)continue;
+  const k=[s,t].sort().join('|');if(seen.has(k))continue;seen.add(k);
+  E.push([N[s],N[t]]);N[s].adj.add(t);N[t].adj.add(s);
+}
+const all=Object.values(N).filter(n=>n.adj.size>0);   // las carpetas automáticas sin enlaces no se dibujan
+all.forEach((n,i)=>{
+  // Cada recarga genera una nube irregular nueva, con forma aproximada de media esfera.
+  const a=Math.random()*Math.PI*2;
+  const radius=55+Math.pow(Math.random(),.72)*390;
+  n.x=Math.cos(a)*radius+(Math.random()-.5)*45;
+  n.y=Math.sin(a)*radius+(Math.random()-.5)*45;
+  n.vx=n.vy=0;
+  // Media esfera irregular: x/y conservan la distribución del atlas y z ocupa
+  // el volumen de un hemisferio, con variación aleatoria para evitar una cáscara perfecta.
+  const hemiRadius=510;
+  const radial2=n.x*n.x+n.y*n.y;
+  const cap=Math.sqrt(Math.max(0,hemiRadius*hemiRadius-radial2));
+  n.z=Math.random()*cap;
+});
+if(!all.length){msg.textContent='No hay notas con enlaces para dibujar.';return}
+msg.textContent='Arrastra con el ratón para girar cualquier vista en 3D · Rueda para acercar o alejar · Clic en un grupo para explorarlo o en un objeto para abrir su ficha. Usa el botón de objetivo para recentrar.';
+
+// ---- Vista (todo el atlas o un grupo local)
+const home=all.find(n=>n.s==='index')||all.find(n=>/atlas/i.test(n.t))||null;
+let baseView=all,view=all,vE=E,focus=null,alpha=1,hov=null;
+let searchTerm='',matches=new Set(),onlyMatches=false;
+const searchInput=$('search'),results=$('results');
+// La búsqueda ignora mayúsculas y tildes: catálogo y catalogo coinciden.
+function normalizeSearch(value){return value.toLocaleLowerCase('es').normalize('NFD').replace(/[\u0300-\u036f]/g,'')}
+function matchAll(n,q){const h=normalizeSearch(n.t+' '+n.s),h2=h.replace(/[\s_\-]+/g,'');return q.split(/\s+/).every(w=>h.includes(w)||h2.includes(w.replace(/[\s_\-]+/g,'')))}
+function refreshSearch(){
+  const q=normalizeSearch(searchTerm.trim());
+  matches=new Set(q?baseView.filter(n=>matchAll(n,q)).map(n=>n.s):[]);
+  view=(q&&onlyMatches)?baseView.filter(n=>matches.has(n.s)):baseView;
+  vE=E.filter(([a,b])=>view.includes(a)&&view.includes(b));
+}
+function renderResults(){
+  const q=normalizeSearch(searchTerm.trim());
+  results.replaceChildren();
+  if(!q){results.classList.remove('visible');return}
+  const found=baseView.filter(n=>matchAll(n,q)).slice(0,30);
+  if(!found.length){const empty=document.createElement('div');empty.className='search-empty';empty.textContent='No hay coincidencias en este grupo.';results.append(empty)}
+  else for(const n of found){
+    const b=document.createElement('button');b.type='button';b.className='search-result';b.setAttribute('role','option');
+    const title=document.createElement('span');title.textContent=n.t;
+    const path=document.createElement('small');{const T=k=>window.vcI18n?vcI18n.t(k):k;path.textContent=(n.obj?T('Objeto'):T('Grupo'))+' · '+n.s}
+    b.append(title,path);b.addEventListener('click',()=>{results.classList.remove('visible');searchInput.blur();if(n.obj){openPanel(n)}else{closePanel();setView(n)}});results.append(b);
+  }
+  results.classList.add('visible');
+}
+searchInput.addEventListener('input',()=>{searchTerm=searchInput.value;onlyMatches=false;refreshSearch();renderResults();alpha=1});
+searchInput.addEventListener('keydown',ev=>{
+  if(ev.key==='Enter'&&searchTerm.trim()){onlyMatches=!onlyMatches;refreshSearch();results.classList.remove('visible');alpha=1;ev.preventDefault()}
+  if(ev.key==='Escape'){searchInput.value='';searchTerm='';onlyMatches=false;refreshSearch();renderResults();searchInput.blur();alpha=1}
+});
+document.addEventListener('pointerdown',ev=>{if(!$('search-wrap').contains(ev.target))results.classList.remove('visible')});
+function setView(f){
+  focus=f;
+  // Cada grupo se abre con exactamente la disposición habitual; el usuario decide si rotarlo.
+  groupYaw=0;groupPitch=0;groupZoom=1;sc=1;
+  msg.textContent=f?'Vista de grupo 3D · Arrastra con el ratón para girar · Rueda para acercar o alejar · Clic en un objeto para abrir su ficha o en otro grupo para explorarlo.':'Bóveda celeste 3D · Arrastra con el ratón para girar · Rueda para acercar o alejar · Clic en un objeto para abrir su ficha.';
+  const keep=f?new Set([f.s,...f.adj]):null;
+  baseView=f?all.filter(n=>keep.has(n.s)):all;
+  refreshSearch();renderResults();
+  $('goHome').style.display=home?'block':'none';$('all').style.display='block';$('goHome').classList.toggle('active',!!home&&f===home);$('all').classList.toggle('active',!f);
+  alpha=1;
+}
+
+// ---- Física sencilla de fuerzas
+function step(){
+  // Mantiene la distribución dinámica original de la red tanto en vista completa como en grupos.
+  const L=focus?120:75,rep=focus?9000:4000;
+  for(let i=0;i<view.length;i++)for(let j=i+1;j<view.length;j++){
+    const a=view[i],b=view[j];let dx=a.x-b.x,dy=a.y-b.y;const d2=dx*dx+dy*dy+.5,d=Math.sqrt(d2),f=rep/d2*alpha;
+    dx/=d;dy/=d;a.vx+=dx*f;a.vy+=dy*f;b.vx-=dx*f;b.vy-=dy*f;
+  }
+  for(const [a,b] of vE){
+    if(!view.includes(a)||!view.includes(b))continue;
+    const dx=b.x-a.x,dy=b.y-a.y,d=Math.sqrt(dx*dx+dy*dy)+.01,f=(d-L)*.02*alpha;
+    a.vx+=dx/d*f;a.vy+=dy/d*f;b.vx-=dx/d*f;b.vy-=dy/d*f;
+  }
+  for(const n of view){n.vx-=n.x*.01*alpha;n.vy-=n.y*.01*alpha;n.vx*=.85;n.vy*=.85;n.x+=n.vx;n.y+=n.vy}
+  alpha=Math.max(alpha*.994,.04);
+}
+const R=n=>n.obj?5:7+Math.min(n.adj.size,10)*.9;
+let skyExtent=220;
+function skyPoint(n){
+  const cy=Math.cos(skyYaw),sy=Math.sin(skyYaw),cx=Math.cos(skyPitch),sx=Math.sin(skyPitch);
+  // Traslada cada punto respecto al centro geométrico antes de rotarlo.
+  const nx=n.x-skyCenter.x,ny=n.y-skyCenter.y,nz=n.z-skyCenter.z;
+  const x=nx*cy+nz*sy,z0=-nx*sy+nz*cy;
+  const y=ny*cx-z0*sx,z=y*sx+z0*cx;
+  const baseScale=Math.min(W,H)*.46/(skyExtent+70)*skyZoom;
+  // Perspectiva suave: los nodos cercanos se ven algo mayores y los lejanos se comprimen.
+  const perspective=700/Math.max(360,700-z);
+  const scale=baseScale*perspective;
+  return {x:W/2+x*scale,y:H/2-y*scale,z:z/skyExtent,depth:z,perspective};
+}
+function groupPoint(n){
+  // Proyección ortográfica para grupos: con yaw/pitch=0 se ve exactamente como antes.
+  const nx=n.x-skyCenter.x,ny=n.y-skyCenter.y,nz=n.z-skyCenter.z;
+  const cy=Math.cos(groupYaw),sy=Math.sin(groupYaw),cx=Math.cos(groupPitch),sx=Math.sin(groupPitch);
+  const x=nx*cy+nz*sy,z0=-nx*sy+nz*cy;
+  const y=ny*cx-z0*sx;
+  return [W/2+skyCenter.x*sc+x*sc*groupZoom,H/2+skyCenter.y*sc+y*sc*groupZoom];
+}
+const pos=n=>focus?groupPoint(n):(()=>{const p=skyPoint(n);return[p.x,p.y]})();
+
+function draw(){
+  step();
+  // Centro geométrico de la vista activa, usado para ambas modalidades de rotación.
+  let sx=0,sy=0,sz=0;
+  for(const n of view){sx+=n.x;sy+=n.y;sz+=n.z}
+  const count=Math.max(1,view.length);
+  skyCenter={x:sx/count,y:sy/count,z:sz/count};
+  skyExtent=1;
+  for(const n of view)skyExtent=Math.max(skyExtent,Math.abs(n.x-skyCenter.x),Math.abs(n.y-skyCenter.y),Math.abs(n.z-skyCenter.z));
+  if(focus){
+    // Conserva el autoajuste que tenían las vistas de grupo antes de añadir controles 3D.
+    let m=1;for(const n of view)m=Math.max(m,Math.abs(n.x),Math.abs(n.y));
+    const target=Math.min(Math.max(Math.min(W,H)/2/(m+70),.3),2.2);sc+=(target-sc)*.06;
+  }
+  ctx.clearRect(0,0,W,H);
+  const g=ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,Math.max(W,H)*.7);g.addColorStop(0,'#0c1030');g.addColorStop(1,'#05060f');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  for(const s of stars){ctx.fillStyle='rgba(220,230,255,'+s.a+')';ctx.beginPath();ctx.arc(s.x*W,s.y*H,s.r,0,6.283);ctx.fill()}
+  for(const [a,b] of vE){
+    if(!view.includes(a)||!view.includes(b))continue;
+    const on=hov&&(a===hov||b===hov),[x1,y1]=pos(a),[x2,y2]=pos(b);
+    if(focus)ctx.strokeStyle=on?'rgba(255,212,121,.7)':'rgba(138,180,255,.22)';
+    else{const za=skyPoint(a).z,zb=skyPoint(b).z;ctx.strokeStyle=on?'rgba(255,212,121,.78)':(za<-.15&&zb<-.15?'rgba(138,180,255,.045)':'rgba(138,180,255,.18)');}
+    ctx.lineWidth=on?1.4:.8;
+    ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+  }
+  for(const n of view){
+    const [x,y]=pos(n),r=R(n),near=hov&&(n===hov||hov.adj.has(n.s)),matched=searchTerm.trim()&&matches.has(n.s);
+    const depth=focus?0:skyPoint(n).z;
+    ctx.globalAlpha=searchTerm.trim()&&!matched&&!onlyMatches?.3:(hov&&!near?.35:1);
+    if(!focus&&depth<-.15)ctx.globalAlpha*=.28;
+    ctx.shadowBlur=n===hov?24:(!focus&&depth<-.15?4:12);ctx.shadowColor=n.obj?'#ffd479':'#8ab4ff';
+    ctx.fillStyle=n.obj?'#ffd479':'#cfe0ff';
+    ctx.beginPath();ctx.arc(x,y,r,0,6.283);ctx.fill();ctx.shadowBlur=0;
+    if(matched){
+      // Resalta la coincidencia con un aro rojo independiente, sin teñir la estrella ni sus conexiones.
+      ctx.save();ctx.globalAlpha=1;ctx.shadowColor='#ff304f';ctx.shadowBlur=14;
+      ctx.strokeStyle='#ff304f';ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,r+5,0,6.283);ctx.stroke();ctx.restore();
+    }
+    if((!n.obj||n===hov||focus)&& (focus||depth>-.25||n===hov)){ctx.fillStyle='#c9d1f2';ctx.font='13px system-ui';ctx.textAlign='center';ctx.fillText(window.vcI18n?vcI18n.t(n.t):n.t,x,y-r-7)}
+    ctx.globalAlpha=1;
+  }
+  if(!window.__sync)requestAnimationFrame(draw);
+}
+
+// ---- Vista previa al pasar el ratón: lee la propia página de la nota
+const noLinks=x=>{const c=x.cloneNode(true);c.querySelectorAll('a').forEach(a=>a.remove());return c.textContent.trim()};
+const pageUrl=s=>new URL(('../'+s.split('/').map(encodeURIComponent).join('/')).replace(/index$/,''),location.href).href;
+const cache=new Map();
+function preview(n){
+  if(!cache.has(n.s))cache.set(n.s,(async()=>{
+    try{
+      const u=pageUrl(n.s),doc=new DOMParser().parseFromString(await(await fetch(u)).text(),'text/html');
+      const art=doc.querySelector('article')||doc.body,img=art.querySelector('img');
+      const md=((doc.querySelector('meta[name="description"]')||{}).content||'').trim();const p=md||[...art.querySelectorAll('p')].filter(x=>noLinks(x).length>20).map(x=>x.textContent.trim()).find(Boolean)||'';
+      return{img:img?new URL(img.getAttribute('src'),u).href:'',txt:(p.length>320?p.slice(0,320).replace(/\s+\S*$/,"")+"\u2026":p)};
+    }catch(e){return{img:'',txt:''}}
+  })());
+  return cache.get(n.s);
+}
+const tip=$('tip');
+async function showTip(n,ev){
+  tip.innerHTML='<b></b>';tip.firstChild.textContent=n.t;tip.style.display='block';moveTip(ev);const pv=await preview(n);if(hov!==n)return;
+  tip.innerHTML=(pv.img?'<img src="'+pv.img+'" alt="">':'')+'<b></b><span></span>';
+  tip.querySelector('b').textContent=n.t;tip.querySelector('span').textContent=(n.obj?pv.txt:'')||(n.obj?'Clic para abrir la ficha':'Clic para ver su grupo');
+  tip.style.display='block';moveTip(ev);{const im=tip.querySelector('img');if(im)im.onload=()=>moveTip(ev)}
+}
+function moveTip(ev){const x=Math.min(ev.clientX+16,innerWidth-266),y=Math.min(ev.clientY+16,innerHeight-tip.offsetHeight-8);tip.style.left=x+'px';tip.style.top=y+'px'}
+
+// ---- Interacción
+function hit(ev){
+  const r=cv.getBoundingClientRect(),mx=ev.clientX-r.left,my=ev.clientY-r.top;let best=null,bd=1e9;
+  for(const n of view){const [x,y]=pos(n),d=Math.hypot(x-mx,y-my);if(d<R(n)+HIT&&d<bd){best=n;bd=d}}
+  return best;
+}
+function animateRecenter(){
+  if(resetAnimation)cancelAnimationFrame(resetAnimation);
+  const start=performance.now(),duration=520;
+  const from=focus?{yaw:groupYaw,pitch:groupPitch,zoom:groupZoom}:{yaw:skyYaw,pitch:skyPitch,zoom:skyZoom};
+  const target=focus?{yaw:0,pitch:0,zoom:1}:homeOrientation;
+  // Elegimos el recorrido angular más corto, sin limitar el giro vertical.
+  const yawDelta=Math.atan2(Math.sin(target.yaw-from.yaw),Math.cos(target.yaw-from.yaw));
+  const frame=now=>{
+    const t=Math.min(1,(now-start)/duration),eased=1-Math.pow(1-t,3);
+    const yaw=from.yaw+yawDelta*eased,pitch=from.pitch+(target.pitch-from.pitch)*eased,zoom=from.zoom+(target.zoom-from.zoom)*eased;
+    if(focus){groupYaw=yaw;groupPitch=pitch;groupZoom=zoom}else{skyYaw=yaw;skyPitch=pitch;skyZoom=zoom}
+    if(t<1)resetAnimation=requestAnimationFrame(frame);else resetAnimation=null;
+  };
+  resetAnimation=requestAnimationFrame(frame);
+}
+$('recenter').addEventListener('click',animateRecenter);
+cv.addEventListener('pointerdown',ev=>{
+  if(ev.button!==0)return;
+  if(resetAnimation){cancelAnimationFrame(resetAnimation);resetAnimation=null;}
+  dragging=true;dragMoved=false;lastPointer={x:ev.clientX,y:ev.clientY};cv.setPointerCapture?.(ev.pointerId);cv.style.cursor='grabbing';
+});
+cv.addEventListener('pointermove',ev=>{
+  if(dragging&&lastPointer){
+    const dx=ev.clientX-lastPointer.x,dy=ev.clientY-lastPointer.y;
+    if(Math.abs(dx)+Math.abs(dy)>(NOHOVER?10:1))dragMoved=true;
+    if(focus){groupYaw+=dx*.006;groupPitch+=dy*.006;}
+    else{skyYaw+=dx*.006;skyPitch+=dy*.006;}
+    lastPointer={x:ev.clientX,y:ev.clientY};
+    if(dragMoved){hov=null;tip.style.display='none';cv.style.cursor='grabbing';return}
+  }
+});
+window.addEventListener('pointerup',()=>{dragging=false;lastPointer=null;cv.style.cursor='grab'});
+cv.addEventListener('wheel',ev=>{
+  ev.preventDefault();
+  if(focus)groupZoom=Math.max(.35,Math.min(3.5,groupZoom*Math.exp(-ev.deltaY*.001)));
+  else skyZoom=Math.max(.55,Math.min(2.5,skyZoom*Math.exp(-ev.deltaY*.001)));
+},{passive:false});
+cv.addEventListener('mousemove',ev=>{
+  if(dragging)return;
+  const n=hit(ev);cv.style.cursor=n?'pointer':'grab';
+  if(NOHOVER)return;if(n!==hov){hov=n;tip.style.display='none';if(n)showTip(n,ev)}else if(n)moveTip(ev);
+});
+cv.addEventListener('mouseleave',()=>{if(!dragging){hov=null;tip.style.display='none'}});
+cv.addEventListener('click',ev=>{
+  if(dragMoved){dragMoved=false;return}
+  const n=hit(ev);if(!n)return;hov=NOHOVER?null:n;
+  if(n.obj||(n===focus&&/seestar/i.test(n.s)))openPanel(n);else{closePanel();setView(n)}
+});
+function openFull(n){closeMini();document.body.classList.add('open');$('frame').src=pageUrl(n.s)}
+function openPanel(n){openMini(n)}
+const mini=$('mini'),dcache=new Map();let miniTok=0,miniNode=null;
+function closeMini(){miniTok++;document.body.classList.remove('mini-open')}
+function detail(n){
+  if(!dcache.has(n.s))dcache.set(n.s,(async()=>{
+    try{
+      const u=pageUrl(n.s),doc=new DOMParser().parseFromString(await(await fetch(u)).text(),'text/html');
+      const art=doc.querySelector('article')||doc.body;
+      const imgs=[...art.querySelectorAll('img')].map(i=>{const s=i.getAttribute('src')||'';const m=decodeURIComponent(s).match(/\d{4}-\d{2}-\d{2}/);return{s,d:m?m[0]:''}}).filter(x=>x.s);
+      imgs.sort((a,b)=>b.d.localeCompare(a.d));
+      const best=imgs[0];
+      const md=((doc.querySelector('meta[name="description"]')||{}).content||'').trim();
+      const ps=[...art.querySelectorAll('p')].filter(x=>noLinks(x).length>20).map(x=>x.textContent.trim()).filter(x=>x!==md);
+      const txt=ps[0]||'';
+      
+      return{img:best?new URL(best.s,u).href:'',date:best?best.d:'',txt:txt||md};
+    }catch(e){return{img:'',date:'',txt:''}}
+  })());
+  return dcache.get(n.s);
+}
+async function openMini(n){
+  const tok=++miniTok;miniNode=n;document.body.classList.remove('open');
+  const q=s=>mini.querySelector(s),im=q('.m-img');
+  q('.m-title').textContent=n.t;q('.m-date').textContent='';q('.m-text').textContent='Cargando...';im.style.display='none';
+  document.body.classList.add('mini-open');
+  const d=await detail(n);if(tok!==miniTok)return;
+  q('.m-text').textContent=d.txt||'Esta nota a\u00fan no tiene texto.';
+  q('.m-date').textContent=d.date?'\u00daltima foto: '+d.date.split('-').reverse().join('/'):'';
+  if(d.img){im.onload=()=>{const ar=im.naturalWidth/Math.max(1,im.naturalHeight);const w=Math.round(Math.min(Math.max(innerHeight*.5*ar,280),Math.min(480,innerWidth*.4)));document.body.style.setProperty('--mw',w+'px')};im.src=d.img;im.alt=n.t;im.style.display='block'}else{document.body.style.removeProperty('--mw')}
+}
+$('mclose').onclick=closeMini;mini.appendChild($('mclose'));
+$('mfull').onclick=()=>{if(miniNode)openFull(miniNode)};
+function closePanel(){document.body.classList.remove('open');closeMini()}
+$('close').onclick=closePanel;
+
+$('all').onclick=()=>{closePanel();setView(null)};$('goHome').onclick=()=>{closePanel();setView(home)};
+// la ficha se muestra sin barras laterales ni pie, y en oscuro
+$('frame').addEventListener('load',()=>{
+  try{
+    const d=$('frame').contentDocument;d.documentElement.setAttribute('saved-theme','dark');
+    const st=d.createElement('style');st.textContent='.sidebar,footer{display:none!important}.center{max-width:none!important;margin:0 auto!important;padding:1rem 1.4rem!important}';d.head.appendChild(st);
+  }catch(e){}
+});
+/* boton unico: alterna entre Atlas Fotografico y todo el atlas */
+{const nav=$('nav'),tb=document.createElement('button');tb.id='toggleView';tb.type='button';nav.append(tb);
+const _sv=setView;
+const sync=f=>{tb.textContent=(home&&f===home)?'Ver Atlas Completo':'Vista por grupos'};
+setView=function(f){_sv(f);sync(f)};
+tb.onclick=()=>{closePanel();setView(home&&focus!==home?home:null)};}
+/* Guia astronomica: tarjeta, entrada de menu y pantalla con buscador */
+{
+const COMPASS='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>';
+const NAME='Gu\u00eda Astron\u00f3mica';
+const menu=$('page-menu'),stage=$('stage'),ft=$('featured-tools');
+const gl=document.createElement('a');gl.id='guide-page-link';gl.href='#guia';
+gl.innerHTML='<span>'+NAME+'</span>'+COMPASS.replace('<svg ','<svg class="map-icon" ');
+menu.append(gl);
+const fc=document.createElement('a');fc.id='featured-guide-link';fc.href='#guia';fc.setAttribute('aria-label','Abrir '+NAME);
+fc.innerHTML='<span class="featured-icon" aria-hidden="true">'+COMPASS+'</span><span class="featured-copy"><span class="featured-name">'+NAME+'</span><span class="featured-description">Para aquellos que empiezan desde cero.</span></span><span class="featured-arrow" aria-hidden="true">\u2192</span>';
+ft.append(fc);
+const gv=document.createElement('section');gv.id='guide-view';gv.setAttribute('aria-label',NAME);
+gv.innerHTML='<div id="g-search" class="g-in g-right" style="--d:.7s"><span aria-hidden="true">\u2315</span><input id="g-input" type="search" placeholder="Buscar objetos\u2026" autocomplete="off" aria-label="Buscar objetos"></div><div id="g-main"><div id="g-wrap"><h2 class="g-in" style="--d:.1s">'+NAME+'</h2><p class="g-lead g-in" style="--d:.4s">Para aquellos que empiezan desde cero.</p><p id="g-count" class="g-in" style="--d:.9s"></p><div id="g-grid"></div></div></div>';
+stage.append(gv);
+const gg=$('g-grid'),gc=$('g-count'),gi=$('g-input');
+const norm=s=>s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+const cat=s=>/\/messier\//.test(s)?'Cat\u00e1logo Messier':/\/ngc\//.test(s)?'Cat\u00e1logo NGC':/sistsolar/.test(s)?'Sistema Solar':'Otros';
+const objs=all.filter(n=>n.obj).sort((a,b)=>a.t.localeCompare(b.t,'es'));
+function render(q,first){
+  const ws=norm(q).split(/\s+/).filter(Boolean);
+  const list=objs.filter(n=>{const h=norm(n.t+' '+cat(n.s)),h2=h.replace(/[\s_-]+/g,'');return ws.every(w=>h.includes(w)||h2.includes(w.replace(/[\s_-]+/g,'')))});
+  gc.textContent=(ws.length?list.length+' de '+objs.length:objs.length)+(objs.length===1?' objeto fotografiado':' objetos fotografiados');
+  gg.replaceChildren();
+  list.forEach((n,i)=>{const b=document.createElement('button');b.type='button';b.className='g-card g-in';b.style.setProperty('--d',(first?1.1+i*.07:i*.025)+'s');b.innerHTML='<b></b><small></small>';b.firstChild.textContent=n.t;b.lastChild.textContent=cat(n.s);b.addEventListener('click',()=>openPanel(n));gg.append(b)});
+  if(!list.length){const e=document.createElement('p');e.className='g-empty';e.textContent='No hay coincidencias.';gg.append(e)}
+}
+gi.addEventListener('input',()=>render(gi.value,false));
+gi.addEventListener('keydown',e=>{if(e.key==='Enter'){const b=gg.querySelector('.g-card');if(b)b.click()}});
+function playGuide(){gi.value='';render('',true);gv.classList.remove('play');void gv.offsetWidth;gv.classList.add('play')}
+const _spa=setPageActive;
+setPageActive=function(page){
+  const g=page==='guide';
+  _spa(g?'atlas':page);
+  document.body.classList.toggle('guide-page',g);
+  if(g){atlasPageLink.removeAttribute('aria-current');gl.setAttribute('aria-current','page');playGuide()}else gl.removeAttribute('aria-current');
+};
+gl.addEventListener('click',ev=>{ev.preventDefault();setPageActive('guide')});
+fc.addEventListener('click',ev=>{ev.preventDefault();setPageActive('guide')});
+}
+/* Precarga de previsualizaciones (HTML e imagenes) al entrar en el atlas o la guia */
+{
+let started=false;const keep=[];
+function startPrefetch(){
+  if(started)return;started=true;
+  if(navigator.connection&&navigator.connection.saveData)return;
+  const queue=all.filter(n=>n.obj).slice(0,60);let i=0;
+  const next=async()=>{
+    if(i>=queue.length)return;
+    const n=queue[i++];
+    try{
+      const pv=await preview(n);
+      const dd=typeof detail==='function'?await detail(n):null;
+      new Set([pv&&pv.img,dd&&dd.img].filter(Boolean)).forEach(u=>{const im=new Image();im.decoding='async';im.src=u;keep.push(im)});
+    }catch(e){}
+    setTimeout(next,250);
+  };
+  setTimeout(next,600);
+}
+const _sp3=setPageActive;
+setPageActive=function(page){if(page!=='principal')startPrefetch();return _sp3.apply(this,arguments)};
+}
+/* Grupos locales: ocultar los nodos "padre" (los mas cercanos al inicio que el grupo actual) */
+const dist=new Map();
+if(home){const q=[home];dist.set(home.s,0);while(q.length){const a=q.shift();a.adj.forEach(s=>{if(!dist.has(s)&&N[s]){dist.set(s,dist.get(a.s)+1);q.push(N[s])}})}}
+function isParent(n,f){return n!==f&&dist.has(n.s)&&dist.has(f.s)&&dist.get(n.s)<dist.get(f.s)}
+/* Guia en tres columnas: observacion, sistema solar y objetos */
+{
+const gv=document.getElementById('guide-view');
+if(gv){
+const $o=id=>document.getElementById(id);
+const ICL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>';
+const ICC='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>';
+gv.innerHTML='<div id="ghead"><h2 class="g-in" style="--d:.1s">Gu\u00eda Astron\u00f3mica</h2><p class="g-in" style="--d:.3s">Para aquellos que empiezan desde cero.</p></div>'
++'<div id="gcols">'
++'<section id="gcol-l" class="gcol g-in" style="--d:.3s"><header class="gc-h"><h3>Gu\u00eda de Observaci\u00f3n</h3></header><div class="gcol-body"><p class="gcol-empty">Pr\u00f3ximamente: tarjetas con gu\u00edas para aprender a observar el cielo.</p></div></section>'
++'<section id="gcol-c" class="gcol g-in" style="--d:.5s"><div id="ss-wrap"></div><p id="ss-cap"></p></section>'
++'<section id="gcol-r" class="gcol g-in" style="--d:.7s"><header class="gc-h"><h3>Objetos astron\u00f3micos</h3><span id="oc-count"></span></header>'
++'<div id="oc-bar" class="g-in g-right" style="--d:1s"><div id="oc-views"><button id="v-list" type="button" aria-label="Vista de lista" title="Lista">'+ICL+'</button><button id="v-cards" type="button" aria-label="Vista de tarjetas" title="Tarjetas con foto">'+ICC+'</button></div><div id="oc-search"><span aria-hidden="true">\u2315</span><input id="oc-input" type="search" placeholder="Buscar objetos\u2026" autocomplete="off" aria-label="Buscar objetos"></div></div>'
++'<div id="oc-list" class="gcol-body" data-mode="cards"></div></section></div>';
+
+/* ---- Objetos: se crean una sola vez; filtrar y cambiar de vista solo muestra u oculta ---- */
+const list=$o('oc-list'),cnt=$o('oc-count'),inp=$o('oc-input');
+const nrm=s=>s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+const cat=s=>/\/messier\//.test(s)?'Cat\u00e1logo Messier':/\/ngc\//.test(s)?'Cat\u00e1logo NGC':/sistsolar/.test(s)?'Sistema Solar':'Otros';
+const objs=all.filter(n=>n.obj).sort((a,b)=>a.t.localeCompare(b.t,'es'));
+const pend=[];let hyd=false;const io={observe:el=>{pend.push(el)}};
+function hydrate(){if(hyd)return;hyd=true;let i=0;const run=async()=>{while(i<pend.length){await loadImg(pend[i++])}};run();run();run()}
+async function loadImg(el){
+  const box=el.querySelector('.oc-img'),im=box.querySelector('img');
+  try{
+    const d=await(typeof detail==='function'?detail(el._n):preview(el._n));
+    if(d&&d.img){im.decoding='async';im.loading='lazy';im.onload=()=>{im.classList.add('ok');box.style.minHeight='0'};im.alt=el._n.t;im.src=d.img}
+    else box.style.display='none';
+  }catch(e){box.style.display='none'}
+}
+objs.forEach((n,i)=>{
+  const b=document.createElement('button');b.type='button';b.className='oc g-in';
+  b.style.setProperty('--d',(1.2+Math.min(i,10)*.06)+'s');b._n=n;b._k=nrm(n.t+' '+cat(n.s));
+  b.innerHTML='<span class="oc-img"><img alt=""></span><b></b><small></small>';
+  b.querySelector('b').textContent=n.t;b.querySelector('small').textContent=cat(n.s);
+  b.addEventListener('click',()=>openPanel(n));list.append(b);io.observe(b);
+});
+function filt(){
+  const ws=nrm(inp.value).split(/\s+/).filter(Boolean);let k=0;
+  list.querySelectorAll('.oc').forEach(el=>{
+    const h2=el._k.replace(/[\s_-]+/g,'');
+    const ok=ws.every(w=>el._k.includes(w)||h2.includes(w.replace(/[\s_-]+/g,'')));
+    el.hidden=!ok;if(ok)k++;
+  });
+  cnt.textContent=(ws.length?k+' de '+objs.length:objs.length)+(objs.length===1?' objeto':' objetos');
+  let em=list.querySelector('.gcol-empty');
+  if(!k){if(!em){em=document.createElement('p');em.className='gcol-empty';em.textContent='No hay coincidencias.';list.append(em)}}
+  else if(em)em.remove();
+}
+inp.addEventListener('input',filt);
+inp.addEventListener('keydown',e=>{if(e.key==='Enter'){const f=[...list.querySelectorAll('.oc')].find(x=>!x.hidden);if(f)f.click()}});
+const vl=$o('v-list'),vc=$o('v-cards');
+function setMode(m){list.dataset.mode=m;vl.setAttribute('aria-pressed',String(m==='list'));vc.setAttribute('aria-pressed',String(m==='cards'));try{localStorage.setItem('vcMode',m)}catch(e){}}
+vl.onclick=()=>setMode('list');vc.onclick=()=>setMode('cards');
+let sm='cards';try{sm=localStorage.getItem('vcMode')||'cards'}catch(e){}
+setMode(sm==='list'?'list':'cards');filt();
+
+/* ---- Sistema Solar: elementos keplerianos aproximados del JPL (validos 1800-2050) ---- */
+/*SS-START*/
+const RD=Math.PI/180;
+const EL=[
+['Mercurio','#b9b4aa',3,[0.38709927,0.00000037,0.20563593,0.00001906,7.00497902,-0.00594749,252.25032350,149472.67411175,77.45779628,0.16047689,48.33076593,-0.12534081]],
+['Venus','#f0d9a8',4.6,[0.72333566,0.00000390,0.00677672,-0.00004107,3.39467605,-0.00078890,181.97909950,58517.81538729,131.60246718,0.00268329,76.67984255,-0.27769418]],
+['Tierra','#7fb2ff',4.8,[1.00000261,0.00000562,0.01671123,-0.00004392,-0.00001531,-0.01294668,100.46457166,35999.37244981,102.93768193,0.32327364,0,0]],
+['Marte','#e4906c',3.8,[1.52371034,0.00001847,0.09339410,0.00007882,1.84969142,-0.00813131,-4.55343205,19140.30268499,-23.94362959,0.44441088,49.55953891,-0.29257343]],
+['J\u00fapiter','#e8c9a0',8.5,[5.20288700,-0.00011607,0.04838624,-0.00013253,1.30439695,-0.00183714,34.39644051,3034.74612775,14.72847983,0.21252668,100.47390909,0.20469106]],
+['Saturno','#f0dca0',7,[9.53667594,-0.00125060,0.05386179,-0.00050991,2.48599187,0.00193609,49.95424423,1222.49362201,92.59887831,-0.41897216,113.66242448,-0.28867794]],
+['Urano','#9fe0ec',5.4,[19.18916464,-0.00196176,0.04725744,-0.00004397,0.77263783,-0.00242939,313.23810451,428.48202785,170.95427630,0.40805281,74.01692503,0.04240589]],
+['Neptuno','#6f8cff',5.4,[30.06992276,0.00026291,0.00859048,0.00005105,1.77004347,0.00035372,-55.12002969,218.45945325,44.96476227,-0.32241464,131.78422574,-0.00508664]]
+];
+function kep(M,e){let E=M+e*Math.sin(M);for(let i=0;i<10;i++)E-=(E-e*Math.sin(E)-M)/(1-e*Math.cos(E));return E}
+function planetE(el,T){const e=el[2]+el[3]*T,L=el[6]+el[7]*T,wb=el[8]+el[9]*T;let M=((L-wb)%360)*RD;M=Math.atan2(Math.sin(M),Math.cos(M));return kep(M,e)}
+function xyz(el,T,E){
+  const a=el[0]+el[1]*T,e=el[2]+el[3]*T,I=(el[4]+el[5]*T)*RD,wb=(el[8]+el[9]*T)*RD,O=(el[10]+el[11]*T)*RD,w=wb-O;
+  const xp=a*(Math.cos(E)-e),yp=a*Math.sqrt(1-e*e)*Math.sin(E);
+  const cw=Math.cos(w),sw=Math.sin(w),cI=Math.cos(I),sI=Math.sin(I),cO=Math.cos(O),sO=Math.sin(O);
+  return [(cw*cO-sw*sO*cI)*xp+(-sw*cO-cw*sO*cI)*yp,(cw*sO+sw*cO*cI)*xp+(-sw*sO+cw*cO*cI)*yp,(sw*sI)*xp+(cw*sI)*yp];
+}
+/*SS-END*/
+function drawSolar(){
+  const d=new Date(),T=(d.getTime()/86400000+2440587.5-2451545)/36525,C=500,K=80;
+  const P=(x,y)=>{const r=Math.hypot(x,y)||1,s=K*Math.sqrt(r)/r;return[C+x*s,C-y*s]};
+  let o='',p='',i=0;
+  for(const [nm,col,rad,el] of EL){
+    const pts=[];
+    for(let k=0;k<=180;k++){const v=xyz(el,T,k/180*2*Math.PI),q=P(v[0],v[1]);pts.push(q[0].toFixed(1)+' '+q[1].toFixed(1))}
+    o+='<path class="orb" pathLength="1" style="--d:'+(0.9+i*.18).toFixed(2)+'s" d="M'+pts.join('L')+'Z"/>';
+    const v=xyz(el,T,planetE(el,T)),q=P(v[0],v[1]),dist=Math.hypot(v[0],v[1],v[2]);
+    const cx=q[0].toFixed(1),cy=q[1].toFixed(1);
+    p+='<g class="pl" tabindex="0" role="button" data-n="'+nm+'" aria-label="'+nm+'" style="--d:'+(2.2+i*.12).toFixed(2)+'s"><title>'+nm+' \u00b7 '+dist.toFixed(2).replace('.',',')+' UA del Sol</title>'
+      +'<circle class="halo" cx="'+cx+'" cy="'+cy+'" r="'+(rad*3+10).toFixed(1)+'" fill="url(#ssBlue)"/>'+'<circle cx="'+cx+'" cy="'+cy+'" r="'+Math.max(rad*2.6,15).toFixed(1)+'" fill="transparent"/>'+'<circle cx="'+cx+'" cy="'+cy+'" r="'+(rad*2.2).toFixed(1)+'" fill="'+col+'" opacity=".35" filter="url(#ssGlow)"/>'
+      +'<circle cx="'+cx+'" cy="'+cy+'" r="'+rad+'" fill="'+col+'"/>'
+      +(nm==='Saturno'?'<ellipse cx="'+cx+'" cy="'+cy+'" rx="'+(rad*2)+'" ry="'+(rad*.65)+'" fill="none" stroke="'+col+'" stroke-opacity=".6" transform="rotate(-20 '+cx+' '+cy+')"/>':'')
+      +'<text x="'+(q[0]+rad+7).toFixed(1)+'" y="'+(q[1]-rad-3).toFixed(1)+'">'+nm+'</text></g>';
+    i++;
+  }
+  const defs='<defs><radialGradient id="ssBlue"><stop offset="0" stop-color="#2f7bff" stop-opacity=".95"/><stop offset=".55" stop-color="#2f7bff" stop-opacity=".55"/><stop offset="1" stop-color="#2f7bff" stop-opacity="0"/></radialGradient><radialGradient id="ssSun"><stop offset="0" stop-color="#fff6d8"/><stop offset=".35" stop-color="#ffd479"/><stop offset="1" stop-color="#ffd479" stop-opacity="0"/></radialGradient><filter id="ssGlow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="3"/></filter></defs>';
+  const sun='<g class="pl" tabindex="0" role="button" data-n="Sol" aria-label="Sol" style="--d:.6s"><title>Sol</title><circle class="halo" cx="500" cy="500" r="90" fill="url(#ssBlue)"/><circle cx="500" cy="500" r="52" fill="url(#ssSun)"/><circle cx="500" cy="500" r="12" fill="#ffe9b8"/></g>';
+  $o('ss-wrap').innerHTML='<svg id="ss-svg" viewBox="-30 -20 1060 1040" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Posiciones actuales de los planetas del Sistema Solar">'+defs+o+sun+p+'</svg>';
+  $o('ss-cap').textContent='Posiciones calculadas para el '+d.toLocaleDateString('es-ES',{day:'numeric',month:'long',year:'numeric'})+' \u00b7 escala de distancias comprimida';
+}
+const _sp4=setPageActive;
+setPageActive=function(page){const r=_sp4.apply(this,arguments);if(page==='guide'){drawSolar3d();hydrate()}return r};
+}
+}
+/* Astros del mapa: al pulsarlos se abre su ficha en el panel de la derecha */
+{
+const wrap=document.getElementById('ss-wrap');
+if(wrap){
+const nrm=s=>s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+const _op=openPanel;
+openPanel=function(n){const f=document.getElementById('mfull');if(f)f.style.display=(n&&n._syn)?'none':'';return _op.call(this,n)};
+function astro(nm){
+  const k=nrm(nm);
+  const real=all.find(n=>n.obj&&(nrm(n.t)===k||nrm(n.t).startsWith(k+' ')));
+  if(real){openPanel(real);return}
+  const sl='__astro/'+k,n={s:sl,t:nm,obj:true,adj:new Set(),_syn:true};
+  dcache.set(sl,Promise.resolve({img:'',date:'',txt:'Todav\u00eda no hay ficha de este astro. Cuando a\u00f1adas una nota con su nombre dentro de una carpeta descripciones, aparecer\u00e1 aqu\u00ed.'}));
+  openPanel(n);
+}
+wrap.addEventListener('click',e=>{const g=e.target.closest('.pl');if(g&&g.dataset.n)astro(g.dataset.n)});
+wrap.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){const g=e.target.closest('.pl');if(g&&g.dataset.n){e.preventDefault();astro(g.dataset.n)}}});
+}
+}
+/* Sistema Solar v3: 360 grados, etiquetas sin solaparse, vista Tierra-Luna y movil */
+const HIT=(typeof matchMedia==='function'&&matchMedia('(pointer:coarse)').matches)?22:9;
+const drawSolar3d=(()=>{
+const wrap=document.getElementById('ss-wrap'),cap=document.getElementById('ss-cap'),col=document.getElementById('gcol-c');
+if(!wrap||!col)return function(){};
+const RD=Math.PI/180,C=500,K=64,HOME={yaw:.35,pitch:.95,zoom:1};
+const EL=[
+['Mercurio','#b9b4aa',3,[0.38709927,0.00000037,0.20563593,0.00001906,7.00497902,-0.00594749,252.25032350,149472.67411175,77.45779628,0.16047689,48.33076593,-0.12534081]],
+['Venus','#f0d9a8',4.6,[0.72333566,0.00000390,0.00677672,-0.00004107,3.39467605,-0.00078890,181.97909950,58517.81538729,131.60246718,0.00268329,76.67984255,-0.27769418]],
+['Tierra','#7fb2ff',4.8,[1.00000261,0.00000562,0.01671123,-0.00004392,-0.00001531,-0.01294668,100.46457166,35999.37244981,102.93768193,0.32327364,0,0]],
+['Marte','#e4906c',3.8,[1.52371034,0.00001847,0.09339410,0.00007882,1.84969142,-0.00813131,-4.55343205,19140.30268499,-23.94362959,0.44441088,49.55953891,-0.29257343]],
+['J\u00fapiter','#e8c9a0',8.5,[5.20288700,-0.00011607,0.04838624,-0.00013253,1.30439695,-0.00183714,34.39644051,3034.74612775,14.72847983,0.21252668,100.47390909,0.20469106]],
+['Saturno','#f0dca0',7,[9.53667594,-0.00125060,0.05386179,-0.00050991,2.48599187,0.00193609,49.95424423,1222.49362201,92.59887831,-0.41897216,113.66242448,-0.28867794]],
+['Urano','#9fe0ec',5.4,[19.18916464,-0.00196176,0.04725744,-0.00004397,0.77263783,-0.00242939,313.23810451,428.48202785,170.95427630,0.40805281,74.01692503,0.04240589]],
+['Neptuno','#6f8cff',5.4,[30.06992276,0.00026291,0.00859048,0.00005105,1.77004347,0.00035372,-55.12002969,218.45945325,44.96476227,-0.32241464,131.78422574,-0.00508664]],
+['Plut\u00f3n','#c9b8a6',2.8,[39.48211675,-0.00031596,0.24882730,0.00005170,17.14001206,0.00004818,238.92903833,145.20780515,224.06891629,-0.04062942,110.30393684,-0.01183482]]
+];
+function kep(M,e){let E=M+e*Math.sin(M);for(let i=0;i<10;i++)E-=(E-e*Math.sin(E)-M)/(1-e*Math.cos(E));return E}
+function planetE(el,T){const e=el[2]+el[3]*T,L=el[6]+el[7]*T,wb=el[8]+el[9]*T;let M=((L-wb)%360)*RD;M=Math.atan2(Math.sin(M),Math.cos(M));return kep(M,e)}
+function xyz(el,T,E){
+  const a=el[0]+el[1]*T,e=el[2]+el[3]*T,I=(el[4]+el[5]*T)*RD,wb=(el[8]+el[9]*T)*RD,O=(el[10]+el[11]*T)*RD,w=wb-O;
+  const xp=a*(Math.cos(E)-e),yp=a*Math.sqrt(1-e*e)*Math.sin(E);
+  const cw=Math.cos(w),sw=Math.sin(w),cI=Math.cos(I),sI=Math.sin(I),cO=Math.cos(O),sO=Math.sin(O);
+  return [(cw*cO-sw*sO*cI)*xp+(-sw*cO-cw*sO*cI)*yp,(cw*sO+sw*cO*cI)*xp+(-sw*sO+cw*cO*cI)*yp,(sw*sI)*xp+(cw*sI)*yp];
+}
+function comp(v){const r=Math.hypot(v[0],v[1],v[2])||1,s=K*Math.sqrt(r)/r;return[v[0]*s,v[1]*s,v[2]*s]}
+let yaw=HOME.yaw,pitch=HOME.pitch,zoom=1,vx=0,vy=0,data=null,raf=0,anim=0,moved=false,drag=null,cy=1,sy=0,cp=1,sp=0,kS=.6,mk=1,fs=16,inEarth=false,busy=false,saved=null;
+function trig(){cy=Math.cos(yaw);sy=Math.sin(yaw);cp=Math.cos(pitch);sp=Math.sin(pitch)}
+/* camara: arriba de la pantalla = lo que queda mas lejos; la profundidad da una perspectiva suave */
+function rel(p){const x1=p[0]*cy-p[1]*sy,y1=p[0]*sy+p[1]*cy,up=y1*cp+p[2]*sp,dep=-y1*sp+p[2]*cp,f=3500/(3500-dep);return[x1*f,-up*f,dep,f]}
+function proj(p){const r=rel(p);return[C+(r[0]-vx)*zoom,C+(r[1]-vy)*zoom,r[2],r[3]]}
+function measure(){
+  const r=wrap.getBoundingClientRect(),w=(typeof innerWidth==='number'?innerWidth:900);
+  kS=Math.max(.05,Math.min((r.width||600)/1060,(r.height||600)/1040));
+  LB.x0=C-(r.width||600)/2/kS+6;LB.x1=C+(r.width||600)/2/kS-6;LB.y0=C-(r.height||600)/2/kS+4;LB.y1=C+(r.height||600)/2/kS-4;
+  mk=Math.min(2.2,Math.max(1,.62/kS));
+  fs=Math.min(40,Math.max(13,(w<700?11:12)/kS));
+  if(data)for(const b of data.bodies)if(b.lb)b.lb.style.fontSize=fs.toFixed(1)+'px';
+}
+function render(){
+  raf=0;if(!data)return;trig();
+  for(const o of data.orbs){let s='';for(let k=0;k<o.pts.length;k++){const q=proj(o.pts[k]);s+=(k?'L':'M')+q[0].toFixed(1)+' '+q[1].toFixed(1)}o.el.setAttribute('d',s+'Z')}
+  const ms=Math.sqrt(zoom)*mk;
+  for(const b of data.bodies){const q=proj(b.p);b.q=q;b.s=q[3]*ms;b.g.setAttribute('transform','translate('+q[0].toFixed(1)+' '+q[1].toFixed(1)+') scale('+b.s.toFixed(3)+')');if(b.ring)b.ring.setAttribute('ry',(14*(.16+.84*Math.abs(cp))).toFixed(2))}
+  labels();
+}
+/* etiquetas: cada una busca un hueco (8 direcciones, cada vez mas lejos) sin pisar a otra etiqueta ni a un astro; si queda lejos, se une con una linea fina */
+function labels(){
+  const placed=[];
+  for(const b of data.bodies){const r=(b.nm==='Sol'?22:b.rad)*b.s+2;placed.push({x0:b.q[0]-r,x1:b.q[0]+r,y0:b.q[1]-r,y1:b.q[1]+r})}
+  const DIRS=[-35,0,35,-145,180,145,-90,90];
+  const order=data.bodies.filter(b=>b.lb).sort((a,b)=>b.q[2]-a.q[2]);
+  for(const b of order){
+    const px=b.q[0],py=b.q[1],rr=b.rad*b.s+3,w=b.nm.length*.56*fs,h=fs;
+    let pick=null;
+    outer:for(const extra of [0,28,58,92,132]){
+      const dist=rr+4+extra*fs/16;
+      for(const deg of DIRS){
+        const al=deg*RD,ca=Math.cos(al),sa=Math.sin(al),ax=px+dist*ca,ay=py+dist*sa;
+        const a=ca>.3?'start':(ca<-.3?'end':'middle'),y=sa>.3?ay+h*.85:(sa<-.3?ay:ay+h*.35);
+        const x0=a==='start'?ax:(a==='end'?ax-w:ax-w/2),r={x0:x0,x1:x0+w,y0:y-h*.85,y1:y+h*.25};
+        if(r.x0<LB.x0||r.x1>LB.x1||r.y0<LB.y0||r.y1>LB.y1)continue;
+        if(!placed.some(p=>r.x0<p.x1+2&&r.x1>p.x0-2&&r.y0<p.y1+1&&r.y1>p.y0-1)){pick={x:ax,y:y,a:a,r:r,far:extra>0};break outer}
+      }
+    }
+    if(pick){
+      placed.push(pick.r);b.lb.setAttribute('x',pick.x.toFixed(1));b.lb.setAttribute('y',pick.y.toFixed(1));b.lb.setAttribute('text-anchor',pick.a);b.lb.style.opacity='1';
+      if(pick.far){
+        const lx=pick.a==='start'?pick.r.x0:(pick.a==='end'?pick.r.x1:(pick.r.x0+pick.r.x1)/2),ly=(pick.r.y0+pick.r.y1)/2;
+        b.ll.setAttribute('x1',px.toFixed(1));b.ll.setAttribute('y1',py.toFixed(1));b.ll.setAttribute('x2',lx.toFixed(1));b.ll.setAttribute('y2',ly.toFixed(1));b.ll.setAttribute('opacity','1');
+      }else b.ll.setAttribute('opacity','0');
+    }else{b.lb.style.opacity='0';b.ll.setAttribute('opacity','0')}
+  }
+}
+function schedule(){if(!raf)raf=requestAnimationFrame(render)}
+const LB={x0:-25,x1:1035,y0:-15,y1:1025};
+function smallScreen(){return (typeof innerWidth==='number'&&innerWidth<=700)||(typeof matchMedia==='function'&&matchMedia('(pointer: coarse)').matches)}
+/* ajusta la vista inicial para que el sistema ocupe el espacio disponible (solo en pantallas pequenas) */
+function fitHome(){
+  const cyh=Math.cos(HOME.yaw),syh=Math.sin(HOME.yaw),cph=Math.cos(HOME.pitch),sph=Math.sin(HOME.pitch);
+  let mnx=1e9,mxx=-1e9,mny=1e9,mxy=-1e9;
+  for(const o of data.orbs)for(const p of o.pts){
+    const x1=p[0]*cyh-p[1]*syh,y1=p[0]*syh+p[1]*cyh,up=y1*cph+p[2]*sph,dep=-y1*sph+p[2]*cph,f=3500/(3500-dep),x=x1*f,y=-up*f;
+    if(x<mnx)mnx=x;if(x>mxx)mxx=x;if(y<mny)mny=y;if(y>mxy)mxy=y;
+  }
+  const r=wrap.getBoundingClientRect(),hw=(r.width||300)/2/kS,hh=(r.height||300)/2/kS;
+  HOME.zoom=Math.max(1,Math.min(4,.92*Math.min(hw/((mxx-mnx)/2),hh/((mxy-mny)/2))));
+  HOME.vx=(mnx+mxx)/2;HOME.vy=(mny+mxy)/2;
+}
+function applyFit(){if(!smallScreen()){HOME.zoom=1;HOME.vx=0;HOME.vy=0;return}fitHome()}
+function mixc(h,t){const n=parseInt(h.slice(1),16),f=c=>Math.round(c+(255-c)*t).toString(16).padStart(2,'0');return '#'+f(n>>16)+f((n>>8)&255)+f(n&255)}
+function grp(nm,c2,rad,dl,delay){
+  const sun=nm==='Sol',id=nm.replace(/[^A-Za-z]/g,''),touch=typeof matchMedia==='function'&&matchMedia('(pointer: coarse)').matches,hr=touch?Math.max(rad*2,22):Math.max(rad*2.6,28);
+  const defs='<defs><radialGradient id="ssg'+id+'"><stop offset="0" stop-color="'+c2+'" stop-opacity=".5"/><stop offset=".45" stop-color="'+c2+'" stop-opacity=".2"/><stop offset="1" stop-color="'+c2+'" stop-opacity="0"/></radialGradient>'
+   +(sun?'<radialGradient id="ssc'+id+'"><stop offset="0" stop-color="#fffaf0"/><stop offset="1" stop-color="#ffe9b8"/></radialGradient>':'<radialGradient id="ssb'+id+'" cx=".38" cy=".34" r=".78"><stop offset="0" stop-color="'+mixc(c2,.4)+'"/><stop offset="1" stop-color="'+c2+'"/></radialGradient>')
+   +(nm==='Saturno'?'<linearGradient id="ssr'+id+'"><stop offset="0" stop-color="'+c2+'"/><stop offset="1" stop-color="'+c2+'"/></linearGradient>':'')+'</defs>';
+  return '<g class="pl" tabindex="0" role="button" data-n="'+nm+'" aria-label="'+nm+'" style="--d:'+delay+'s"><title>'+nm+(dl?' \u00b7 '+dl+' UA del Sol':'')+'</title>'+defs
+   +'<circle class="halo" r="'+(rad*3+10)+'" fill="url(#ssBlue)"/><circle r="'+hr+'" fill="#000" fill-opacity="0" pointer-events="all"/>'
+   +(sun?'<circle r="44" fill="url(#ssSun)"/><circle r="11" fill="url(#ssc'+id+')"/>':'<circle class="pg" r="'+(rad*3.2).toFixed(1)+'" fill="url(#ssg'+id+')"/><circle r="'+rad+'" fill="url(#ssb'+id+')"/>')
+   +(nm==='Saturno'?'<ellipse class="ring" rx="'+(rad*2)+'" ry="'+(rad*.65).toFixed(2)+'" fill="none" stroke="url(#ssr'+id+')" stroke-opacity=".6"/>':'')
+   +'</g>';
+}
+function build(){
+  const d=new Date(),T=(d.getTime()/86400000+2440587.5-2451545)/36525;
+  let o='',g='',lb='';const pts=[],pos=[];
+  g+=grp('Sol','#ffd479',18,'','.6');
+  EL.forEach((e,i)=>{
+    const el=e[3],P=[];
+    for(let k=0;k<=120;k++)P.push(comp(xyz(el,T,k/120*2*Math.PI)));
+    pts.push(P);
+    const v=xyz(el,T,planetE(el,T));
+    pos.push(comp(v));
+    o+='<path class="orb" pathLength="1" style="--d:'+(0.9+i*.16).toFixed(2)+'s"/>';
+    g+=grp(e[0],e[1],e[2],Math.hypot(v[0],v[1],v[2]).toFixed(2).replace('.',','),(2.2+i*.12).toFixed(2));
+    lb+='<line class="ll" opacity="0"/><text class="lb">'+e[0]+'</text>';
+  });
+  const defs='<defs><radialGradient id="ssBlue"><stop offset="0" stop-color="#2f7bff" stop-opacity=".95"/><stop offset=".55" stop-color="#2f7bff" stop-opacity=".55"/><stop offset="1" stop-color="#2f7bff" stop-opacity="0"/></radialGradient><radialGradient id="ssSun"><stop offset="0" stop-color="#fff6d8"/><stop offset=".35" stop-color="#ffd479"/><stop offset="1" stop-color="#ffd479" stop-opacity="0"/></radialGradient><filter id="ssGlow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="3"/></filter></defs>';
+  wrap.innerHTML='<svg id="ss-svg" viewBox="-30 -20 1060 1040" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Posiciones actuales de los planetas del Sistema Solar">'+defs+o+g+'<g id="ss-labels" pointer-events="none">'+lb+'</g></svg>';
+  const els=wrap.querySelectorAll('path.orb'),gs=wrap.querySelectorAll('g.pl'),ls=wrap.querySelectorAll('text.lb'),ln=wrap.querySelectorAll('line.ll');
+  data={orbs:[],bodies:[]};
+  pts.forEach((P,i)=>data.orbs.push({el:els[i],pts:P}));
+  gs.forEach((el,i)=>data.bodies.push({g:el,p:i?pos[i-1]:[0,0,0],nm:i?EL[i-1][0]:'Sol',rad:i?EL[i-1][2]:18,ring:el.querySelector('.ring'),lb:i?ls[i-1]:null,ll:i?ln[i-1]:null}));
+  measure();applyFit();zoom=HOME.zoom;vx=HOME.vx;vy=HOME.vy;render();
+  if(cap)cap.textContent='Posiciones calculadas para el '+d.toLocaleDateString('es-ES',{day:'numeric',month:'long',year:'numeric'})+(smallScreen()?' \u00b7 escala comprimida \u00b7 arrastra para girar, pellizca para acercar':' \u00b7 escala de distancias comprimida \u00b7 arrastra para girar, rueda o pellizco para acercar');
+}
+function animateTo(tg,dur,done){
+  if(anim)cancelAnimationFrame(anim);busy=true;
+  const t0=performance.now(),f0={yaw:yaw,pitch:pitch,zoom:zoom,vx:vx,vy:vy};
+  const dy=Math.atan2(Math.sin(tg.yaw-yaw),Math.cos(tg.yaw-yaw)),dp=Math.atan2(Math.sin(tg.pitch-pitch),Math.cos(tg.pitch-pitch));
+  const fr=now=>{
+    const k=Math.min(1,(now-t0)/dur),e=1-Math.pow(1-k,3);
+    yaw=f0.yaw+dy*e;pitch=f0.pitch+dp*e;zoom=f0.zoom+(tg.zoom-f0.zoom)*e;vx=f0.vx+(tg.vx-f0.vx)*e;vy=f0.vy+(tg.vy-f0.vy)*e;
+    render();
+    if(k<1)anim=requestAnimationFrame(fr);else{anim=0;busy=false;if(done)done()}
+  };
+  anim=requestAnimationFrame(fr);
+}
+/* ---- vista Tierra y Luna ---- */
+const ew=document.createElement('div');ew.id='earth-view';ew.setAttribute('aria-hidden','true');
+ew.innerHTML='<button id="earth-back" type="button">\u2190 Sistema Solar</button><svg id="earth-svg" viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid meet" role="img" aria-label="La Tierra y la Luna"></svg><p id="earth-cap"></p>';
+col.append(ew);
+const esvg=ew.querySelector('#earth-svg'),ecap=ew.querySelector('#earth-cap'),eback=ew.querySelector('#earth-back');
+const OX=500,OY=350,ORX=310,ORY=106;
+let eRaf=0,eT0=0,eLam=0,moonG=null,backL=null,frontL=null,moonFront=false;
+function openAstro(nm){
+  const nr=s=>s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''),k=nr(nm);
+  const real=all.find(n=>n.obj&&(nr(n.t)===k||nr(n.t).startsWith(k+' ')));
+  if(real){openPanel(real);return}
+  const sl='__astro/'+k,n={s:sl,t:nm,obj:true,adj:new Set(),_syn:true};
+  dcache.set(sl,Promise.resolve({img:'',date:'',txt:'Todav\u00eda no hay ficha de este astro. Cuando a\u00f1adas una nota con su nombre dentro de una carpeta descripciones, aparecer\u00e1 aqu\u00ed.'}));
+  openPanel(n);
+}
+/* Tierra-Luna v4: continentes, nubes, polos, craters, mares y estrellas */
+const ER=100,MR=36,LAT0=20*RD,SL0=Math.sin(LAT0),CL0=Math.cos(LAT0);
+function dens(pl){const o=[];for(let i=0;i<pl.length;i++){const a=pl[i],b=pl[(i+1)%pl.length],n=Math.max(1,Math.ceil(Math.max(Math.abs(b[0]-a[0]),Math.abs(b[1]-a[1]))/10));for(let k=0;k<n;k++)o.push([(a[0]+(b[0]-a[0])*k/n)*RD,(a[1]+(b[1]-a[1])*k/n)*RD])}return o}
+const LAND=[
+[[-168,66],[-162,70],[-150,71],[-140,69],[-128,70],[-115,68],[-100,70],[-90,68],[-82,66],[-78,62],[-65,60],[-60,55],[-56,52],[-60,47],[-66,45],[-70,42],[-74,38],[-76,35],[-80,32],[-81,26],[-82,29],[-85,30],[-90,29],[-94,29],[-97,26],[-97,21],[-92,18],[-88,21],[-87,16],[-83,15],[-83,10],[-79,9],[-77,8],[-83,8],[-86,12],[-92,14],[-100,17],[-105,20],[-109,25],[-112,29],[-115,31],[-117,33],[-121,35],[-124,40],[-124,46],[-125,49],[-130,54],[-135,58],[-142,60],[-150,60],[-156,57],[-164,55],[-165,60]],
+[[-77,8],[-72,12],[-64,10],[-58,7],[-52,5],[-50,0],[-44,-2],[-35,-6],[-35,-9],[-39,-14],[-41,-22],[-48,-26],[-49,-29],[-53,-34],[-58,-35],[-57,-38],[-62,-39],[-65,-41],[-67,-46],[-69,-51],[-72,-54],[-75,-50],[-74,-42],[-73,-37],[-71,-30],[-70,-20],[-76,-14],[-80,-7],[-81,-3],[-80,1],[-78,4]],
+[[-17,21],[-16,28],[-10,30],[-6,35],[0,36],[10,37],[11,33],[20,32],[25,32],[32,31],[34,28],[38,20],[43,12],[51,12],[48,5],[41,-2],[40,-10],[40,-15],[35,-23],[32,-28],[27,-34],[20,-35],[18,-32],[14,-23],[12,-14],[13,-6],[9,-1],[10,4],[5,5],[-4,5],[-8,4],[-13,8],[-17,14]],
+[[-9,37],[-9,43],[-2,44],[-4,48],[2,51],[8,54],[10,57],[8,58],[5,60],[6,63],[14,68],[22,70],[30,71],[40,67],[44,68],[55,68],[68,72],[80,73],[100,77],[113,74],[130,72],[142,72],[160,70],[172,67],[180,66],[176,62],[165,60],[160,54],[156,51],[155,59],[143,59],[137,54],[141,49],[135,43],[130,42],[129,35],[126,35],[125,39],[121,40],[122,37],[119,35],[121,31],[122,28],[119,24],[113,22],[108,21],[107,17],[109,12],[105,9],[103,12],[100,13],[99,8],[103,1.5],[100,3],[98,8],[98,16],[94,17],[92,22],[90,22],[87,21],[84,18],[80,15],[80,10],[77,8],[75,12],[73,17],[72,21],[69,22],[67,25],[61,25],[57,26],[56,27],[52,28],[50,30],[48,30],[50,26],[53,24],[56,25],[59,22],[57,18],[52,16],[45,13],[43,15],[39,21],[35,28],[34,31],[36,36],[32,36],[28,37],[26,40],[24,40],[22,37],[21,40],[19,42],[14,45],[13,44],[16,41],[18,40],[16,38],[12,42],[9,44],[3,43],[0,39],[-5,36]],
+[[114,-22],[122,-18],[130,-12],[136,-12],[142,-11],[146,-19],[153,-26],[151,-34],[146,-39],[140,-38],[135,-34],[130,-32],[124,-33],[115,-34],[114,-27]],
+[[-6,50],[1,51],[-2,57],[-5,58],[-6,55],[-3,54]],
+[[131,31],[135,34],[140,35],[142,40],[141,45],[139,41],[136,37],[132,34]],
+[[95,5],[98,4],[104,-2],[106,-6],[101,-3],[96,2]],
+[[109,1],[114,5],[118,6],[117,1],[116,-4],[111,-3]],
+[[131,-1],[141,-3],[150,-10],[142,-9],[135,-4]],
+[[44,-25],[48,-25],[50,-15],[49,-12],[44,-16]]
+].map(dens);
+const ICE=[
+[[-72,78],[-60,82],[-30,83],[-18,76],[-22,70],[-40,65],[-44,60],[-50,63],[-54,68],[-58,75]],
+[[-180,-70],[-120,-73],[-60,-65],[-58,-72],[0,-70],[60,-67],[120,-66],[180,-70],[180,-90],[-180,-90]]
+].map(dens);
+const CLD=[[-60,35,18,5],[20,50,22,6],[100,35,20,5],[150,-10,18,6],[-120,-20,22,6],[-10,-35,20,5],[60,0,16,5],[-150,45,20,5]].map((c,i)=>{const p=[];for(let k=0;k<10;k++){const a=k/10*2*Math.PI;p.push([(c[0]+c[2]*Math.cos(a)*(1+.3*Math.sin(3*a+i)))*RD,(c[1]+c[3]*Math.sin(a)*(1+.3*Math.cos(2*a+i)))*RD])}return p});
+const MARIA=[[-9,-9,10,7,-20],[6,-10,6,6,0],[12,-1,8,6,10],[18,9,5,4,0],[-18,3,8,13,-10],[-3,15,6,5,0],[-6,0,5,4,0]];
+const CRAT=[[-4,25,4],[-13,-2,3.4],[-21,-4,2.4],[-17,-12,2.4],[10,20,3],[22,-14,3],[0,-24,2.6],[26,4,2.6],[-24,12,3.4],[14,12,2.2],[-8,8,2],[4,-4,2],[19,19,2.2],[-27,-6,2]];
+let eLand=null,eIce=null,eCloud=null,eL0=0;
+function orth(lo,la,l0){const dl=lo-l0,cl=Math.cos(la),sl=Math.sin(la);return[cl*Math.sin(dl),CL0*sl-SL0*cl*Math.cos(dl),SL0*sl+CL0*cl*Math.cos(dl)]}
+/* contorno proyectado sobre la esfera: lo que queda detras se une siguiendo el borde del disco */
+function ppath(poly,l0){
+  const n=poly.length,Q=poly.map(p=>orth(p[0],p[1],l0));
+  let s0=-1;for(let i=0;i<n;i++)if(Q[i][2]>0){s0=i;break}
+  if(s0<0)return '';
+  const pts=[];let hid=null,ex=0;
+  for(let k=0;k<=n;k++){
+    const q=Q[(s0+k)%n];
+    if(q[2]>0){
+      if(hid!==null){const da=Math.atan2(Math.sin(hid-ex),Math.cos(hid-ex)),m=Math.max(1,Math.ceil(Math.abs(da)/.3));for(let j=0;j<=m;j++){const a=ex+da*j/m;pts.push([Math.cos(a),Math.sin(a)])}hid=null}
+      if(k<n)pts.push([q[0],q[1]]);
+    }else{
+      const a=Math.atan2(q[1],q[0]);
+      if(hid===null){ex=a;pts.push([Math.cos(a),Math.sin(a)])}
+      hid=a;
+    }
+  }
+  let s='';
+  for(let i=0;i<pts.length;i++)s+=(i?'L':'M')+(OX+ER*pts[i][0]).toFixed(1)+' '+(OY-ER*pts[i][1]).toFixed(1);
+  return s+'Z';
+}
+function drawEarth(l0){
+  if(!eLand)return;
+  let d='';for(const p of LAND)d+=ppath(p,l0);eLand.setAttribute('d',d);
+  d='';for(const p of ICE)d+=ppath(p,l0);eIce.setAttribute('d',d);
+  d='';for(const p of CLD)d+=ppath(p,l0*1.12);eCloud.setAttribute('d',d);
+}
+function buildEarth(){
+  const d=new Date(),T=(d.getTime()/86400000+2440587.5-2451545)/36525,S=Math.sin;
+  const Lm=218.3164477+481267.88123421*T,D=297.8501921+445267.1114034*T,Ms=357.5291092+35999.0502909*T,Mm=134.9633964+477198.8675055*T;
+  eLam=(Lm+6.289*S(Mm*RD)+1.274*S((2*D-Mm)*RD)+0.658*S(2*D*RD)+0.214*S(2*Mm*RD)-0.186*S(Ms*RD))*RD;
+  eL0=(12-d.getUTCHours()-d.getUTCMinutes()/60)*15*RD;
+  const te=EL[2][3],ev=xyz(te,T,planetE(te,T)),sunA=Math.atan2(-ev[1],-ev[0]);
+  const lx=Math.cos(sunA),ly=-Math.sin(sunA)*.6,nn=Math.hypot(lx,ly)||1,ux=lx/nn,uy=ly/nn;
+  const g1='x1="'+(.5+ux*.5).toFixed(3)+'" y1="'+(.5+uy*.5).toFixed(3)+'" x2="'+(.5-ux*.5).toFixed(3)+'" y2="'+(.5-uy*.5).toFixed(3)+'"';
+  let sd=11;const rnd=()=>{sd=(sd*16807)%2147483647;return sd/2147483647};
+  let st='';for(let i=0;i<46;i++)st+='<circle cx="'+(rnd()*1000).toFixed(0)+'" cy="'+(rnd()*700).toFixed(0)+'" r="'+(.5+rnd()*1.1).toFixed(1)+'" fill="url(#fStar)" opacity="'+(.25+rnd()*.6).toFixed(2)+'"/>';
+  const defs='<defs><linearGradient id="lShade" '+g1+'><stop offset="0" stop-color="#ffffff" stop-opacity=".06"/><stop offset=".45" stop-color="#05081a" stop-opacity=".12"/><stop offset=".75" stop-color="#05081a" stop-opacity=".6"/><stop offset="1" stop-color="#02040f" stop-opacity=".92"/></linearGradient>'
+   +'<radialGradient id="lLimb"><stop offset=".62" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".5"/></radialGradient>'
+   +'<radialGradient id="eBlue"><stop offset="0" stop-color="#2f7bff" stop-opacity=".95"/><stop offset=".55" stop-color="#2f7bff" stop-opacity=".55"/><stop offset="1" stop-color="#2f7bff" stop-opacity="0"/></radialGradient>'
+   +'<radialGradient id="eAtm"><stop offset=".74" stop-color="#4d94ff" stop-opacity="0"/><stop offset=".88" stop-color="#4d94ff" stop-opacity=".5"/><stop offset="1" stop-color="#4d94ff" stop-opacity="0"/></radialGradient>'
+   +'<linearGradient id="eOrb" gradientUnits="userSpaceOnUse" x1="0" y1="'+(OY-ORY)+'" x2="0" y2="'+(OY+ORY)+'"><stop offset="0" stop-color="#6a7bff" stop-opacity=".25"/><stop offset=".5" stop-color="#7fa8ff" stop-opacity=".55"/><stop offset="1" stop-color="#a8e0ff" stop-opacity=".95"/></linearGradient><radialGradient id="fIce"><stop offset="0" stop-color="#f4f9fd"/><stop offset="1" stop-color="#dfeaf3"/></radialGradient><radialGradient id="fCloud"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#f1f4f8"/></radialGradient><radialGradient id="fStar"><stop offset="0" stop-color="#eef2ff"/><stop offset="1" stop-color="#cdd8ff"/></radialGradient><radialGradient id="fMoon" cx=".42" cy=".4" r=".75"><stop offset="0" stop-color="#cfcabf"/><stop offset="1" stop-color="#a9a49a"/></radialGradient><clipPath id="eClip"><circle cx="'+OX+'" cy="'+OY+'" r="'+ER+'"/></clipPath><clipPath id="mClip"><circle r="'+MR+'"/></clipPath></defs>';
+  const back='M'+(OX-ORX)+' '+OY+' A'+ORX+' '+ORY+' 0 0 1 '+(OX+ORX)+' '+OY,front='M'+(OX+ORX)+' '+OY+' A'+ORX+' '+ORY+' 0 0 1 '+(OX-ORX)+' '+OY;
+  let mm='';
+  for(const m of MARIA)mm+='<ellipse cx="'+m[0]+'" cy="'+m[1]+'" rx="'+m[2]+'" ry="'+m[3]+'" transform="rotate('+m[4]+' '+m[0]+' '+m[1]+')" fill="#6d6a66" opacity=".55"/>';
+  mm+='<path d="M-4 25L-2 52M-4 25L-26 46M-4 25L16 46M-4 25L-32 30M-4 25L24 36" stroke="#ffffff" stroke-opacity=".22" stroke-width="1" fill="none"/>';
+  for(const c of CRAT)mm+='<circle cx="'+c[0]+'" cy="'+c[1]+'" r="'+c[2]+'" fill="rgba(15,17,28,.22)" stroke="rgba(255,255,255,.3)" stroke-width=".8"/>';
+  esvg.innerHTML=defs+st+'<path class="eorb back" d="'+back+'"/><g id="e-back"></g>'
+   +'<g class="pl" tabindex="0" role="button" data-n="Tierra" aria-label="Tierra"><title>Tierra</title><circle class="halo" cx="'+OX+'" cy="'+OY+'" r="175" fill="url(#eBlue)"/><circle cx="'+OX+'" cy="'+OY+'" r="'+(ER*1.38)+'" fill="url(#eAtm)"/><circle cx="'+OX+'" cy="'+OY+'" r="'+ER+'" fill="#2d6fd0"/>'
+   +'<g clip-path="url(#eClip)"><path id="e-land" fill="#4a9a52" stroke="#2f6f3a" stroke-width=".8" stroke-linejoin="round"/><path id="e-ice" fill="url(#fIce)" opacity=".95"/><path id="e-cloud" fill="url(#fCloud)" opacity=".42"/></g>'
+   +'<circle cx="'+OX+'" cy="'+OY+'" r="'+ER+'" fill="url(#lShade)"/><circle cx="'+OX+'" cy="'+OY+'" r="'+ER+'" fill="url(#lLimb)"/>'
+   +'<text x="'+OX+'" y="'+(OY+ER+38)+'" text-anchor="middle">Tierra</text></g>'
+   +'<path class="eorb" d="'+front+'"/><g id="e-front"></g>'
+   +'<g id="e-moon" class="pl" tabindex="0" role="button" data-n="Luna" aria-label="Luna"><title>Luna</title><circle class="halo" r="80" fill="url(#eBlue)"/><circle r="46" fill="transparent"/>'
+   +'<g clip-path="url(#mClip)"><circle r="'+MR+'" fill="url(#fMoon)"/>'+'<path id="m-maria" fill="#6d6a66" opacity=".55"/><path id="m-crat" fill="rgba(15,17,28,.22)" stroke="rgba(255,255,255,.3)" stroke-width=".8" stroke-linejoin="round"/>'+'<circle r="'+MR+'" fill="url(#lShade)"/><circle r="'+MR+'" fill="url(#lLimb)"/></g><text x="46" y="-40">Luna</text></g>';
+  moonG=esvg.querySelector('#e-moon');backL=esvg.querySelector('#e-back');frontL=esvg.querySelector('#e-front');moonFront=false;
+  eLand=esvg.querySelector('#e-land');eIce=esvg.querySelector('#e-ice');eCloud=esvg.querySelector('#e-cloud');moonMaria=esvg.querySelector('#m-maria');moonCrat=esvg.querySelector('#m-crat');
+  backL.appendChild(moonG);
+  ecap.textContent='Posici\u00f3n actual de la Luna \u00b7 rotaci\u00f3n y \u00f3rbita aceleradas \u00b7 tama\u00f1os y distancias no est\u00e1n a escala';
+  placeMoon(eLam);drawEarth(eL0);
+}
+/* Luna v5: siempre la misma cara hacia la Tierra */
+let moonMaria=null,moonCrat=null;
+function blob(lo,la,rx,ry,rot,n){const p=[],cr=Math.cos(rot*RD),sr=Math.sin(rot*RD),cl=Math.max(.3,Math.cos(la*RD));for(let k=0;k<n;k++){const a=k/n*2*Math.PI,x=rx*Math.cos(a),y=ry*Math.sin(a);p.push([(lo+(x*cr-y*sr)/cl)*RD,(la+(x*sr+y*cr))*RD])}return p}
+const MMAR=[[-16,33,17,11,-20],[18,28,9,8,0],[31,9,12,9,10],[51,-5,8,6,0],[-57,18,13,22,-10],[-15,-21,10,8,0],[59,17,9,7,0],[-39,-24,9,8,0],[34,-15,6,5,0],[-3,3,7,6,0],[-93,-19,8,8,0]].map(m=>blob(m[0],m[1],m[2],m[3],m[4],14));
+const MCRA=[[-11,-43,3.4],[-20,10,2.8],[-38,8,2.2],[-47,23,2.2],[-9,51,3.6],[-68,-6,3.2],[61,-9,2.6],[-14,-58,4.5],[129,-20,4],[147,27,3.2],[-151,-36,3.6],[10,20,2],[25,-30,2.4],[40,-40,2.6],[-30,-35,2.4],[75,30,2.6],[-75,40,2.8],[110,5,3],[-120,10,3],[20,60,3]].map(c=>blob(c[0],c[1],c[2],c[2],0,10));
+function ppathM(poly,l0){
+  const n=poly.length,Q=poly.map(p=>orth(p[0],p[1],l0));
+  let s0=-1;for(let i=0;i<n;i++)if(Q[i][2]>0){s0=i;break}
+  if(s0<0)return '';
+  const pts=[];let hid=null,ex=0;
+  for(let k=0;k<=n;k++){
+    const q=Q[(s0+k)%n];
+    if(q[2]>0){
+      if(hid!==null){const da=Math.atan2(Math.sin(hid-ex),Math.cos(hid-ex)),m=Math.max(1,Math.ceil(Math.abs(da)/.3));for(let j=0;j<=m;j++){const a=ex+da*j/m;pts.push([Math.cos(a),Math.sin(a)])}hid=null}
+      if(k<n)pts.push([q[0],q[1]]);
+    }else{
+      const a=Math.atan2(q[1],q[0]);
+      if(hid===null){ex=a;pts.push([Math.cos(a),Math.sin(a)])}
+      hid=a;
+    }
+  }
+  let s='';
+  for(let i=0;i<pts.length;i++)s+=(i?'L':'M')+(MR*pts[i][0]).toFixed(1)+' '+(-MR*pts[i][1]).toFixed(1);
+  return s+'Z';
+}
+function placeMoon(th){
+  if(!moonG)return;
+  const sn=Math.sin(th),X=OX+ORX*Math.cos(th),Y=OY-ORY*sn,front=sn<0;
+  moonG.setAttribute('transform','translate('+X.toFixed(1)+' '+Y.toFixed(1)+') scale('+(1-sn*.16).toFixed(3)+')');
+  if(front!==moonFront){moonFront=front;(front?frontL:backL).appendChild(moonG)}
+  if(moonMaria){
+    const l0=Math.PI/2-th;let d='';
+    for(const p of MMAR)d+=ppathM(p,l0);moonMaria.setAttribute('d',d);
+    d='';for(const p of MCRA)d+=ppathM(p,l0);moonCrat.setAttribute('d',d);
+  }
+}
+function eTick(now){
+  if(!inEarth)return;
+  const t=(now-eT0)/1000;
+  placeMoon(eLam+t*(2*Math.PI/26));
+  drawEarth(eL0-t*(2*Math.PI/24));
+  eRaf=requestAnimationFrame(eTick);
+}
+function openEarth(){
+  if(inEarth||busy||!data)return;
+  saved={yaw:yaw,pitch:pitch,zoom:zoom,vx:vx,vy:vy};
+  const b=data.bodies.find(x=>x.nm==='Tierra');trig();const r=rel(b.p);
+  inEarth=true;
+  animateTo({yaw:yaw,pitch:pitch,zoom:7,vx:r[0],vy:r[1]},700,null);
+  setTimeout(()=>{if(!inEarth)return;buildEarth();col.classList.add('earth-on');ew.setAttribute('aria-hidden','false');eT0=performance.now();eRaf=requestAnimationFrame(eTick)},450);
+}
+function closeEarth(){
+  if(!inEarth)return;
+  col.classList.remove('earth-on');ew.setAttribute('aria-hidden','true');cancelAnimationFrame(eRaf);
+  animateTo(saved,700,()=>{inEarth=false});
+}
+eback.addEventListener('click',closeEarth);
+esvg.addEventListener('click',e=>{const g=e.target.closest?e.target.closest('.pl'):null;if(g&&g.dataset.n)openAstro(g.dataset.n)});
+esvg.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){const g=e.target.closest?e.target.closest('.pl'):null;if(g&&g.dataset.n){e.preventDefault();openAstro(g.dataset.n)}}});
+/* ---- interaccion: arrastrar (1 dedo / raton) y pellizcar (2 dedos) ---- */
+function zmax(){return (typeof matchMedia==='function'&&(matchMedia('(pointer: coarse)').matches||matchMedia('(max-width: 700px)').matches))?12:3}
+const ptr=new Map();let pd=0,pz=1,pm=null;
+wrap.addEventListener('pointerdown',e=>{
+  if(e.button!==0||inEarth||busy)return;
+  if(anim){cancelAnimationFrame(anim);anim=0}
+  ptr.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(ptr.size===1){drag={x:e.clientX,y:e.clientY};moved=false}
+  else if(ptr.size===2){const a=[...ptr.values()];pd=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y);pz=zoom;pm=[(a[0].x+a[1].x)/2,(a[0].y+a[1].y)/2];moved=true;drag=null}
+});
+window.addEventListener('pointermove',e=>{
+  const p=ptr.get(e.pointerId);if(!p)return;
+  if(ptr.size>=2){p.x=e.clientX;p.y=e.clientY;const a=[...ptr.values()],d=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y),mx=(a[0].x+a[1].x)/2,my=(a[0].y+a[1].y)/2;if(pd>0)zoom=Math.max(.5,Math.min(zmax(),pz*d/pd));if(pm){vx-=(mx-pm[0])/(kS*zoom);vy-=(my-pm[1])/(kS*zoom)}pm=[mx,my];schedule();return}
+  if(!drag)return;
+  const dx=e.clientX-drag.x,dy=e.clientY-drag.y;
+  if(!moved&&Math.abs(dx)+Math.abs(dy)<=3)return;
+  moved=true;yaw+=dx*.006;pitch+=dy*.006;drag={x:e.clientX,y:e.clientY};p.x=e.clientX;p.y=e.clientY;schedule();
+});
+const up=e=>{ptr.delete(e.pointerId);pm=null;if(!ptr.size)drag=null;else if(ptr.size===1){const a=[...ptr.values()][0];drag={x:a.x,y:a.y}}};
+window.addEventListener('pointerup',up);window.addEventListener('pointercancel',up);
+wrap.addEventListener('click',e=>{
+  if(moved){e.stopPropagation();e.preventDefault();moved=false;return}
+  const g=e.target.closest?e.target.closest('.pl'):null;
+  if(g&&g.dataset.n==='Tierra'){e.stopPropagation();e.preventDefault();openEarth()}
+},true);
+wrap.addEventListener('keydown',e=>{
+  if(e.key==='Enter'||e.key===' '){const g=e.target.closest?e.target.closest('.pl'):null;if(g&&g.dataset.n==='Tierra'){e.stopPropagation();e.preventDefault();openEarth()}}
+},true);
+wrap.addEventListener('wheel',e=>{e.preventDefault();if(inEarth||busy)return;zoom=Math.max(.5,Math.min(3,zoom*Math.exp(-e.deltaY*.001)));schedule()},{passive:false});
+if(typeof ResizeObserver==='function')new ResizeObserver(()=>{measure();schedule()}).observe(wrap);
+const btn=document.createElement('button');
+btn.id='ss-recenter';btn.type='button';btn.setAttribute('aria-label','Volver a centrar');btn.title='Volver a la posici\u00f3n original';
+btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.2"/><path d="M12 1.8v4M12 18.2v4M1.8 12h4M18.2 12h4"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/></svg>';
+col.append(btn);
+btn.addEventListener('click',()=>{if(inEarth||busy)return;(measure(),applyFit(),animateTo({yaw:HOME.yaw,pitch:HOME.pitch,zoom:HOME.zoom,vx:HOME.vx,vy:HOME.vy},520,null))});
+const zi=document.createElement('button'),zo=document.createElement('button');
+zi.id='ss-zoom-in';zo.id='ss-zoom-out';zi.type='button';zo.type='button';
+zi.setAttribute('aria-label','Acercar');zo.setAttribute('aria-label','Alejar');zi.title='Acercar';zo.title='Alejar';
+zi.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';zo.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg>';
+col.append(zi);col.append(zo);
+const zstep=f=>{if(inEarth||busy)return;const z=Math.max(.5,Math.min(3,zoom*f));animateTo({yaw:yaw,pitch:pitch,zoom:z,vx:vx,vy:vy},200,null)};
+zi.addEventListener('click',()=>zstep(1.3));zo.addEventListener('click',()=>zstep(1/1.3));
+return function(){
+  if(inEarth){col.classList.remove('earth-on');ew.setAttribute('aria-hidden','true');cancelAnimationFrame(eRaf);inEarth=false;busy=false}
+  if(anim){cancelAnimationFrame(anim);anim=0}
+  yaw=HOME.yaw;pitch=HOME.pitch;zoom=1;vx=0;vy=0;build();
+};
+})();
+
+/* Atlas en movil: pellizcar para acercar */
+{
+const cvEl=document.getElementById('cv');
+if(cvEl){
+const pt=new Map();let d0=0,z0=1,pinched=false;
+cvEl.style.touchAction='none';
+cvEl.addEventListener('pointerdown',e=>{pt.set(e.pointerId,[e.clientX,e.clientY]);if(pt.size===2){const a=[...pt.values()];d0=Math.hypot(a[0][0]-a[1][0],a[0][1]-a[1][1]);z0=focus?groupZoom:skyZoom;pinched=true}},true);
+window.addEventListener('pointermove',e=>{
+  if(!pt.has(e.pointerId))return;
+  pt.set(e.pointerId,[e.clientX,e.clientY]);
+  if(pt.size>=2){
+    e.stopPropagation();
+    const a=[...pt.values()],d=Math.hypot(a[0][0]-a[1][0],a[0][1]-a[1][1]);
+    if(d0>0){const z=z0*d/d0;if(focus)groupZoom=Math.max(.35,Math.min(3.5,z));else skyZoom=Math.max(.55,Math.min(2.5,z))}
+  }
+},true);
+const upA=e=>{pt.delete(e.pointerId)};
+window.addEventListener('pointerup',upA,true);window.addEventListener('pointercancel',upA,true);
+cvEl.addEventListener('click',e=>{if(pinched){e.stopImmediatePropagation();e.preventDefault();pinched=false}},true);
+}
+}
+/* Guia de Observacion: tarjetas con icono */
+{
+const lb=document.querySelector('#gcol-l .gcol-body');
+if(lb){
+const TEL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13.5l11.5-6 2.2 4.3-11.5 6z"/><path d="M14.4 8.6l2.2 4.3"/><path d="M5 13.5l-1.8 1"/><path d="M12.9 15L9 21M12.9 15L16.5 21M12.9 15V21"/></svg>';
+const PIN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>';
+const PEN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6"/><path d="M17 5l3 3-9 9-4 1 1-4z"/><path d="M15.5 6.5l3 3"/></svg>';
+const items=[['Uso de telescopios',TEL],['Lugar para observar',PIN],['Posprocesado de im\u00e1genes',PEN]];
+lb.innerHTML='';
+items.forEach((it,i)=>{
+  const b=document.createElement('button');b.type='button';b.className='gk g-in';b.title='Pr\u00f3ximamente';
+  b.style.setProperty('--d',(.9+i*.12)+'s');
+  b.innerHTML='<span class="gk-ic" aria-hidden="true">'+it[1]+'</span><span class="gk-t"></span>';
+  b.querySelector('.gk-t').textContent=it[0];lb.append(b);
+});
+}
+}
+/* Movil: sin previsualizacion al pasar el dedo y toques mas tolerantes */
+function calcNoHover(){return (typeof matchMedia==='function'&&(matchMedia('(hover: none)').matches||matchMedia('(pointer: coarse)').matches))||(typeof innerWidth==='number'&&innerWidth<=700)}
+let NOHOVER=calcNoHover();
+window.addEventListener('resize',()=>{NOHOVER=calcNoHover()});
+window.addEventListener('pointerdown',e=>{NOHOVER=(e.pointerType==='touch')||calcNoHover();if(NOHOVER){const tp=document.getElementById('tip');if(tp)tp.style.display='none'}},true);
+/* Logo: boton arriba a la derecha que abre "Quienes somos" */
+{
+const st=document.getElementById('stage');
+if(st){
+const a=document.createElement('a');a.id='logo-btn';a.href='/quienes-somos';a.target='_top';
+a.setAttribute('aria-label','\u00bfQui\u00e9nes somos?');a.title='\u00bfQui\u00e9nes somos?';
+a.innerHTML='<img src="logo.png" alt="">';
+st.append(a);a.addEventListener('click',logoGo);
+}
+}
+/* Boton de recentrar visible en movil: lo sube si la barra del navegador tapa la parte de abajo */
+function fixRecenter(){
+  const b=document.getElementById('recenter');if(!b||!b.offsetParent)return;
+  const small=innerWidth<=700||(typeof matchMedia==='function'&&matchMedia('(pointer: coarse)').matches);
+  if(!small){b.style.bottom='';return}
+  let vis=innerHeight;
+  try{if(window.top!==window&&window.frameElement){vis=Math.min(innerHeight,window.top.innerHeight-window.frameElement.getBoundingClientRect().top)}}catch(e){}
+  if(window.visualViewport)vis=Math.min(vis,window.visualViewport.height+window.visualViewport.offsetTop);
+  const r=b.offsetParent.getBoundingClientRect(),over=Math.max(0,r.bottom-vis);
+  b.style.bottom='calc('+Math.round(over+24)+'px + env(safe-area-inset-bottom))';
+}
+['resize','orientationchange'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(fixRecenter,60)));
+if(window.visualViewport){window.visualViewport.addEventListener('resize',fixRecenter);window.visualViewport.addEventListener('scroll',fixRecenter)}
+try{if(window.top!==window)window.top.addEventListener('resize',fixRecenter)}catch(e){}
+setInterval(fixRecenter,900);
+fixRecenter();
+/* Logo: al pulsarlo, el cuadrado se expande por toda la pantalla y se abre "Quienes somos" */
+function logoGo(ev){
+  if(ev.ctrlKey||ev.metaKey||ev.shiftKey||ev.altKey||ev.button>0)return;
+  if(typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const a=document.getElementById('logo-btn');if(!a||!a.animate)return;
+  ev.preventDefault();
+  const r=a.getBoundingClientRect(),W=innerWidth,H=innerHeight;
+  const portrait=W<700||W<H*.9,s=portrait?Math.min(W*.54,H*.27):Math.min(W*.4,H*.66),fx=portrait?(W-s)/2:W*.7-s/2,fy=portrait?Math.max(60,H*.08):(H-s)/2;
+  const c0='inset('+r.top+'px '+(W-r.right)+'px '+(H-r.bottom)+'px '+r.left+'px round 11px)';
+  const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;z-index:99999;inset:0;overflow:hidden;clip-path:'+c0;
+  ov.innerHTML='<div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,#111936 0%,#080b19 55%,#05060f 100%)"></div><div style="position:absolute;inset:-10%;opacity:0;background:radial-gradient(ellipse at 25% 30%,rgba(124,72,210,.55),transparent 60%),radial-gradient(ellipse at 78% 72%,rgba(88,64,214,.45),transparent 62%),linear-gradient(135deg,#1a1048,#2d1561 55%,#150b3a)"></div>';
+  const im=new Image();im.src='icon.png';im.draggable=false;
+  im.style.cssText='position:fixed;z-index:100000;object-fit:contain;pointer-events:none;left:'+r.left+'px;top:'+r.top+'px;width:'+r.width+'px;height:'+r.height+'px';
+  ov.className='logo-go';im.className='logo-go';
+  /* borde del boton: crece con el cuadrado hasta ocupar toda la pantalla */
+  const bd=document.createElement('div');bd.className='logo-go';
+  bd.style.cssText='position:fixed;z-index:100001;pointer-events:none;box-sizing:border-box;border:1px solid #8ab4ff;border-radius:11px;box-shadow:0 0 18px rgba(138,180,255,.45),inset 0 0 18px rgba(138,180,255,.25)';
+  document.body.append(ov,im,bd);
+  const T={duration:760,easing:'cubic-bezier(.7,0,.2,1)',fill:'forwards'};
+  bd.animate([
+    {top:r.top+'px',right:(W-r.right)+'px',bottom:(H-r.bottom)+'px',left:r.left+'px',borderWidth:'1px',borderRadius:'11px',opacity:1},
+    {top:'0px',right:'0px',bottom:'0px',left:'0px',borderWidth:'4px',borderRadius:'0px',opacity:1,offset:.8},
+    {top:'0px',right:'0px',bottom:'0px',left:'0px',borderWidth:'6px',borderRadius:'0px',opacity:0}
+  ],T);
+  ov.animate([{clipPath:c0},{clipPath:'inset(0px 0px 0px 0px round 0px)'}],T);
+  ov.lastChild.animate([{opacity:0},{opacity:.6}],T);
+  im.animate([{left:r.left+'px',top:r.top+'px',width:r.width+'px',height:r.height+'px'},{left:fx+'px',top:fy+'px',width:s+'px',height:s+'px'}],T);
+  /* "Quienes somos" se abre dentro del atlas: la URL cambia sin recargar la pagina */
+  beforeAbout=curPage;
+  openAbout(true);
+  setTimeout(()=>{qs&&(qs._go=true);qsStart()},800);
+}
+/* Rutas: la URL de la ventana superior (mismo origen) refleja la pagina abierta sin recargar */
+const ROUTES={principal:{path:'',title:'Vero Cosmos'},atlas:{path:'/atlas-astrofotografico',title:'Atlas astrofotográfico · Vero Cosmos'},guide:{path:'/guia-astronomica',title:'Guía astronómica · Vero Cosmos'},about:{path:'/quienes-somos',title:'¿Quiénes somos? · Vero Cosmos'}};
+function titleFor(k){
+  if(!window.vcI18n||vcI18n.lang==='es')return ROUTES[k].title;
+  const t=vcI18n.t,nm={principal:'Vero Cosmos',atlas:t('Atlas Astrofotográfico'),guide:t('Guía Astronómica'),about:t('¿Quiénes somos?')}[k];
+  return k==='principal'?nm:nm+' \u00b7 Vero Cosmos';
+}
+let T0=window;try{T0=window.top;void T0.location.pathname}catch(e){T0=window}
+/* Colores fijos: la pagina de fuera siempre oscura, sea cual sea el modo claro/oscuro del movil */
+try{const D=T0.document;let ms=[...D.querySelectorAll('meta[name="theme-color"]')];if(!ms.length){const m=D.createElement('meta');m.name='theme-color';D.head.appendChild(m);ms=[m]}ms.forEach(m=>{m.content='#05060f';m.removeAttribute('media')});D.documentElement.style.colorScheme='only light';D.documentElement.style.backgroundColor='#05060f'}catch(e){}
+/* Movil: la barra del navegador puede tapar la parte baja del iframe; ajustarlo a la zona visible */
+function fitFrame(){
+  try{
+    const fe=window.frameElement;if(T0===window||!fe)return;
+    const vv=T0.visualViewport,top=fe.getBoundingClientRect().top;
+    const v=Math.min(T0.innerHeight,vv?vv.height+vv.offsetTop:1e9)-top;
+    if(v>200&&Math.abs(parseFloat(fe.style.height)-v)>1)fe.style.height=Math.round(v)+'px';
+  }catch(e){}
+}
+fitFrame();setInterval(fitFrame,800);
+try{T0.addEventListener('resize',fitFrame);T0.addEventListener('orientationchange',fitFrame);if(T0.visualViewport){T0.visualViewport.addEventListener('resize',fitFrame);T0.visualViewport.addEventListener('scroll',fitFrame)}}catch(e){}
+let curPage='principal',routeQuiet=false,qs=null,aboutPushed=false,beforeAbout=null;
+const cleanPath=()=>T0.location.pathname.replace(/\/index(\.html)?$/,'').replace(/\.html$/,'').replace(/\/+$/,'');
+function topGo(key,push){
+  if(T0===window)return false;
+  const r=ROUTES[key];let pushed=false;
+  try{
+    if(cleanPath()!==r.path){T0.history[push?'pushState':'replaceState']({vc:1},'',r.path||'/');pushed=push}
+    T0.document.title=titleFor(key);
+  }catch(e){}
+  return pushed;
+}
+const _spa2=setPageActive;
+setPageActive=function(page){_spa2(page);curPage=page;if(!routeQuiet)topGo(page,true)};
+function openAbout(fromLogo){
+  if(qs)return;
+  qs=document.createElement('iframe');qs.className='about-frame';qs.title='¿Quiénes somos?';
+  qs.src='quienes-somos.html#'+(fromLogo?'desde-logo':'directo');
+  qs.style.cssText='position:fixed;inset:0;width:100%;height:100%;border:0;z-index:100002;background:transparent;color-scheme:only light'+(fromLogo?';visibility:hidden':'');
+  qs._hidden=fromLogo;document.body.append(qs);
+  if(!fromLogo){qs.addEventListener('load',()=>{try{qs.contentWindow.focus()}catch(e){}})}
+}
+function qsStart(){
+  if(!qs||!qs._hidden||!qs._ready||!qs._go)return;
+  qs._hidden=false;qs.style.visibility='visible';
+  try{qs.contentWindow.postMessage({vc:'start'},'*');qs.contentWindow.focus()}catch(e){}
+  aboutPushed=topGo('about',true);
+  setTimeout(clearLogoGo,150);
+}
+function removeAbout(){if(qs){qs.remove();qs=null}aboutPushed=false}
+function closeAbout(){
+  const pushed=aboutPushed;removeAbout();
+  if(pushed){try{T0.history.back()}catch(e){}return}
+  routeQuiet=true;try{setPageActive(beforeAbout||'principal')}finally{routeQuiet=false}
+  topGo(curPage,false);
+}
+window.addEventListener('message',e=>{
+  if(!qs||e.source!==qs.contentWindow||!e.data)return;
+  if(e.data.vc==='ready'){qs._ready=true;qsStart()}
+  else if(e.data.vc==='close')closeAbout();
+});
+function routeFromLocation(){
+  const p=cleanPath();
+  const key=Object.keys(ROUTES).find(k=>ROUTES[k].path===p)||'principal';
+  routeQuiet=true;
+  try{
+    if(key==='about'){if(!qs){beforeAbout=curPage;openAbout(false)}}
+    else{removeAbout();setPageActive(key);try{T0.document.title=titleFor(key)}catch(e){}}
+  }finally{routeQuiet=false}
+}
+if(T0!==window)T0.addEventListener('popstate',routeFromLocation);
+window.addEventListener('vc-lang',()=>{try{if(T0!==window)T0.document.title=titleFor(qs?'about':curPage)}catch(e){}});
+/* Al volver con "atras" (bfcache) la pagina se restaura tal cual: quitar la transicion del logo para no quedarse atascado */
+function clearLogoGo(){document.querySelectorAll('.logo-go').forEach(n=>n.remove())}
+window.addEventListener('pageshow',clearLogoGo);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)clearLogoGo()});
+setView(home);
+draw();
+{
+  /* pagina inicial segun la URL de la ventana superior (o ?p=atlas | guide | about si se abre suelto) */
+  const p=new URLSearchParams(location.search).get('p');
+  if(T0!==window)routeFromLocation();
+  else{routeQuiet=true;
+  try{if(p==='atlas'||p==='guide')setPageActive(p);else if(p==='about')openAbout(false)}finally{routeQuiet=false}}
+}
+})();
+</script>
+<script>
+/* Cielo vivo: estrellas que aparecen y desaparecen y alguna estrella fugaz */
+function vcSky(cv,active){
+  const ctx=cv.getContext('2d'),rm=typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let W=0,H=0,dpr=1,stars=[],shots=[],nextShot=0,last=0;
+  const R=(a,b)=>a+Math.random()*(b-a),COL=['220,229,255','255,255,255','255,233,184','190,210,255'];
+  function size(){
+    dpr=Math.min(window.devicePixelRatio||1,2);W=cv.clientWidth;H=cv.clientHeight;
+    cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);
+    const n=Math.max(50,Math.min(150,Math.round(W*H/9000)));
+    stars=Array.from({length:n},()=>spawn(R(0,1)));
+  }
+  function spawn(u0){return{x:R(0,W),y:R(0,H),r:Math.random()<.15?R(1.2,1.9):R(.5,1.1),dur:R(3.5,9),u:u0,c:COL[(Math.random()*COL.length)|0],pk:R(.55,.95)}}
+  function shoot(){
+    const dir=Math.random()<.5?1:-1,a=R(.3,.7);
+    shots.push({x:dir>0?R(.05,.65)*W:R(.35,.95)*W,y:R(0,.35)*H,vx:dir*Math.cos(a)*R(650,950),vy:Math.sin(a)*R(650,950),life:0,dur:R(.7,1.1),len:R(110,190)});
+  }
+  /* Easter egg: un Sputnik cruza el cielo muy de vez en cuando, mucho mas lento que una fugaz */
+  let sat=null,nextSat=0;
+  function spawnSat(){const dir=Math.random()<.5?1:-1;sat={x:dir>0?-30:W+30,y:R(.1,.34)*H,vx:dir*R(32,42),vy:R(-3,3),dir,t:0}}
+  function satStep(dt){
+    if(!sat){nextSat-=dt;if(nextSat<=0){spawnSat();nextSat=R(90,220)}return}
+    sat.t+=dt;sat.x+=sat.vx*dt;sat.y+=sat.vy*dt;
+    if(sat.x<-40||sat.x>W+40){sat=null;return}
+    const al=Math.max(0,Math.min(1,(Math.min(sat.x,W-sat.x)+10)/120))*(.82+.18*Math.sin(sat.t*2.2)),d=-sat.dir;
+    ctx.save();ctx.translate(sat.x,sat.y);
+    ctx.strokeStyle='rgba(235,240,255,'+(al*.85).toFixed(3)+')';ctx.lineWidth=1;ctx.lineCap='round';
+    for(const a of [-.34,-.12,.12,.34]){ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(d*16*Math.cos(a),16*Math.sin(a));ctx.stroke()}
+    ctx.fillStyle='rgba(190,210,255,'+(al*.2).toFixed(3)+')';ctx.beginPath();ctx.arc(0,0,7,0,6.2832);ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,'+al.toFixed(3)+')';ctx.beginPath();ctx.arc(0,0,2.6,0,6.2832);ctx.fill();
+    ctx.restore();
+  }
+  function frame(t){
+    requestAnimationFrame(frame);
+    const dt=Math.min(.05,(t-last)/1000||0);last=t;
+    if(document.hidden||!active()){ctx.clearRect(0,0,W,H);return}
+    if(!W||W!==cv.clientWidth||H!==cv.clientHeight)size();
+    ctx.clearRect(0,0,W,H);
+    for(const s of stars){
+      s.u+=dt/s.dur;if(s.u>=1)Object.assign(s,spawn(0));
+      const a=Math.pow(Math.sin(Math.PI*s.u),1.6)*s.pk;
+      ctx.fillStyle='rgba('+s.c+','+a.toFixed(3)+')';
+      ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,6.2832);ctx.fill();
+      if(s.r>1.2){ctx.fillStyle='rgba('+s.c+','+(a*.18).toFixed(3)+')';ctx.beginPath();ctx.arc(s.x,s.y,s.r*3.2,0,6.2832);ctx.fill()}
+    }
+    if(!rm){satStep(dt);
+      nextShot-=dt;if(nextShot<=0){shoot();nextShot=R(6,14)}
+      for(let i=shots.length-1;i>=0;i--){
+        const q=shots[i];q.life+=dt;const u=q.life/q.dur;if(u>=1){shots.splice(i,1);continue}
+        q.x+=q.vx*dt;q.y+=q.vy*dt;
+        const sp=Math.hypot(q.vx,q.vy),tx=q.x-q.vx/sp*q.len,ty=q.y-q.vy/sp*q.len,al=Math.sin(Math.PI*u);
+        const g=ctx.createLinearGradient(tx,ty,q.x,q.y);g.addColorStop(0,'rgba(200,215,255,0)');g.addColorStop(1,'rgba(255,255,255,'+(al*.95).toFixed(3)+')');
+        ctx.strokeStyle=g;ctx.lineWidth=1.6;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(tx,ty);ctx.lineTo(q.x,q.y);ctx.stroke();
+        ctx.fillStyle='rgba(255,255,255,'+(al*.9).toFixed(3)+')';ctx.beginPath();ctx.arc(q.x,q.y,1.8,0,6.2832);ctx.fill();
+        ctx.fillStyle='rgba(180,200,255,'+(al*.25).toFixed(3)+')';ctx.beginPath();ctx.arc(q.x,q.y,5,0,6.2832);ctx.fill();
+      }
+    }
+  }
+  nextShot=R(2.5,5);nextSat=R(35,80);cv.vcSat=spawnSat;
+  addEventListener('resize',size);
+  requestAnimationFrame(frame);
+}
+vcSky(document.getElementById("sky"),()=>document.body.classList.contains("principal-page"));
+</script>
+<script src="vc-i18n.js?v=16"></script>
+<script>vcI18n.mount(document.getElementById("stage"));</script>
+</body>
+</html>
