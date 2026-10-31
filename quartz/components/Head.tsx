@@ -28,8 +28,13 @@ export default (() => {
     const iconPath = joinSegments(baseDir, "static/icon.png")
 
     // Url of current page
+    // La portada y las carpetas se sirven en "/" y "/carpeta/", igual que en el sitemap
+    const pageSlug = (fileData.slug ?? "").replace(/(^|\/)index$/, "$1")
     const socialUrl =
-      fileData.slug === "404" ? url.toString() : joinSegments(url.toString(), fileData.slug!)
+      fileData.slug === "404" || pageSlug === ""
+        ? url.toString()
+        : encodeURI(joinSegments(url.toString(), pageSlug))
+    const canonicalUrl = socialUrl
 
     const usesCustomOgImage = ctx.cfg.plugins.emitters.some((e) => e.name === "CustomOgImages")
     const ogImageDefaultPath = `https://${cfg.baseUrl}/static/og-image.png`
@@ -89,6 +94,7 @@ export default (() => {
           </>
         )}
 
+        {fileData.slug !== "404" && <link rel="canonical" href={canonicalUrl} />}
         <link rel="icon" href={iconPath} />
         <meta name="description" content={description} />
         <meta name="generator" content="Quartz" />
