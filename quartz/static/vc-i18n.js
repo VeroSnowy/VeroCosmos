@@ -343,7 +343,7 @@ const DICT={
     "Ciudad de México":"Mexico City",
     "Santiago de Chile":"Santiago",
     "La Habana":"Havana",
-    "Panamá":"Panama City",
+    "Panamá":"Panama",
     "Nueva York":"New York",
     "Los Ángeles":"Los Angeles",
     "Sídney":"Sydney",
@@ -430,7 +430,8 @@ const DICT={
     "Kiev":"Kyiv",
     "Járkov":"Kharkiv",
     "Praga":"Prague",
-    "Filipinas":"Philippines"
+    "Filipinas":"Philippines",
+    "Ciudad de Panamá":"Panama City"
   },
   fr:{
     /* PAGINA PRINCIPAL */
@@ -873,7 +874,8 @@ const DICT={
     "Kiev":"Kyiv",
     "Járkov":"Kharkiv",
     "Praga":"Prague",
-    "Filipinas":"Philippines"
+    "Filipinas":"Philippines",
+    "Ciudad de Panamá":"Panama"
   }
 };
 const DICTH={
