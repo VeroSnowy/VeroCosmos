@@ -109,6 +109,6 @@ footer a[href$="quienes-somos.html"]{position:fixed;top:12px;right:16px;z-index:
 footer a[href$="quienes-somos.html"]:hover{border-color:#8ab4ff}
 /* Colores fijos en las paginas del atlas: sin cambios segun el modo claro/oscuro del dispositivo */
 html:has(body:is([data-slug="index"],[data-slug="atlas-astrofotografico"],[data-slug="guia-astronomica"],[data-slug="quienes-somos"])){
-  color-scheme: dark;
+  color-scheme: only light;
   background-color: #05060f;
 }
