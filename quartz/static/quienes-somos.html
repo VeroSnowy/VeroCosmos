@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#05060f">
 <title>&iquest;Qui&eacute;nes somos? &middot; Vero Cosmos</title>
 <script>try{if(window.parent!==window)document.documentElement.classList.add("emb")}catch(e){}</script>
-<link rel="icon" type="image/png" href="icon.png">
+<link rel="icon" type="image/png" href="favicon.png">
 <style>
 :root{color-scheme:only light;--p0:0}
 *{box-sizing:border-box}
@@ -115,7 +115,7 @@ const reveal=$('reveal'),logo=$('logo'),txt=$('txt'),txtin=$('txtin'),pu=documen
 const fromLogo=location.hash==='#desde-logo';
 const emb=document.documentElement.classList.contains('emb');
 /* pantalla de origen bajo el cierre: solo si la pagina se abre sola (dentro del atlas ya esta debajo) */
-if(!emb){const pv=document.createElement('iframe');pv.id='prev';pv.src='VeroCosmos_0.2.11.html';pv.setAttribute('aria-hidden','true');pv.tabIndex=-1;pv.style.cssText='position:fixed;inset:0;width:100%;height:100%;border:0;visibility:hidden;pointer-events:none';$('base').after(pv)}
+if(!emb){const pv=document.createElement('iframe');pv.id='prev';pv.src='VeroCosmos_0.2.12.html';pv.setAttribute('aria-hidden','true');pv.tabIndex=-1;pv.style.cssText='position:fixed;inset:0;width:100%;height:100%;border:0;visibility:hidden;pointer-events:none';$('base').after(pv)}
 const reduce=typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
 /* misma formula que usa el boton del logo de la app, para que la transicion encaje */
 function rect(W,H){
