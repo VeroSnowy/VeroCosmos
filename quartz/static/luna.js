@@ -153,9 +153,9 @@ const CSS=`
 .mn-pop input:focus{border-color:#8ab4ff}
 .mn-res{max-height:170px;overflow:auto;margin-top:4px}
 @media(max-width:700px){.mn-card{padding:12px 14px}.mn-now svg.mn-big{width:68px;height:68px}.mn-ph{font-size:18px}.mn-sm{font-size:12.5px}.mn-times div{padding:7px 10px;font-size:13px}.mn-times b{font-size:16px}.mn-sub{font-size:11px;margin:12px 0 6px}.mn-days{gap:8px}.mn-day{padding:7px 2px;gap:2px}.mn-day svg{width:30px;height:30px}.mn-day .d{font-size:12.5px}.mn-day .t{font-size:12px}.mn-ev{font-size:13px;padding:4px 0}.mn-loc{font-size:12px;margin-top:10px}}
-.f1 .mn-ev:nth-child(n+3){display:none}
-.f2 .mn-s-ev,.f2 #mn-ev{display:none}
-.f3 .mn-day:nth-child(n+4){display:none}
+.f1 .mn-days{grid-template-columns:repeat(6,minmax(0,1fr));gap:3px}.f1 .mn-day{padding:3px 0}.f1 .mn-day svg{width:20px;height:20px}.f1 .mn-day .d,.f1 .mn-day .t{font-size:9.5px}
+.f2 .mn-ev:nth-child(n+3){display:none}
+.f3 .mn-s-ev,.f3 #mn-ev{display:none}
 .f4 .mn-s-d,.f4 .mn-days{display:none}
 .f5 .mn-sm{display:none}
 .mn-res button{display:block;width:100%;padding:7px 9px;border:0;border-bottom:1px solid #232846;background:#10163a;color:#eef1ff;font:inherit;font-size:12.5px;text-align:left;cursor:pointer}
