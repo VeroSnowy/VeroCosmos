@@ -434,7 +434,8 @@ const DICT={
     "Ciudad de Panamá":"Panama City",
     "Andorra la Vieja":"Andorra la Vella",
     "Ciudad de Guatemala":"Guatemala City",
-    "Cartilla de la Luna":"Moon Primer"
+    "Cartilla de la Luna":"Moon Primer",
+    "Estado de la Luna":"Moon Status"
   },
   fr:{
     /* PAGINA PRINCIPAL */
@@ -884,7 +885,8 @@ const DICT={
     "Kumanovo":"Koumanovo",
     "Santo Domingo":"Saint-Domingue",
     "Ciudad de Guatemala":"Guatemala",
-    "Cartilla de la Luna":"Fiche sur la Lune"
+    "Cartilla de la Luna":"Fiche sur la Lune",
+    "Estado de la Luna":"État de la Lune"
   }
 };
 const DICTH={
