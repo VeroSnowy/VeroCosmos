@@ -120,26 +120,30 @@ const hav=(a,b,c,d)=>{const r=Math.PI/180,x=Math.sin((c-a)*r/2)**2+Math.cos(a*r)
 /* ---------- panel ---------- */
 const CSS=`
 .mn-h{margin:18px 0 8px;padding:0 2px;font:400 18px/1.2 "Iowan Old Style",Georgia,serif;color:#f5f7ff}
-.mn-card{border:1px solid #343d63;border-radius:13px;background:linear-gradient(120deg,#111a35d9,#0b1025d9);padding:12px 14px;margin:0 0 10px}
-.mn-now{display:flex;align-items:center;gap:12px}
+.mn-card{border:1px solid #343d63;border-radius:13px;background:linear-gradient(120deg,#111a35d9,#0b1025d9);padding:9px 11px;margin:0 0 4px}
+.mn-now{display:flex;align-items:center;gap:10px}
 .mn-hero{border-color:#6d5a2e;background:radial-gradient(ellipse at 20% 0%,#2c2410cc,#0b1025d9 65%)}
-.mn-now svg.mn-big{flex:none;width:74px;height:74px;filter:drop-shadow(0 0 9px #f2c14e66)}
+.mn-now svg.mn-big{flex:none;width:56px;height:56px;filter:drop-shadow(0 0 8px #f2c14e66)}
 .mn-ph{color:#fff1c2}
-.mn-ph{font:400 17px/1.2 "Iowan Old Style",Georgia,serif;color:#f5f7ff}
-.mn-sm{color:#8f98c0;font-size:12px;margin-top:2px}
-.mn-times{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
-.mn-times div{padding:7px 9px;border:1px solid #2a3258;border-radius:9px;background:#0b1025;font-size:12px;color:#8f98c0}
-.mn-times b{display:block;font-size:17px;color:#eef1ff;font-weight:600}
+.mn-ph{font:400 15px/1.15 "Iowan Old Style",Georgia,serif;color:#f5f7ff}
+.mn-sm{color:#8f98c0;font-size:11px;margin-top:2px}
+.mn-times{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.mn-times div{padding:4px 8px;white-space:nowrap;border:1px solid #2a3258;border-radius:9px;background:#0b1025;font-size:12px;color:#8f98c0}
+.mn-times b{font-size:14px;color:#eef1ff;font-weight:600}
 .mn-times b small{font-size:10.5px;color:#8f98c0;font-weight:400}
-.mn-sub{margin:12px 0 6px;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:#8ab4ff;font-weight:700}
+.mn-sub{margin:6px 0 3px;font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:#8ab4ff;font-weight:700}
 .mn-row{display:grid;grid-template-columns:30px minmax(0,1fr) auto;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid #232846;font-size:12.5px}
 .mn-row:last-child{border:0}
-.mn-row svg{width:26px;height:26px}
+.mn-days{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+.mn-day{display:flex;flex-direction:column;align-items:center;gap:0;padding:3px 2px;border:1px solid #232846;border-radius:9px;background:#0b102580;text-align:center}
+.mn-day svg{width:24px;height:24px}
+.mn-day .d{color:#eef1ff;font-size:10.5px;white-space:nowrap}
+.mn-day .t{color:#c9d1f2;font-size:10px;line-height:1.25;font-variant-numeric:tabular-nums;white-space:nowrap}
 .mn-row .d{color:#eef1ff}.mn-row .d small{display:block;color:#8f98c0;font-size:11.5px}
 .mn-row .t{color:#c9d1f2;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;font-size:12px}
-.mn-ev{display:flex;justify-content:space-between;gap:8px;padding:5px 0;font-size:12.5px;color:#c9d1f2}
+.mn-ev{display:flex;justify-content:space-between;gap:6px;padding:2px 0;font-size:11px;color:#c9d1f2}
 .mn-ev span:last-child{color:#8f98c0;text-align:right}
-.mn-loc{position:relative;margin-top:6px;font-size:11.5px;color:#8f98c0}
+.mn-loc{position:relative;margin-top:4px;font-size:10.5px;line-height:1.3;color:#8f98c0}
 .mn-loc button.lk{border:0;background:none;color:#8ab4ff;font:inherit;text-decoration:underline;cursor:pointer;padding:0 3px}
 .mn-pop{position:absolute;left:0;right:0;bottom:24px;z-index:8;padding:10px;border:1px solid #232846;border-radius:10px;background:#0b0e1ff5;box-shadow:0 12px 30px #0008;color:#eef1ff}
 .mn-pop[hidden]{display:none}
@@ -159,21 +163,23 @@ function mount(host){
   let LOC=loadLoc(),open=false;
   const fmtTime=(t,tz)=>t==null?'—':new Intl.DateTimeFormat(LOCALE[lang()],{hour:'2-digit',minute:'2-digit',hourCycle:'h23',timeZone:tz}).format(new Date(t));
   const fmtDay=(t,tz)=>new Intl.DateTimeFormat(LOCALE[lang()],{weekday:'short',day:'numeric',month:'short',timeZone:tz}).format(new Date(t));
+  const fmtDayS=(t,tz)=>new Intl.DateTimeFormat(LOCALE[lang()],{weekday:'short',day:'numeric',timeZone:tz}).format(new Date(t));
   const fmtEv=(t,tz)=>new Intl.DateTimeFormat(LOCALE[lang()],{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',hourCycle:'h23',timeZone:tz}).format(new Date(t));
   function render(){
     const now=Date.now(),tz=LOC.tz,el=elong(now),f=illumOf(el),idx=phaseIdx(el);
     const day0=dayStart(now,tz,0),rs0=riseSet(day0,LOC.lat,LOC.lon),rsN=(rs0.rise==null||rs0.set==null)?riseSet(dayStart(now,tz,1),LOC.lat,LOC.lon):null;
     const ageD=(el/360*29.53).toFixed(1);
-    let h=SKETCH+'<div class="mn-card mn-hero"><div class="mn-now">'+moonSvg(el,74,true).replace('<svg ','<svg class="mn-big" ')+'<div><div class="mn-ph">'+STR.ph[idx][lang()]+'</div><div class="mn-sm">'+Math.round(f*100)+' % '+S('lit')+' · '+S('age')+' '+(lang()==='en'?ageD:ageD.replace('.',','))+' '+S('days')+'</div></div></div>';
+    let h=SKETCH+'<div class="mn-card mn-hero"><div class="mn-now">'+moonSvg(el,56,true).replace('<svg ','<svg class="mn-big" ')+'<div><div class="mn-ph">'+STR.ph[idx][lang()]+'</div><div class="mn-sm">'+Math.round(f*100)+' % '+S('lit')+' · '+S('age')+' '+(lang()==='en'?ageD:ageD.replace('.',','))+' '+S('days')+'</div></div></div>';
     const tm=(v,vn)=>v!=null?fmtTime(v,tz):(vn!=null?fmtTime(vn,tz)+' <small>'+S('nextday')+'</small>':'—');
-    h+='<div class="mn-times"><div>'+S('rise')+'<b>'+tm(rs0.rise,rsN&&rsN.rise)+'</b></div><div>'+S('set')+'<b>'+tm(rs0.set,rsN&&rsN.set)+'</b></div></div>';
-    h+='<div class="mn-sub">'+S('next')+'</div>';
+    h+='<div class="mn-times"><div>'+S('rise')+' <b>'+tm(rs0.rise,rsN&&rsN.rise)+'</b></div><div>'+S('set')+' <b>'+tm(rs0.set,rsN&&rsN.set)+'</b></div></div></div>';
+    h+='<div class="mn-sub">'+S('next')+'</div><div class="mn-days">';
     for(let i=1;i<=6;i++){
       const ds=dayStart(now,tz,i),noon=ds+12*3600000,ele=elong(noon),rs=riseSet(ds,LOC.lat,LOC.lon);
-      h+='<div class="mn-row">'+moonSvg(ele,26)+'<div class="d">'+(i===1?S('tomorrow'):fmtDay(noon,tz))+'<small>'+Math.round(illumOf(ele)*100)+' %</small></div><div class="t">↑ '+fmtTime(rs.rise,tz)+'<br>↓ '+fmtTime(rs.set,tz)+'</div></div>';
+      h+='<div class="mn-day">'+moonSvg(ele,24)+'<div class="d">'+fmtDayS(noon,tz)+'</div><div class="t">↑'+fmtTime(rs.rise,tz)+'<br>↓'+fmtTime(rs.set,tz)+'</div></div>';
     }
+    h+='</div>';
     h+='<div class="mn-sub">'+S('events')+'</div><div id="mn-ev"></div>';
-    h+='<div class="mn-loc">'+S('calc')+' '+T(LOC.name)+' ('+fmtLat(LOC.lat)+')'+(LOC.src==='tz'?' · '+S('tz'):'')+' <button type="button" class="lk" id="mn-ch">'+S('change')+'</button><div class="mn-pop" id="mn-pop" hidden><button type="button" class="geo" id="mn-geo">'+S('geo')+'</button><input type="search" id="mn-q" placeholder="'+S('search')+'" autocomplete="off" autocapitalize="none" spellcheck="false"><div class="mn-res" id="mn-res"></div><div class="msg" id="mn-msg"></div></div></div></div>';
+    h+='<div class="mn-loc">'+S('calc')+' '+T(LOC.name)+' ('+fmtLat(LOC.lat)+')'+(LOC.src==='tz'?' · '+S('tz'):'')+' <button type="button" class="lk" id="mn-ch">'+S('change')+'</button><div class="mn-pop" id="mn-pop" hidden><button type="button" class="geo" id="mn-geo">'+S('geo')+'</button><input type="search" id="mn-q" placeholder="'+S('search')+'" autocomplete="off" autocapitalize="none" spellcheck="false"><div class="mn-res" id="mn-res"></div><div class="msg" id="mn-msg"></div></div></div>';
     root.innerHTML=h;
     /* proximas fases (a minuto), calculadas despues para no retrasar el pintado */
     setTimeout(()=>{
