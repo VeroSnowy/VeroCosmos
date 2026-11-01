@@ -438,7 +438,7 @@ const DICT={
     "Estado de la Luna":"Moon Status",
     "Cinturón de asteroides":"Asteroid Belt",
     "Cinturón de Kuiper":"Kuiper Belt",
-    "Cometa Halley":"Halley's Comet"
+    "Cometa Halley":"Halley's Comet",
   },
   fr:{
     /* PAGINA PRINCIPAL */
@@ -892,7 +892,7 @@ const DICT={
     "Estado de la Luna":"État de la Lune",
     "Cinturón de asteroides":"Ceinture d'astéroïdes",
     "Cinturón de Kuiper":"Ceinture de Kuiper",
-    "Cometa Halley":"Comète de Halley"
+    "Cometa Halley":"Comète de Halley",
   }
 };
 const DICTH={
