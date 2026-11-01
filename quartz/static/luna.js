@@ -152,6 +152,12 @@ const CSS=`
 .mn-pop input{display:block;width:100%;margin-top:8px;padding:8px 10px;border:1px solid #343b60;border-radius:8px;background:#0e1226;color:#eef1ff;font:inherit;outline:none}
 .mn-pop input:focus{border-color:#8ab4ff}
 .mn-res{max-height:170px;overflow:auto;margin-top:4px}
+@media(max-width:700px){.mn-card{padding:12px 14px}.mn-now svg.mn-big{width:68px;height:68px}.mn-ph{font-size:18px}.mn-sm{font-size:12.5px}.mn-times div{padding:7px 10px;font-size:13px}.mn-times b{font-size:16px}.mn-sub{font-size:11px;margin:12px 0 6px}.mn-days{gap:8px}.mn-day{padding:7px 2px;gap:2px}.mn-day svg{width:30px;height:30px}.mn-day .d{font-size:12.5px}.mn-day .t{font-size:12px}.mn-ev{font-size:13px;padding:4px 0}.mn-loc{font-size:12px;margin-top:10px}}
+.f1 .mn-ev:nth-child(n+3){display:none}
+.f2 .mn-s-ev,.f2 #mn-ev{display:none}
+.f3 .mn-day:nth-child(n+4){display:none}
+.f4 .mn-s-d,.f4 .mn-days{display:none}
+.f5 .mn-sm{display:none}
 .mn-res button{display:block;width:100%;padding:7px 9px;border:0;border-bottom:1px solid #232846;background:#10163a;color:#eef1ff;font:inherit;font-size:12.5px;text-align:left;cursor:pointer}
 .mn-res button small{color:#8f98c0;margin-left:6px}
 .mn-res button:hover{background:#1a2040}
@@ -165,6 +171,16 @@ function mount(host){
   const fmtDay=(t,tz)=>new Intl.DateTimeFormat(LOCALE[lang()],{weekday:'short',day:'numeric',month:'short',timeZone:tz}).format(new Date(t));
   const fmtDayS=(t,tz)=>new Intl.DateTimeFormat(LOCALE[lang()],{weekday:'short',day:'numeric',timeZone:tz}).format(new Date(t));
   const fmtEv=(t,tz)=>new Intl.DateTimeFormat(LOCALE[lang()],{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',hourCycle:'h23',timeZone:tz}).format(new Date(t));
+  /* se adapta al alto disponible: va quitando lo menos importante hasta que no haga falta scroll */
+  let fitting=false;
+  function fit(){
+    if(fitting||open)return;fitting=true;
+    try{
+      let n=0;root.className='';
+      while(n<5&&host.scrollHeight>host.clientHeight+1){n++;root.className=Array.from({length:n},(_,i)=>'f'+(i+1)).join(' ')}
+    }finally{fitting=false}
+  }
+  try{new ResizeObserver(fit).observe(host)}catch(e){window.addEventListener('resize',fit)}
   function render(){
     const now=Date.now(),tz=LOC.tz,el=elong(now),f=illumOf(el),idx=phaseIdx(el);
     const day0=dayStart(now,tz,0),rs0=riseSet(day0,LOC.lat,LOC.lon),rsN=(rs0.rise==null||rs0.set==null)?riseSet(dayStart(now,tz,1),LOC.lat,LOC.lon):null;
@@ -172,20 +188,21 @@ function mount(host){
     let h=SKETCH+'<div class="mn-card mn-hero"><div class="mn-now">'+moonSvg(el,56,true).replace('<svg ','<svg class="mn-big" ')+'<div><div class="mn-ph">'+STR.ph[idx][lang()]+'</div><div class="mn-sm">'+Math.round(f*100)+' % '+S('lit')+' · '+S('age')+' '+(lang()==='en'?ageD:ageD.replace('.',','))+' '+S('days')+'</div></div></div>';
     const tm=(v,vn)=>v!=null?fmtTime(v,tz):(vn!=null?fmtTime(vn,tz)+' <small>'+S('nextday')+'</small>':'—');
     h+='<div class="mn-times"><div>'+S('rise')+' <b>'+tm(rs0.rise,rsN&&rsN.rise)+'</b></div><div>'+S('set')+' <b>'+tm(rs0.set,rsN&&rsN.set)+'</b></div></div></div>';
-    h+='<div class="mn-sub">'+S('next')+'</div><div class="mn-days">';
+    h+='<div class="mn-sub mn-s-d">'+S('next')+'</div><div class="mn-days">';
     for(let i=1;i<=6;i++){
       const ds=dayStart(now,tz,i),noon=ds+12*3600000,ele=elong(noon),rs=riseSet(ds,LOC.lat,LOC.lon);
       h+='<div class="mn-day">'+moonSvg(ele,24)+'<div class="d">'+fmtDayS(noon,tz)+'</div><div class="t">↑'+fmtTime(rs.rise,tz)+'<br>↓'+fmtTime(rs.set,tz)+'</div></div>';
     }
     h+='</div>';
-    h+='<div class="mn-sub">'+S('events')+'</div><div id="mn-ev"></div>';
+    h+='<div class="mn-sub mn-s-ev">'+S('events')+'</div><div id="mn-ev"></div>';
     h+='<div class="mn-loc">'+S('calc')+' '+T(LOC.name)+' ('+fmtLat(LOC.lat)+')'+(LOC.src==='tz'?' · '+S('tz'):'')+' <button type="button" class="lk" id="mn-ch">'+S('change')+'</button><div class="mn-pop" id="mn-pop" hidden><button type="button" class="geo" id="mn-geo">'+S('geo')+'</button><input type="search" id="mn-q" placeholder="'+S('search')+'" autocomplete="off" autocapitalize="none" spellcheck="false"><div class="mn-res" id="mn-res"></div><div class="msg" id="mn-msg"></div></div></div>';
-    root.innerHTML=h;
+    root.innerHTML=h;fit();
     /* proximas fases (a minuto), calculadas despues para no retrasar el pintado */
     setTimeout(()=>{
       const evs=[0,90,180,270].map(a=>({a,t:findCross(a,now)})).filter(x=>x.t).sort((x,y)=>x.t-y.t);
       const box=document.getElementById('mn-ev');if(!box)return;
       box.innerHTML=evs.map(e=>'<div class="mn-ev"><span>'+STR.ev[e.a][lang()]+'</span><span>'+fmtEv(e.t,tz)+'</span></div>').join('');
+      fit();
     },30);
     wire();
   }

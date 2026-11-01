@@ -199,7 +199,7 @@ body.guide-page #head h1{display:none}
 #oc-list[data-mode="list"] .oc-img{display:none}
 #oc-list[data-mode="list"] .oc b{padding:0;font-size:15px}
 #oc-list[data-mode="list"] .oc small{display:block;color:#8f98c0;font-size:12px;white-space:nowrap}
-@container (max-width:880px){#gcols{display:flex;flex-direction:column;overflow-y:auto}#gcols .gcol{flex:none}#gcol-lw{flex:none}#gcol-l{max-height:none}#gcol-m{min-height:0}#gcol-c{order:-1;height:min(92cqw,520px)}#gcol-r{min-height:420px}#gcol-r .gcol-body,#gcol-l .gcol-body{overflow:visible}#ghead p{display:none}}
+@container (max-width:880px){#gcols{display:flex;flex-direction:column;overflow-y:auto}#gcols .gcol{flex:none}#gcols{scrollbar-width:none}#gcols::-webkit-scrollbar{display:none}#gcol-lw{flex:none}#gcol-l{max-height:none}#gcol-m{min-height:0}#gcol-c{order:-1;height:min(92cqw,520px)}#gcol-r{min-height:420px}#gcol-r .gcol-body,#gcol-l .gcol-body{overflow:visible}#ghead p{display:none}}
 .pl{cursor:pointer;outline:none}
 .pl text{pointer-events:none}
 .pl .halo{opacity:0;transition:opacity .2s ease;pointer-events:none}
@@ -1271,7 +1271,7 @@ items.forEach((it,i)=>{
   b.innerHTML='<span class="gk-ic" aria-hidden="true">'+it[1]+'</span><span class="gk-t"></span>';
   b.querySelector('.gk-t').textContent=it[0];lb.append(b);
 });
-{const s=document.createElement('script');s.src='luna.js?v=6';s.onload=()=>{try{const mb=document.querySelector('#gcol-m .gcol-body');window.vcMoon&&mb&&vcMoon.mount(mb)}catch(e){}};document.head.append(s)}
+{const s=document.createElement('script');s.src='luna.js?v=8';s.onload=()=>{try{const mb=document.querySelector('#gcol-m .gcol-body');window.vcMoon&&mb&&vcMoon.mount(mb)}catch(e){}};document.head.append(s)}
 }
 }
 /* Movil: sin previsualizacion al pasar el dedo y toques mas tolerantes */
