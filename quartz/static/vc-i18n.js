@@ -433,7 +433,8 @@ const DICT={
     "Filipinas":"Philippines",
     "Ciudad de Panamá":"Panama City",
     "Andorra la Vieja":"Andorra la Vella",
-    "Ciudad de Guatemala":"Guatemala City"
+    "Ciudad de Guatemala":"Guatemala City",
+    "Cartilla de la Luna":"Moon Primer"
   },
   fr:{
     /* PAGINA PRINCIPAL */
@@ -882,7 +883,8 @@ const DICT={
     "Nicosia":"Nicosie",
     "Kumanovo":"Koumanovo",
     "Santo Domingo":"Saint-Domingue",
-    "Ciudad de Guatemala":"Guatemala"
+    "Ciudad de Guatemala":"Guatemala",
+    "Cartilla de la Luna":"Fiche sur la Lune"
   }
 };
 const DICTH={

@@ -1,0 +1,217 @@
+{
+  "telescopios": {
+    "title": { "es": "Uso de telescopios", "en": "Telescope usage", "fr": "Utilisation des télescopes" },
+    "intro": {
+      "es": "Consejos para dar tus primeros pasos con un telescopio, sin gastar de más ni frustrarte.",
+      "en": "Tips for your first steps with a telescope, without overspending or getting frustrated.",
+      "fr": "Des conseils pour faire vos premiers pas avec un télescope, sans trop dépenser ni vous décourager."
+    },
+    "steps": [
+      {
+        "t": { "es": "Elige por el diámetro, no por los aumentos", "en": "Choose by aperture, not by magnification", "fr": "Choisissez selon le diamètre, pas selon le grossissement" },
+        "d": {
+          "es": "Lo que de verdad importa es el diámetro del espejo o de la lente: cuanta más luz recoge, más se ve. Desconfía de los telescopios que prometen 500 aumentos por poco dinero, porque suelen resultar frustrantes. Un reflector tipo Dobson de 150 a 200 mm es una de las mejores opciones de calidad y precio para empezar.",
+          "en": "What really matters is the diameter of the mirror or lens: the more light it gathers, the more you see. Be wary of telescopes that promise 500x for little money, because they are usually frustrating. A Dobsonian reflector of 150 to 200 mm is one of the best value options to start with.",
+          "fr": "Ce qui compte vraiment, c'est le diamètre du miroir ou de la lentille : plus il capte de lumière, plus on voit de choses. Méfiez-vous des télescopes qui promettent 500 grossissements pour peu d'argent, car ils sont souvent décevants. Un télescope de Dobson de 150 à 200 mm est l'un des meilleurs rapports qualité-prix pour débuter."
+        }
+      },
+      {
+        "t": { "es": "Cuántos aumentos usar", "en": "How much magnification to use", "fr": "Quel grossissement utiliser" },
+        "d": {
+          "es": "Los aumentos son la distancia focal del telescopio dividida entre la del ocular. Como regla, el máximo útil ronda el doble del diámetro en milímetros (con 150 mm, unos 300 aumentos), y casi nunca el aire permite llegar a tanto. Para empezar, entre 30 y 100 aumentos va muy bien.",
+          "en": "Magnification is the focal length of the telescope divided by that of the eyepiece. As a rule, the maximum useful value is about twice the diameter in millimetres (with 150 mm, about 300x), and the air rarely allows that much. To begin with, between 30x and 100x works very well.",
+          "fr": "Le grossissement est la focale du télescope divisée par celle de l'oculaire. En règle générale, le maximum utile est d'environ deux fois le diamètre en millimètres (avec 150 mm, environ 300 fois), et l'air permet rarement d'aller aussi loin. Pour débuter, entre 30 et 100 fois, c'est très bien."
+        }
+      },
+      {
+        "t": { "es": "Una montura estable", "en": "A steady mount", "fr": "Une monture stable" },
+        "d": {
+          "es": "Un trípode que tiembla estropea cualquier telescopio. Las monturas altazimutales y las Dobson son sencillas: se mueven arriba y abajo y a izquierda y derecha. Las ecuatoriales siguen el giro del cielo, pero cuesta más aprender a manejarlas.",
+          "en": "A wobbly tripod ruins any telescope. Alt-azimuth and Dobsonian mounts are simple: they move up and down and left and right. Equatorial mounts follow the rotation of the sky, but they take longer to learn.",
+          "fr": "Un trépied qui tremble gâche n'importe quel télescope. Les montures azimutales et les Dobson sont simples : elles se déplacent de haut en bas et de gauche à droite. Les montures équatoriales suivent la rotation du ciel, mais elles sont plus longues à maîtriser."
+        }
+      },
+      {
+        "t": { "es": "Alinea el buscador de día", "en": "Align the finder in daylight", "fr": "Alignez le chercheur de jour" },
+        "d": {
+          "es": "Con luz, apunta el telescopio a un objeto lejano (una antena, una torre) y ajusta el buscador hasta que ambos coincidan. De noche te ahorrará mucha frustración. Empieza siempre con el ocular de menos aumentos: da más campo y es más fácil encontrar las cosas.",
+          "en": "In daylight, point the telescope at a distant object (an antenna, a tower) and adjust the finder until both agree. At night it will save you a lot of frustration. Always start with the lowest-magnification eyepiece: it gives a wider field and makes things easier to find.",
+          "fr": "En plein jour, pointez le télescope vers un objet éloigné (une antenne, un clocher) et réglez le chercheur jusqu'à ce que les deux coïncident. La nuit, cela vous évitera bien des déconvenues. Commencez toujours avec l'oculaire au plus faible grossissement : il offre plus de champ et rend la recherche plus facile."
+        }
+      },
+      {
+        "t": { "es": "Deja que se aclimate", "en": "Let it cool down", "fr": "Laissez-le s'acclimater" },
+        "d": {
+          "es": "Saca el telescopio 20 o 30 minutos antes de observar para que se iguale a la temperatura de fuera; si no, el aire caliente del tubo emborrona la imagen. No toques ni limpies el espejo ni las lentes si no es imprescindible.",
+          "en": "Take the telescope outside 20 or 30 minutes before observing so it matches the outdoor temperature; otherwise the warm air in the tube blurs the image. Do not touch or clean the mirror or the lenses unless it is really necessary.",
+          "fr": "Sortez le télescope 20 ou 30 minutes avant d'observer pour qu'il se mette à la température extérieure ; sinon, l'air chaud du tube brouille l'image. Ne touchez ni ne nettoyez le miroir ou les lentilles si ce n'est pas indispensable."
+        }
+      },
+      {
+        "t": { "es": "Primeros objetos para ver", "en": "First objects to look at", "fr": "Premiers objets à observer" },
+        "d": {
+          "es": "La Luna (siempre espectacular), Júpiter con sus cuatro lunas grandes, Saturno con sus anillos, la Nebulosa de Orión (M42) en invierno, las Pléyades y los cúmulos globulares como M13 o M2. Los planetas piden más aumentos, y las nebulosas y galaxias piden cielos oscuros.",
+          "en": "The Moon (always spectacular), Jupiter with its four large moons, Saturn with its rings, the Orion Nebula (M42) in winter, the Pleiades and globular clusters such as M13 or M2. Planets need more magnification, and nebulae and galaxies need dark skies.",
+          "fr": "La Lune (toujours spectaculaire), Jupiter avec ses quatre grandes lunes, Saturne avec ses anneaux, la nébuleuse d'Orion (M42) en hiver, les Pléiades et les amas globulaires comme M13 ou M2. Les planètes demandent plus de grossissement, et les nébuleuses et les galaxies demandent un ciel sombre."
+        }
+      },
+      {
+        "t": { "es": "Y para fotografiar", "en": "And for photography", "fr": "Et pour photographier" },
+        "d": {
+          "es": "Con un adaptador, el móvil ya da buenas fotos de la Luna. Los telescopios inteligentes, como el Seestar S50, se orientan solos y apilan decenas de imágenes: son una forma muy cómoda de empezar en la astrofotografía.",
+          "en": "With an adapter, a phone already takes good photos of the Moon. Smart telescopes, such as the Seestar S50, point themselves and stack dozens of images: they are a very comfortable way to start in astrophotography.",
+          "fr": "Avec un adaptateur, le téléphone permet déjà de belles photos de la Lune. Les télescopes intelligents, comme le Seestar S50, s'orientent tout seuls et empilent des dizaines d'images : c'est une façon très pratique de débuter en astrophotographie."
+        }
+      }
+    ],
+    "warn": {
+      "es": "Nunca mires al Sol, ni a simple vista ni con telescopio, prismáticos o cámara, sin un filtro solar certificado colocado delante del objetivo. Puede dañar la vista de forma permanente.",
+      "en": "Never look at the Sun, neither with the naked eye nor with a telescope, binoculars or camera, without a certified solar filter placed in front of the lens. It can permanently damage your eyesight.",
+      "fr": "Ne regardez jamais le Soleil, ni à l'œil nu ni avec un télescope, des jumelles ou un appareil photo, sans un filtre solaire certifié placé devant l'objectif. Cela peut endommager la vue de façon permanente."
+    }
+  },
+
+  "lugar": {
+    "title": { "es": "Lugar para observar", "en": "Observing site", "fr": "Lieu d'observation" },
+    "intro": {
+      "es": "Dónde y cuándo mirar el cielo para ver mucho más con el mismo equipo.",
+      "en": "Where and when to look at the sky to see much more with the same equipment.",
+      "fr": "Où et quand regarder le ciel pour voir beaucoup plus avec le même matériel."
+    },
+    "steps": [
+      {
+        "t": { "es": "Huye de la luz", "en": "Escape the light", "fr": "Fuyez la lumière" },
+        "d": {
+          "es": "La contaminación lumínica es el mayor enemigo. Se mide con la escala de Bortle, de 1 (cielo perfecto) a 9 (centro de una gran ciudad). Basta con alejarte unos kilómetros del pueblo o de la ciudad para ganar muchísimo.",
+          "en": "Light pollution is the biggest enemy. It is measured with the Bortle scale, from 1 (perfect sky) to 9 (centre of a big city). Just moving a few kilometres away from the town or city makes a huge difference.",
+          "fr": "La pollution lumineuse est le plus grand ennemi. Elle se mesure avec l'échelle de Bortle, de 1 (ciel parfait) à 9 (centre d'une grande ville). Il suffit de s'éloigner de quelques kilomètres de la ville ou du village pour gagner énormément."
+        }
+      },
+      {
+        "t": { "es": "Mira un mapa de contaminación lumínica", "en": "Check a light pollution map", "fr": "Consultez une carte de la pollution lumineuse" },
+        "d": {
+          "es": "En internet hay mapas gratuitos (busca «mapa de contaminación lumínica») donde se ve de un vistazo qué zonas son más oscuras. En Andalucía, muchas sierras y parques naturales, como Sierra Nevada, Cazorla, Los Pedroches o Cabo de Gata, son conocidos por sus cielos oscuros.",
+          "en": "There are free maps online (search for “light pollution map”) where you can see at a glance which areas are darker. In Andalusia, many mountain ranges and natural parks, such as Sierra Nevada, Cazorla, Los Pedroches or Cabo de Gata, are known for their dark skies.",
+          "fr": "Il existe des cartes gratuites sur internet (cherchez « carte de la pollution lumineuse ») qui montrent d'un coup d'œil quelles zones sont les plus sombres. En Andalousie, de nombreuses sierras et parcs naturels, comme la Sierra Nevada, Cazorla, Los Pedroches ou Cabo de Gata, sont réputés pour leur ciel sombre."
+        }
+      },
+      {
+        "t": { "es": "Un horizonte despejado", "en": "A clear horizon", "fr": "Un horizon dégagé" },
+        "d": {
+          "es": "Busca un sitio abierto, sin árboles ni edificios altos, y con buena vista hacia el lado del ecuador (el sur, si estás en España). Evita el fondo de los valles, donde se acumulan la humedad y el aire frío.",
+          "en": "Look for an open spot, without trees or tall buildings, with a good view towards the equator side (south, if you are in Spain). Avoid valley floors, where humidity and cold air build up.",
+          "fr": "Cherchez un endroit dégagé, sans arbres ni grands bâtiments, avec une bonne vue du côté de l'équateur (le sud, si vous êtes en Espagne). Évitez le fond des vallées, où s'accumulent l'humidité et l'air froid."
+        }
+      },
+      {
+        "t": { "es": "Elige bien la noche", "en": "Pick the right night", "fr": "Choisissez bien la nuit" },
+        "d": {
+          "es": "La Luna llena ilumina el cielo y borra los objetos débiles: para nebulosas y galaxias, observa en los días cercanos a la Luna nueva. Mira la previsión de nubes, de humedad y de calma del aire: una noche limpia y sin viento marca la diferencia.",
+          "en": "The full Moon lights up the sky and washes out faint objects: for nebulae and galaxies, observe on the days around the new Moon. Check the forecast for clouds, humidity and calm air: a clear, windless night makes all the difference.",
+          "fr": "La pleine lune illumine le ciel et efface les objets faibles : pour les nébuleuses et les galaxies, observez les jours proches de la nouvelle lune. Consultez les prévisions de nuages, d'humidité et de calme de l'air : une nuit claire et sans vent fait toute la différence."
+        }
+      },
+      {
+        "t": { "es": "Adapta tus ojos", "en": "Let your eyes adapt", "fr": "Adaptez vos yeux" },
+        "d": {
+          "es": "Los ojos tardan entre 20 y 30 minutos en acostumbrarse a la oscuridad. Usa una linterna de luz roja, que molesta menos, y baja el brillo del móvil o ponlo en modo nocturno.",
+          "en": "Your eyes take 20 to 30 minutes to get used to the dark. Use a red light torch, which disturbs your night vision less, and lower the brightness of your phone or switch it to night mode.",
+          "fr": "Les yeux mettent de 20 à 30 minutes pour s'habituer à l'obscurité. Utilisez une lampe à lumière rouge, qui gêne moins, et baissez la luminosité du téléphone ou passez-le en mode nuit."
+        }
+      },
+      {
+        "t": { "es": "Ve cómodo y seguro", "en": "Be comfortable and safe", "fr": "Soyez à l'aise et en sécurité" },
+        "d": {
+          "es": "Abrígate más de lo que crees (de noche refresca, incluso en verano), lleva una silla y algo caliente de beber, y avisa a alguien de dónde vas. Si el terreno es privado, pide permiso, no dejes la puerta de la finca abierta ni dejes basura.",
+          "en": "Wrap up warmer than you think (it gets cool at night, even in summer), bring a chair and something hot to drink, and tell someone where you are going. If the land is private, ask for permission, do not leave the farm gate open and do not leave litter.",
+          "fr": "Habillez-vous plus chaudement que vous ne le pensez (il fait frais la nuit, même en été), prenez une chaise et une boisson chaude, et prévenez quelqu'un de l'endroit où vous allez. Si le terrain est privé, demandez la permission, ne laissez pas le portail ouvert et ne laissez pas de déchets."
+        }
+      },
+      {
+        "t": { "es": "Si solo tienes la ciudad", "en": "If all you have is the city", "fr": "Si vous n'avez que la ville" },
+        "d": {
+          "es": "Desde un balcón o una terraza puedes ver la Luna, los planetas y las estrellas más brillantes, con prismáticos o con un telescopio. Para galaxias y nebulosas, tendrás que salir de la ciudad.",
+          "en": "From a balcony or a terrace you can see the Moon, the planets and the brightest stars, with binoculars or a telescope. For galaxies and nebulae, you will have to leave the city.",
+          "fr": "D'un balcon ou d'une terrasse, vous pouvez voir la Lune, les planètes et les étoiles les plus brillantes, avec des jumelles ou un télescope. Pour les galaxies et les nébuleuses, il faudra sortir de la ville."
+        }
+      }
+    ],
+    "warn": {
+      "es": "Antes de salir de noche al campo, comprueba el tiempo y el camino, lleva el móvil con batería y no vayas solo a sitios aislados si no los conoces.",
+      "en": "Before heading out into the countryside at night, check the weather and the route, bring a charged phone, and do not go alone to isolated places you do not know.",
+      "fr": "Avant de partir la nuit en pleine campagne, vérifiez la météo et le chemin, emportez un téléphone chargé et n'allez pas seul dans des endroits isolés que vous ne connaissez pas."
+    }
+  },
+
+  "luna": {
+    "title": { "es": "Cartilla de la Luna", "en": "Moon primer", "fr": "Fiche sur la Lune" },
+    "intro": {
+      "es": "Todo lo básico para entender y disfrutar de nuestro satélite.",
+      "en": "All the basics to understand and enjoy our satellite.",
+      "fr": "Tout l'essentiel pour comprendre et apprécier notre satellite."
+    },
+    "steps": [
+      {
+        "t": { "es": "Un ciclo de unos 29,5 días", "en": "A cycle of about 29.5 days", "fr": "Un cycle d'environ 29,5 jours" },
+        "d": {
+          "es": "Las fases dependen de cuánta parte iluminada de la Luna vemos desde la Tierra. Del novilunio al plenilunio pasan unos 15 días. En el hemisferio norte la Luna creciente se ilumina por la derecha, y la menguante por la izquierda (en el hemisferio sur, al revés).",
+          "en": "The phases depend on how much of the lit side of the Moon we see from Earth. From new Moon to full Moon takes about 15 days. In the northern hemisphere the waxing Moon is lit on the right and the waning Moon on the left (in the southern hemisphere, the other way round).",
+          "fr": "Les phases dépendent de la part éclairée de la Lune que nous voyons depuis la Terre. De la nouvelle lune à la pleine lune, il s'écoule environ 15 jours. Dans l'hémisphère nord, la Lune croissante est éclairée à droite et la décroissante à gauche (dans l'hémisphère sud, c'est l'inverse)."
+        }
+      },
+      {
+        "t": { "es": "Siempre la misma cara", "en": "Always the same face", "fr": "Toujours la même face" },
+        "d": {
+          "es": "La Luna tarda lo mismo en girar sobre sí misma que en dar una vuelta a la Tierra, y por eso vemos siempre la misma cara. Unos pequeños balanceos, las libraciones, nos dejan ver un poco más de la mitad, cerca del 59 %.",
+          "en": "The Moon takes as long to rotate once as to orbit the Earth once, which is why we always see the same face. Small wobbles, called librations, let us see slightly more than half, about 59 %.",
+          "fr": "La Lune met autant de temps à tourner sur elle-même qu'à faire le tour de la Terre, c'est pourquoi nous voyons toujours la même face. De petites oscillations, les librations, nous permettent d'en voir un peu plus de la moitié, environ 59 %."
+        }
+      },
+      {
+        "t": { "es": "El mejor momento para mirarla", "en": "The best time to look at it", "fr": "Le meilleur moment pour l'observer" },
+        "d": {
+          "es": "Con la Luna llena la luz cae de frente y todo se ve plano. Los días cercanos a los cuartos son mucho mejores: a lo largo del terminador, la línea entre el día y la noche lunares, las sombras largas hacen destacar los cráteres y las montañas.",
+          "en": "At full Moon the light falls head-on and everything looks flat. The days around the quarters are much better: along the terminator, the line between lunar day and night, long shadows make craters and mountains stand out.",
+          "fr": "À la pleine lune, la lumière tombe de face et tout paraît plat. Les jours proches des quartiers sont bien meilleurs : le long du terminateur, la ligne entre le jour et la nuit lunaires, les longues ombres font ressortir les cratères et les montagnes."
+        }
+      },
+      {
+        "t": { "es": "Qué buscar", "en": "What to look for", "fr": "Que chercher" },
+        "d": {
+          "es": "Los mares oscuros, grandes llanuras de lava, como el Mar de la Tranquilidad, donde alunizó el Apolo 11; el cráter Tycho, con sus rayos brillantes, que se aprecian mejor en Luna llena; y el cráter Copérnico, bien visible con prismáticos.",
+          "en": "The dark seas, huge plains of lava, such as the Sea of Tranquility, where Apollo 11 landed; the crater Tycho, with its bright rays, best seen at full Moon; and the crater Copernicus, easily visible with binoculars.",
+          "fr": "Les mers sombres, de vastes plaines de lave, comme la mer de la Tranquillité, où s'est posé Apollo 11 ; le cratère Tycho, avec ses rayons brillants, qu'on apprécie mieux à la pleine lune ; et le cratère Copernic, bien visible aux jumelles."
+        }
+      },
+      {
+        "t": { "es": "Cómo fotografiarla", "en": "How to photograph it", "fr": "Comment la photographier" },
+        "d": {
+          "es": "Es muy brillante: usa exposiciones cortas y un ISO bajo. Un móvil con un adaptador al telescopio basta para empezar. Para ver más detalle, graba un vídeo y apila los mejores fotogramas con un programa gratuito.",
+          "en": "It is very bright: use short exposures and a low ISO. A phone with an adapter on a telescope is enough to start. For more detail, record a video and stack the best frames with a free program.",
+          "fr": "Elle est très lumineuse : utilisez des poses courtes et un ISO bas. Un téléphone avec un adaptateur sur le télescope suffit pour débuter. Pour plus de détail, filmez une vidéo et empilez les meilleures images avec un logiciel gratuit."
+        }
+      },
+      {
+        "t": { "es": "Eclipses y mareas", "en": "Eclipses and tides", "fr": "Éclipses et marées" },
+        "d": {
+          "es": "En un eclipse lunar, la Luna pasa por la sombra de la Tierra y se ve rojiza: es seguro mirarlo a simple vista. En un eclipse solar, en cambio, hace falta siempre un filtro solar certificado. La Luna y el Sol causan las mareas, que son más fuertes en luna nueva y en luna llena.",
+          "en": "In a lunar eclipse the Moon passes through the Earth's shadow and looks reddish: it is safe to watch with the naked eye. In a solar eclipse, however, you always need a certified solar filter. The Moon and the Sun cause the tides, which are strongest at new Moon and full Moon.",
+          "fr": "Lors d'une éclipse de Lune, la Lune traverse l'ombre de la Terre et paraît rougeâtre : on peut l'observer sans danger à l'œil nu. Lors d'une éclipse de Soleil, en revanche, un filtre solaire certifié est toujours nécessaire. La Lune et le Soleil provoquent les marées, plus fortes à la nouvelle lune et à la pleine lune."
+        }
+      },
+      {
+        "t": { "es": "Datos rápidos", "en": "Quick facts", "fr": "En bref" },
+        "d": {
+          "es": "Distancia media: 384.400 km. Diámetro: 3.474,8 km, un cuarto del de la Tierra. Masa: 1/81 de la Tierra. Gira alrededor de la Tierra en 27,3 días, pero el ciclo de fases dura 29,5 porque la Tierra también avanza alrededor del Sol.",
+          "en": "Average distance: 384,400 km. Diameter: 3,474.8 km, a quarter of Earth's. Mass: 1/81 of Earth's. It orbits the Earth in 27.3 days, but the cycle of phases lasts 29.5 because the Earth also moves around the Sun.",
+          "fr": "Distance moyenne : 384 400 km. Diamètre : 3 474,8 km, soit le quart de celui de la Terre. Masse : 1/81 de celle de la Terre. Elle tourne autour de la Terre en 27,3 jours, mais le cycle des phases dure 29,5 jours, car la Terre avance aussi autour du Soleil."
+        }
+      }
+    ],
+    "warn": {
+      "es": "Mirar la Luna es seguro, pero con un telescopio la luz de la Luna llena puede deslumbrar: empieza con poco aumento o usa un filtro lunar.",
+      "en": "Looking at the Moon is safe, but through a telescope the light of the full Moon can dazzle you: start with low magnification or use a Moon filter.",
+      "fr": "Observer la Lune est sans danger, mais dans un télescope la lumière de la pleine lune peut éblouir : commencez avec un faible grossissement ou utilisez un filtre lunaire."
+    }
+  }
+}

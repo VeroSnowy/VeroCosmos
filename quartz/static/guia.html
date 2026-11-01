@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="only light">
+<meta name="theme-color" content="#05060f">
+<title>Guía de observación · Vero Cosmos</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<style>
+:root{color-scheme:only light;--bg:#05060f;--fg:#eef1ff;--mut:#8f98c0;--line:#343b60;--card:#0b1025d9;--acc:#8ab4ff}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font:15px/1.55 system-ui,sans-serif;overflow:hidden}
+#bg{position:fixed;inset:0;width:100%;height:100%;z-index:0;background:radial-gradient(ellipse at 50% 30%,#111936 0%,#080b19 55%,#05060f 100%)}
+.wrap{position:fixed;inset:0;z-index:1;overflow-y:auto;overflow-x:hidden;padding:14px 18px 40px;scrollbar-color:#3a4270 transparent;opacity:0;transform:translateY(12px);transition:opacity .45s ease,transform .5s cubic-bezier(.2,.8,.2,1)}
+.wrap.in{opacity:1;transform:none}
+.hd{display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:1000px;margin:0 auto 16px}
+.left{display:flex;align-items:center;gap:10px;min-width:0}
+#back{flex:none;display:flex;align-items:center;justify-content:center;width:34px;height:34px;padding:0;border:1px solid var(--line);border-radius:7px;background:#0e1226ef;color:var(--fg);cursor:pointer;transition:background .18s,border-color .18s}
+#back:hover,#back:focus-visible{background:#151a32;border-color:var(--acc);outline:none}
+#back svg{display:block}
+h1{margin:0;font:400 clamp(22px,3vw,30px)/1.2 "Iowan Old Style",Georgia,serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tools{display:flex;align-items:center;gap:8px;flex:none}
+.hd .vc-lang{position:static}
+.ib{width:40px;height:40px;padding:0;display:flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:11px;background:#0e1226ef;cursor:pointer;transition:border-color .18s,transform .18s}
+.ib:hover,.ib:focus-visible{border-color:var(--acc);transform:scale(1.05);outline:none}
+.ib img{display:block;width:100%;height:100%;padding:4px;object-fit:contain}
+main{max-width:1000px;margin:0 auto}
+.intro{margin:0 0 16px;color:#cdd5f5;font-size:16px}
+.card{border:1px solid var(--line);border-radius:14px;background:var(--card);backdrop-filter:blur(6px);padding:16px 18px;min-width:0}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;counter-reset:s}
+.step{position:relative;padding-left:58px}
+.step::before{counter-increment:s;content:counter(s);position:absolute;left:16px;top:15px;width:30px;height:30px;border:1px solid #414e7a;border-radius:50%;background:#192443;color:#b9c9ff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px}
+.step h2{margin:0 0 6px;font:400 18px/1.3 "Iowan Old Style",Georgia,serif;color:#f5f7ff}
+.step p{margin:0;color:#c9d1f2}
+.warn{display:flex;gap:12px;align-items:flex-start;margin-top:14px;border-color:#6d5a2e;background:#2a210cc0}
+.warn svg{flex:none;width:22px;height:22px;margin-top:2px;color:#ffcf5c;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.warn p{margin:0;color:#ffe9b0}
+.today{display:flex;flex-wrap:wrap;align-items:center;gap:18px;margin-bottom:12px}
+.today .big{flex:none;width:64px;height:64px}
+.today h2{margin:0 0 2px;font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--acc)}
+.today .ph{font:400 22px/1.2 "Iowan Old Style",Georgia,serif}
+.today small{display:block;color:var(--mut);margin-top:2px}
+.strip{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px;margin-top:14px}
+.strip div{text-align:center;font-size:11px;color:var(--mut);padding:8px 2px;border:1px solid transparent;border-radius:10px}
+.strip div.on{border-color:var(--acc);background:#10163a;color:var(--fg)}
+.strip svg{display:block;width:30px;height:30px;margin:0 auto 4px}
+@media(max-width:700px){
+  .wrap{padding:10px 12px 34px}
+  .grid{grid-template-columns:1fr}
+  .strip{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+@media(prefers-reduced-motion:reduce){.wrap{transition:none}}
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas>
+<div class="wrap" id="wrap">
+  <header class="hd">
+    <div class="left"><button id="back" type="button" aria-label="Volver"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><h1 id="title"></h1></div>
+    <div class="tools" id="tools"><button class="ib" id="logo" type="button" aria-label="Vero Cosmos"><img src="logo.png" alt=""></button></div>
+  </header>
+  <main id="main"></main>
+</div>
+<script src="vc-i18n.js?v=33"></script>
+<script>
+const $=id=>document.getElementById(id);
+const post=m=>{try{parent.postMessage(m,'*')}catch(e){}};
+const key=decodeURIComponent(location.hash.slice(1));
+const L=()=>window.vcI18n?vcI18n.lang:'es';
+const STR={
+  back:{es:'Volver',en:'Back',fr:'Retour'},
+  today:{es:'La Luna hoy',en:'The Moon today',fr:'La Lune aujourd’hui'},
+  lit:{es:'iluminada',en:'illuminated',fr:'éclairée'},
+  full:{es:'Luna llena aprox.',en:'Full Moon approx.',fr:'Pleine lune env.'},
+  nw:{es:'Luna nueva aprox.',en:'New Moon approx.',fr:'Nouvelle lune env.'},
+  ph:[{es:'Nueva',en:'New',fr:'Nouvelle'},{es:'Creciente',en:'Waxing crescent',fr:'Premier croissant'},{es:'Cuarto creciente',en:'First quarter',fr:'Premier quartier'},{es:'Gibosa creciente',en:'Waxing gibbous',fr:'Gibbeuse croissante'},{es:'Llena',en:'Full',fr:'Pleine'},{es:'Gibosa menguante',en:'Waning gibbous',fr:'Gibbeuse décroissante'},{es:'Cuarto menguante',en:'Last quarter',fr:'Dernier quartier'},{es:'Menguante',en:'Waning crescent',fr:'Dernier croissant'}],
+  warnT:{es:'Seguridad',en:'Safety',fr:'Sécurité'}
+};
+const S=(k)=>STR[k][L()]||STR[k].es;
+const fr=t=>L()==='fr'?t.replace(/ ([?!:;»])/g,' $1').replace(/« /g,'« '):t;
+let DATA=null;
+
+/* fondo de estrellas */
+(function(){
+  const cv=$('bg'),c=cv.getContext('2d');
+  function draw(){const w=cv.width=innerWidth,h=cv.height=innerHeight;let s=11;const r=()=>(s=(s*16807)%2147483647)/2147483647;c.clearRect(0,0,w,h);for(let i=0;i<Math.round(w*h/6500);i++){c.globalAlpha=.25+r()*.65;c.fillStyle='#dce5ff';c.beginPath();c.arc(r()*w,r()*h,.4+r()*1.1,0,6.283);c.fill()}}
+  draw();addEventListener('resize',draw);
+})();
+
+/* Luna: posicion simple para saber la fase de hoy */
+const RAD=Math.PI/180,jd=ms=>ms/86400000+2440587.5,Tc=t=>(jd(t)-2451545)/36525;
+function sunLon(t){const n=jd(t)-2451545,L0=280.460+.9856474*n,g=(357.528+.9856003*n)*RAD;return((L0+1.915*Math.sin(g)+.02*Math.sin(2*g))%360+360)%360}
+function moonLon(t){const T=Tc(t),d=x=>x*RAD,Lp=218.3164477+481267.88123421*T,D=297.8501921+445267.1114034*T,M=357.5291092+35999.0502909*T,Mp=134.9633964+477198.8675055*T,F=93.272095+483202.0175233*T;return((Lp+6.289*Math.sin(d(Mp))+1.274*Math.sin(d(2*D-Mp))+.658*Math.sin(d(2*D))+.214*Math.sin(d(2*Mp))-.186*Math.sin(d(M))-.114*Math.sin(d(2*F)))%360+360)%360}
+const elong=t=>(((moonLon(t)-sunLon(t))%360)+360)%360;
+const illumOf=el=>(1-Math.cos(el*RAD))/2;
+function moonSvg(el,size){
+  const f=illumOf(el),waxing=el<180,rx=(6*Math.abs(1-2*f)).toFixed(2),sw=f>.5?1:0;
+  return '<svg viewBox="0 0 12 12" width="'+size+'" height="'+size+'" aria-hidden="true"><circle cx="6" cy="6" r="5.6" fill="#1b2146" stroke="#4f5c9c" stroke-width=".5"/><path d="M6 0A6 6 0 0 1 6 12A'+rx+' 6 0 0 '+sw+' 6 0Z" fill="#e8ecff"'+(waxing?'':' transform="translate(12 0) scale(-1 1)"')+'/></svg>';
+}
+const fmtDM=t=>{const d=new Date(t);return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')};
+function moonToday(){
+  const now=Date.now(),el=elong(now),f=illumOf(el),wax=el<180,idx=f<.05?0:f>.95?4:f<.45?(wax?1:7):f<=.55?(wax?2:6):(wax?3:5);
+  let full='',nw='';const ill=[];for(let i=0;i<=124;i++){const t=now+i*6*3600000;ill.push([t,illumOf(elong(t))])}
+  for(let i=1;i<ill.length-1;i++){if(!full&&ill[i][1]>ill[i-1][1]&&ill[i][1]>=ill[i+1][1]&&ill[i][1]>.9)full=fmtDM(ill[i][0]);if(!nw&&ill[i][1]<ill[i-1][1]&&ill[i][1]<=ill[i+1][1]&&ill[i][1]<.1)nw=fmtDM(ill[i][0])}
+  let h='<section class="card"><div class="today"><div class="big">'+moonSvg(el,64)+'</div><div><h2>'+S('today')+'</h2><div class="ph">'+STR.ph[idx][L()]+' · '+Math.round(f*100)+' % '+S('lit')+'</div><small>'+[full&&(S('full')+' '+full),nw&&(S('nw')+' '+nw)].filter(Boolean).join(' · ')+'</small></div></div><div class="strip">';
+  for(let i=0;i<8;i++)h+='<div class="'+(i===idx?'on':'')+'">'+moonSvg(i*45,30)+STR.ph[i][L()]+'</div>';
+  return h+'</div></section>';
+}
+
+function render(){
+  const g=DATA&&DATA[key];if(!g){post({vc:'gclose'});return}
+  const l=L();
+  $('title').textContent=g.title[l]||g.title.es;document.title=(g.title[l]||g.title.es)+' · Vero Cosmos';
+  $('back').setAttribute('aria-label',S('back'));
+  let h='<p class="intro">'+fr(g.intro[l]||g.intro.es)+'</p>';
+  if(key==='luna')h+=moonToday();
+  h+='<div class="grid" style="margin-top:12px">'+g.steps.map(s=>'<article class="card step"><h2>'+fr(s.t[l]||s.t.es)+'</h2><p>'+fr(s.d[l]||s.d.es)+'</p></article>').join('')+'</div>';
+  if(g.warn)h+='<div class="card warn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg><p><b>'+S('warnT')+'.</b> '+fr(g.warn[l]||g.warn.es)+'</p></div>';
+  $('main').innerHTML=h;
+}
+
+$('back').onclick=()=>post({vc:'gclose'});
+$('logo').onclick=()=>post({vc:'ggo',page:'principal'});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')post({vc:'gclose'})});
+if(window.vcI18n){vcI18n.mount($('tools'));const lang=document.querySelector('.vc-lang');if(lang)$('tools').insertBefore(lang,$('logo'))}
+window.addEventListener('vc-lang',render);
+fetch('guias.json?v=1').then(r=>r.json()).then(d=>{DATA=d;render();requestAnimationFrame(()=>$('wrap').classList.add('in'));post({vc:'gready'})}).catch(()=>post({vc:'gclose'}));
+</script>
+</body>
+</html>
