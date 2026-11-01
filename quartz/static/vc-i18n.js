@@ -435,7 +435,10 @@ const DICT={
     "Andorra la Vieja":"Andorra la Vella",
     "Ciudad de Guatemala":"Guatemala City",
     "Cartilla de la Luna":"Moon Primer",
-    "Estado de la Luna":"Moon Status"
+    "Estado de la Luna":"Moon Status",
+    "Cinturón de asteroides":"Asteroid Belt",
+    "Cinturón de Kuiper":"Kuiper Belt",
+    "Cometa Halley":"Halley's Comet"
   },
   fr:{
     /* PAGINA PRINCIPAL */
@@ -886,7 +889,10 @@ const DICT={
     "Santo Domingo":"Saint-Domingue",
     "Ciudad de Guatemala":"Guatemala",
     "Cartilla de la Luna":"Fiche sur la Lune",
-    "Estado de la Luna":"État de la Lune"
+    "Estado de la Luna":"État de la Lune",
+    "Cinturón de asteroides":"Ceinture d'astéroïdes",
+    "Cinturón de Kuiper":"Ceinture de Kuiper",
+    "Cometa Halley":"Comète de Halley"
   }
 };
 const DICTH={
