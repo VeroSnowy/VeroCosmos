@@ -361,7 +361,7 @@ const DICT={
     "Italia":"Italy",
     "México":"Mexico",
     "Perú":"Peru",
-    "Rep. Dominicana":"Dominican Rep.",
+    "República Dominicana":"Dominican Republic",
     "EE. UU.":"USA",
     "Canadá":"Canada",
     "Guinea Ecuatorial":"Equatorial Guinea",
@@ -431,7 +431,9 @@ const DICT={
     "Járkov":"Kharkiv",
     "Praga":"Prague",
     "Filipinas":"Philippines",
-    "Ciudad de Panamá":"Panama City"
+    "Ciudad de Panamá":"Panama City",
+    "Andorra la Vieja":"Andorra la Vella",
+    "Ciudad de Guatemala":"Guatemala City"
   },
   fr:{
     /* PAGINA PRINCIPAL */
@@ -791,7 +793,7 @@ const DICT={
     "Italia":"Italie",
     "México":"Mexique",
     "Perú":"Pérou",
-    "Rep. Dominicana":"Rép. dominicaine",
+    "República Dominicana":"République dominicaine",
     "EE. UU.":"États-Unis",
     "Canadá":"Canada",
     "Ecuador":"Équateur",
@@ -871,11 +873,16 @@ const DICT={
     "Zúrich":"Zurich",
     "Ginebra":"Genève",
     "Estambul":"Istanbul",
-    "Kiev":"Kyiv",
+    "Kiev":"Kiev",
     "Járkov":"Kharkiv",
     "Praga":"Prague",
     "Filipinas":"Philippines",
-    "Ciudad de Panamá":"Panama"
+    "Ciudad de Panamá":"Panama",
+    "Andorra la Vieja":"Andorre-la-Vieille",
+    "Nicosia":"Nicosie",
+    "Kumanovo":"Koumanovo",
+    "Santo Domingo":"Saint-Domingue",
+    "Ciudad de Guatemala":"Guatemala"
   }
 };
 const DICTH={
