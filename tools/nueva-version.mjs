@@ -37,7 +37,8 @@ if (versiones.includes(nueva)) throw new Error('La version ' + nueva + ' ya exis
 if (cmp(nueva, actual) <= 0) throw new Error('La nueva version debe ser mayor que ' + actual)
 
 console.log(`Version actual: ${actual}  ->  nueva: ${nueva}${simular ? '  (SIMULACION)' : ''}`)
-const destinos = [...PAGINAS.map(p => path.join(VAULT, p + '.md')), path.join(STATIC, 'quienes-somos.html')]
+const ENVOLTORIOS = ['guia-astronomica/lugar-para-observar.md'] /* paginas del vault, ademas de las 4 principales, que embeben el atlas */
+const destinos = [...PAGINAS.map(p => path.join(VAULT, p + '.md')), ...ENVOLTORIOS.map(e => path.join(VAULT, e)).filter(f => fs.existsSync(f)), path.join(STATIC, 'quienes-somos.html')]
 for (const f of destinos) if (!fs.readFileSync(f, 'utf8').includes(`VeroCosmos_${actual}.html`)) throw new Error('No apunta a ' + actual + ': ' + f)
 
 if (!simular) {
