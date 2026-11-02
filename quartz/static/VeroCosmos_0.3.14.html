@@ -214,7 +214,7 @@ body.guide-page #head h1{display:none}
 #ss-svg #ss-comet text{fill:#d7ecff;pointer-events:none}
 #topo{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
 #topo .tg{transform-origin:50% 50%;animation:topoDrift 28s ease-in-out infinite alternate}
-#topo .tl{fill:none;stroke:#5b6bb4;stroke-width:1.1;stroke-linecap:round;stroke-linejoin:round;opacity:0;animation:topoIn .9s ease calc(var(--i)*.13s + .15s) forwards,topoPulse 7s ease-in-out calc(var(--i)*.28s + 2.2s) infinite}
+#topo .tl{fill:none;stroke:#5b6bb4;stroke-width:1.1;stroke-linecap:round;stroke-linejoin:round;opacity:0;animation:topoIn .8s ease calc(var(--i)*.06s) forwards,topoPulse 7s ease-in-out calc(var(--i)*.28s + 2.4s) infinite}
 #topo .ti{stroke:#8ab4ff;stroke-width:1.7}
 @keyframes topoIn{from{opacity:0}to{opacity:.3}}
 @keyframes topoPulse{0%,100%{opacity:.3}45%{opacity:.62}}
@@ -1425,7 +1425,7 @@ function logoGo(ev){
 }
 /* Mapa topografico minimalista (distinto cada vez que se abre): curvas de nivel calculadas sobre un relieve inventado; aparecen de fuera hacia dentro y un pulso recorre las curvas */
 function topoSvg(){
-  const W=1000,H=700,NX=100,NY=70,cw=W/NX,ch=H/NY;
+  const W=1000,H=700,NX=140,NY=98,cw=W/NX,ch=H/NY;
   let s=(Math.random()*4294967296)>>>0;const rnd=()=>{s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
   const hills=[];const NH=10+Math.floor(rnd()*7);for(let i=0;i<NH;i++)hills.push({x:W*(-.05+1.1*rnd()),y:H*(-.05+1.1*rnd()),r:60+110*rnd(),a:(rnd()<.38?-1:1)*(.5+.6*rnd())});
   const ph=[rnd()*6.28,rnd()*6.28,rnd()*6.28];
@@ -1434,17 +1434,41 @@ function topoSvg(){
   const g=[];for(let j=0;j<=NY;j++){const row=[];for(let i=0;i<=NX;i++)row.push(hf(i*cw,j*ch));g.push(row)}
   let gmin=1e9,gmax=-1e9;for(const row of g)for(const v of row){if(v<gmin)gmin=v;if(v>gmax)gmax=v}
   const L=22,lo=gmin+.05*(gmax-gmin),hi=gmax-.03*(gmax-gmin),out=[];
+  /* cada punto del contorno se identifica por la arista de la rejilla que cruza: asi los segmentos de celdas vecinas se enlazan
+     en lineas continuas, que se dibujan como curvas suaves (Bezier por los puntos medios) en vez de tramos sueltos */
+  const SM=(pts,closed)=>{
+    const f=v=>v.toFixed(1),mid=(p,q)=>[(p[0]+q[0])/2,(p[1]+q[1])/2],n=pts.length;
+    let d='';
+    if(closed){const m0=mid(pts[n-1],pts[0]);d='M'+f(m0[0])+' '+f(m0[1]);for(let k=0;k<n;k++){const m=mid(pts[k],pts[(k+1)%n]);d+='Q'+f(pts[k][0])+' '+f(pts[k][1])+' '+f(m[0])+' '+f(m[1])}return d+'Z'}
+    d='M'+f(pts[0][0])+' '+f(pts[0][1]);
+    for(let k=1;k<n-1;k++){const m=mid(pts[k],pts[k+1]);d+='Q'+f(pts[k][0])+' '+f(pts[k][1])+' '+f(m[0])+' '+f(m[1])}
+    return d+'L'+f(pts[n-1][0])+' '+f(pts[n-1][1]);
+  };
+  const SP=NX+1;
   for(let n=0;n<L;n++){
-    const t=lo+(hi-lo)*n/(L-1);let d='';
-    const P=(x0,y0,v0,x1,y1,v1)=>{const u=(t-v0)/(v1-v0);return[(x0+(x1-x0)*u).toFixed(1),(y0+(y1-y0)*u).toFixed(1)]};
+    const t=lo+(hi-lo)*n/(L-1),pt=new Map(),adj=new Map();
+    const eh=(i,j)=>{const id=(j*SP+i)*2,v0=g[j][i],v1=g[j][i+1];if(!pt.has(id)){const u=(t-v0)/(v1-v0);pt.set(id,[(i+u)*cw,j*ch])}return id};
+    const ev=(i,j)=>{const id=(j*SP+i)*2+1,v0=g[j][i],v1=g[j+1][i];if(!pt.has(id)){const u=(t-v0)/(v1-v0);pt.set(id,[i*cw,(j+u)*ch])}return id};
+    const link=(p,q)=>{(adj.get(p)||adj.set(p,[]).get(p)).push(q);(adj.get(q)||adj.set(q,[]).get(q)).push(p)};
     for(let j=0;j<NY;j++)for(let i=0;i<NX;i++){
-      const v00=g[j][i],v10=g[j][i+1],v11=g[j+1][i+1],v01=g[j+1][i],x=i*cw,y=j*ch;
+      const v00=g[j][i],v10=g[j][i+1],v11=g[j+1][i+1],v01=g[j+1][i];
       const c=(v00>t?8:0)|(v10>t?4:0)|(v11>t?2:0)|(v01>t?1:0);if(c===0||c===15)continue;
-      const T=()=>P(x,y,v00,x+cw,y,v10),R=()=>P(x+cw,y,v10,x+cw,y+ch,v11),B=()=>P(x,y+ch,v01,x+cw,y+ch,v11),Lf=()=>P(x,y,v00,x,y+ch,v01);
-      const seg=(p,q)=>{d+='M'+p[0]+' '+p[1]+'L'+q[0]+' '+q[1]};
-      switch(c){case 1:case 14:seg(Lf(),B());break;case 2:case 13:seg(B(),R());break;case 3:case 12:seg(Lf(),R());break;case 4:case 11:seg(T(),R());break;
-        case 6:case 9:seg(T(),B());break;case 7:case 8:seg(Lf(),T());break;case 5:seg(Lf(),T());seg(B(),R());break;case 10:seg(T(),R());seg(Lf(),B());break}
+      const T=()=>eh(i,j),B=()=>eh(i,j+1),Lf=()=>ev(i,j),R=()=>ev(i+1,j);
+      switch(c){case 1:case 14:link(Lf(),B());break;case 2:case 13:link(B(),R());break;case 3:case 12:link(Lf(),R());break;case 4:case 11:link(T(),R());break;
+        case 6:case 9:link(T(),B());break;case 7:case 8:link(Lf(),T());break;case 5:link(Lf(),T());link(B(),R());break;case 10:link(T(),R());link(Lf(),B());break}
     }
+    const seen=new Set();let d='';
+    const walk=(start)=>{
+      const ids=[start];seen.add(start);let prev=-1,cur=start,closed=false;
+      for(;;){
+        const nx=(adj.get(cur)||[]).find(q=>q!==prev&&!seen.has(q));
+        if(nx===undefined){closed=(adj.get(cur)||[]).includes(start)&&ids.length>2;break}
+        ids.push(nx);seen.add(nx);prev=cur;cur=nx;
+      }
+      if(ids.length>=4)d+=SM(ids.map(id=>pt.get(id)),closed);
+    };
+    for(const [id,nb] of adj)if(nb.length===1&&!seen.has(id))walk(id);   /* primero las lineas abiertas (llegan al borde) */
+    for(const id of adj.keys())if(!seen.has(id))walk(id);                 /* despues las cerradas */
     if(d)out.push('<path d="'+d+'" class="tl'+(n%5===4?' ti':'')+'" style="--i:'+n+'"/>');
   }
   return '<svg id="topo" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><g class="tg">'+out.join('')+'</g></svg>';
@@ -1455,7 +1479,7 @@ let lugarEl=null,lugarPushed=false;
 function lugarKey(e){if(e.key==='Escape'&&lugarEl){e.preventDefault();e.stopPropagation();closeLugar()}}
 function removeLugar(){
   if(!lugarEl)return;
-  const el=lugarEl;lugarEl=null;document.removeEventListener('keydown',lugarKey,true);
+  const el=lugarEl;lugarEl=null;document.removeEventListener('keydown',lugarKey,true);if(el._lang)window.removeEventListener('vc-lang',el._lang);
   el.style.transition='opacity .28s ease';el.style.opacity='0';el.style.pointerEvents='none';
   setTimeout(()=>el.remove(),300);
 }
@@ -1471,8 +1495,11 @@ function openLugar(card,fromUrl){
   if(lugarEl||(card&&card._busy))return;if(card)card._busy=true;
   const view=document.createElement('div');view.id='lugar-view';view.setAttribute('role','dialog');view.setAttribute('aria-label','Lugar para observar');
   view.style.cssText='position:fixed;inset:0;z-index:100002;background:radial-gradient(ellipse at 50% 40%,#111936 0%,#080b19 55%,#05060f 100%);color:#eef1ff';
-  view.innerHTML=''+topoSvg()+'<button type="button" id="lugar-back" aria-label="Volver" style="position:absolute;top:12px;left:16px;display:flex;align-items:center;justify-content:center;width:34px;height:34px;padding:0;border:1px solid #232846;border-radius:7px;background:#0e1226ef;color:#eef1ff;cursor:pointer;transition:background .18s,border-color .18s"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button>';
-  const bk=view.querySelector('#lugar-back');
+  view.innerHTML=''+topoSvg()+'<button type="button" id="lugar-back" aria-label="Volver" style="position:absolute;top:12px;left:16px;display:flex;align-items:center;justify-content:center;width:34px;height:34px;padding:0;border:1px solid #232846;border-radius:7px;background:#0e1226ef;color:#eef1ff;cursor:pointer;transition:background .18s,border-color .18s"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><span id="lugar-title" style="position:absolute;top:12px;left:60px;height:34px;display:flex;align-items:center;font:400 20px/1 \'Iowan Old Style\',Georgia,serif;color:#f5f7ff;white-space:nowrap;pointer-events:none;transition:opacity .45s ease"></span>';
+  const bk=view.querySelector('#lugar-back'),tt=view.querySelector('#lugar-title');
+  /* el titulo sigue al idioma elegido */
+  const setTt=()=>{tt.textContent=window.vcI18n?vcI18n.t('Lugar para observar'):'Lugar para observar'};
+  setTt();view._lang=setTt;window.addEventListener('vc-lang',setTt);
   bk.addEventListener('mouseenter',()=>{bk.style.background='#151a32';bk.style.borderColor='#8ab4ff'});
   bk.addEventListener('mouseleave',()=>{bk.style.background='#0e1226ef';bk.style.borderColor='#232846'});
   bk.addEventListener('click',closeLugar);
@@ -1486,25 +1513,27 @@ function openLugar(card,fromUrl){
   /* misma expansion que el logo: el cuadrado de la tarjeta crece hasta ocupar la pantalla y su borde brilla */
   const r=card.getBoundingClientRect(),W=innerWidth,H=innerHeight;
   const c0='inset('+r.top+'px '+(W-r.right)+'px '+(H-r.bottom)+'px '+r.left+'px round 13px)';
-  const ov=document.createElement('div');
-  ov.style.cssText='position:fixed;z-index:99999;inset:0;overflow:hidden;clip-path:'+c0;
-  ov.innerHTML='<div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,#111936 0%,#080b19 55%,#05060f 100%)"></div><div style="position:absolute;inset:-10%;opacity:0;background:radial-gradient(ellipse at 25% 30%,rgba(124,72,210,.55),transparent 60%),radial-gradient(ellipse at 78% 72%,rgba(88,64,214,.45),transparent 62%),linear-gradient(135deg,#1a1048,#2d1561 55%,#150b3a)"></div>';
+  /* la propia pagina (con el mapa) es lo que se expande desde la tarjeta, asi el mapa se dibuja mientras se abre y no hay salto al final */
+  view.style.clipPath=c0;
+  const glow=document.createElement('div');
+  glow.style.cssText='position:absolute;inset:-10%;opacity:0;pointer-events:none;background:radial-gradient(ellipse at 25% 30%,rgba(124,72,210,.55),transparent 60%),radial-gradient(ellipse at 78% 72%,rgba(88,64,214,.45),transparent 62%),linear-gradient(135deg,#1a1048,#2d1561 55%,#150b3a)';
+  view.insertBefore(glow,view.firstChild);
+  bk.style.opacity='0';tt.style.opacity='0';bk.style.transition='background .18s,border-color .18s,opacity .45s ease';
   const bd=document.createElement('div');
-  bd.style.cssText='position:fixed;z-index:100001;pointer-events:none;box-sizing:border-box;border:1px solid #8ab4ff;border-radius:13px;box-shadow:0 0 18px rgba(138,180,255,.45),inset 0 0 18px rgba(138,180,255,.25)';
-  document.body.append(ov,bd);
+  bd.style.cssText='position:fixed;z-index:100003;pointer-events:none;box-sizing:border-box;border:1px solid #8ab4ff;border-radius:13px;box-shadow:0 0 18px rgba(138,180,255,.45),inset 0 0 18px rgba(138,180,255,.25)';
+  document.body.append(view,bd);show();
   const T={duration:760,easing:'cubic-bezier(.7,0,.2,1)',fill:'forwards'};
   bd.animate([
     {top:r.top+'px',right:(W-r.right)+'px',bottom:(H-r.bottom)+'px',left:r.left+'px',borderWidth:'1px',borderRadius:'13px',opacity:1},
     {top:'0px',right:'0px',bottom:'0px',left:'0px',borderWidth:'4px',borderRadius:'0px',opacity:1,offset:.8},
     {top:'0px',right:'0px',bottom:'0px',left:'0px',borderWidth:'6px',borderRadius:'0px',opacity:0}
   ],T);
-  ov.animate([{clipPath:c0},{clipPath:'inset(0px 0px 0px 0px round 0px)'}],T);
-  ov.lastChild.animate([{opacity:0},{opacity:.6}],T);
-  /* el relleno oscuro del cuadrado aparece despues de que el icono y el texto empiecen a desvanecerse, para que no desaparezcan de golpe */
-  ov.firstChild.animate([{opacity:0},{opacity:0,offset:.18},{opacity:1}],T);
+  const va=view.animate([{clipPath:c0},{clipPath:'inset(0px 0px 0px 0px round 0px)'}],T);
+  glow.animate([{opacity:0},{opacity:.6,offset:.55},{opacity:0}],T);
   const fade=[card.querySelector('.gk-ic'),card.querySelector('.gk-tx')||card.querySelector('.gk-t')].filter(Boolean)
     .map(el=>el.animate([{opacity:1,transform:'none',filter:'blur(0px)'},{opacity:0,transform:'scale(1.14)',filter:'blur(3px)'}],{duration:460,easing:'ease-out',fill:'forwards'}));
-  setTimeout(()=>{document.body.append(view);show();setTimeout(()=>{ov.remove();bd.remove();fade.forEach(f=>f.cancel())},150)},800);
+  setTimeout(()=>{bk.style.opacity='1';tt.style.opacity='1'},520);
+  va.onfinish=()=>{va.cancel();view.style.clipPath='';glow.remove();bd.remove();fade.forEach(f=>f.cancel());bk.style.opacity='1';tt.style.opacity='1'};
 }
 /* Rutas: la URL de la ventana superior (mismo origen) refleja la pagina abierta sin recargar */
 const ROUTES={principal:{path:'',title:'Vero Cosmos'},atlas:{path:'/atlas-astrofotografico',title:'Atlas astrofotográfico · Vero Cosmos'},guide:{path:'/guia-astronomica',title:'Guía astronómica · Vero Cosmos'},about:{path:'/quienes-somos',title:'¿Quiénes somos? · Vero Cosmos'},lugar:{path:'/guia-astronomica/lugar-para-observar',title:'Lugar para observar · Vero Cosmos'}};
