@@ -1427,7 +1427,7 @@ lb.innerHTML='';
 items.forEach((it,i)=>{
   const b=document.createElement('button');b.type='button';b.className='gk g-in';b.title='Pr\u00f3ximamente';
   b.style.setProperty('--d',(.9+i*.12)+'s');
-  b.innerHTML='<span class="gk-ic" aria-hidden="true">'+it[1]+'</span><span class="gk-tx"><span class="gk-t"></span>'+(i===2?'<small class="gk-s">Próximamente</small>':'')+'</span>';
+  b.innerHTML='<span class="gk-ic" aria-hidden="true">'+it[1]+'</span><span class="gk-tx"><span class="gk-t"></span>'+(i!==1?'<small class="gk-s">Próximamente</small>':'')+'</span>';
   b.querySelector('.gk-t').textContent=it[0];lb.append(b);
   if(i===1){b.removeAttribute('title');b.addEventListener('click',()=>openLugar(b))}
 });
@@ -1701,7 +1701,11 @@ function openSection(btn,name){
   const others=[...ls.querySelectorAll('.ls-b,.ls-m,.ls-lines')].filter(x=>x!==btn).concat([btn.querySelector('.ls-t')]);
   secEl={side,page,btn,roll,others,c,fades:[],act:null,vz:null};
   if(vzHost)secLoadViz(vzDef,()=>{if(secEl&&secEl.page===page)secEl.vz=window[vzDef.api].mount(vzHost)});
-  if(red){others.forEach(x=>{x.style.opacity='0'});c.style.opacity='0';roll.remove();secEl.roll=null;return}
+  /* movimiento reducido: sin desplazamientos, solo un fundido suave */
+  if(red){
+    others.forEach(x=>{x.style.opacity='0'});c.style.opacity='0';roll.remove();secEl.roll=null;
+    if(side.animate){const F={duration:420,easing:'ease-out',fill:'backwards'};others.concat([c]).forEach(x=>x.animate([{opacity:1},{opacity:0}],{duration:300,easing:'ease-out'}));side.animate([{opacity:0},{opacity:1}],F);page.animate([{opacity:0},{opacity:1}],Object.assign({},F,{delay:120}))}
+    return}
   if(bdS)bdS.style.opacity='0';
   secBusy=true;
   const E='cubic-bezier(.7,0,.2,1)',fs=side.getBoundingClientRect(),fp=page.getBoundingClientRect();
@@ -1745,7 +1749,12 @@ function closeSection(){
     others.concat([c]).forEach(x=>{x.style.opacity='';if(fade)x.animate([{opacity:0},{opacity:1}],{duration:380,easing:'ease-out'})});
   };
   const done=()=>{if(secEl&&secEl.vz)secEl.vz.destroy();side.remove();page.remove();if(roll)roll.remove();secEl=null;secBusy=false};
-  if(secReduce()||!view){restore(false);done();return}
+  if(!view){restore(false);done();return}
+  /* movimiento reducido: la seccion se desvanece y vuelven los botones con un fundido */
+  if(secReduce()){
+    if(!side.animate){restore(false);done();return}
+    secBusy=true;const F={duration:300,easing:'ease-in',fill:'forwards'};side.animate([{opacity:1},{opacity:0}],F);const pa=page.animate([{opacity:1},{opacity:0}],F);
+    pa.onfinish=()=>{restore(true);done()};return}
   secBusy=true;
   const fs=side.getBoundingClientRect(),fp=page.getBoundingClientRect();
   const hid=fs.right-fp.left,x0=fs.right-12,x1=fp.right-12;
@@ -1818,7 +1827,12 @@ function openLugar(card,fromUrl){
     if(!fromUrl)lugarPushed=topGo('lugar',true);
   };
   const reduce=typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if(fromUrl||reduce||!card||!card.animate){document.body.append(view);lugarCenter(view);show();document.body.classList.add('lugar-cover');return}
+  if(fromUrl||reduce||!card||!card.animate){
+    document.body.append(view);lugarCenter(view);show();
+    /* movimiento reducido (desde la guia): la pagina aparece con un fundido en vez de expandirse */
+    if(reduce&&!fromUrl&&view.animate){const fa=view.animate([{opacity:0},{opacity:1}],{duration:450,easing:'ease-out'});fa.onfinish=()=>{if(lugarEl===view)document.body.classList.add('lugar-cover')}}
+    else document.body.classList.add('lugar-cover');
+    return}
   /* misma expansion que el logo: el cuadrado de la tarjeta crece hasta ocupar la pantalla y su borde brilla */
   const r=card.getBoundingClientRect(),W=innerWidth,H=innerHeight;
   const c0='inset('+r.top+'px '+(W-r.right)+'px '+(H-r.bottom)+'px '+r.left+'px round 13px)';
