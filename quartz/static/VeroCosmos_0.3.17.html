@@ -254,6 +254,10 @@ body.guide-page #head h1{display:none}
 .sec-page{left:calc(16px + clamp(64px,24vw,280px)/2);right:16px;z-index:1;padding-left:calc(clamp(64px,24vw,280px)/2);background:linear-gradient(120deg,#131c3b,#0c1129)}
 /* el rodillo del pergamino: un cilindro que recorre la pagina mientras se desenrolla */
 .sec-roll{position:absolute;top:58px;bottom:10px;width:24px;z-index:3;border-radius:12px;pointer-events:none;border:1px solid #5b6bb4;background:linear-gradient(90deg,#0b1025 0%,#2a376f 28%,#8199d8 50%,#2a376f 72%,#0b1025 100%);box-shadow:-10px 0 20px #05060f99,0 0 14px #5b7bff44}
+.sec-orb{position:absolute;z-index:4;box-sizing:border-box;display:flex;align-items:center;justify-content:center;border-radius:50%;border:1.5px solid #5b6bb4;background:linear-gradient(120deg,#111a35,#0b1025);color:#b9c9ff;pointer-events:none}
+.sec-orb svg{width:52%;height:52%;display:block;overflow:visible}
+.sec-orb svg path,.sec-orb svg circle{stroke-width:1.7px;vector-effect:non-scaling-stroke}
+.sec-orb .ac{stroke:#f8d874}
 .sec-h{display:flex;align-items:center;gap:12px;padding:16px;color:#b9c9ff;white-space:nowrap}
 .sec-ic{flex:none;display:flex;align-items:center;justify-content:center;width:40px;height:40px;border:1px solid #414e7a;border-radius:10px;background:#192443}
 .sec-ic svg{width:26px;height:26px;display:block;overflow:visible}
@@ -1556,7 +1560,7 @@ let secEl=null,secBusy=false;
 const secReduce=()=>typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
 function openSection(btn,name){
   const view=document.getElementById('lugar-view');if(!view||secEl||secBusy)return;
-  const ls=view.querySelector('.ls'),c=btn.querySelector('.ls-c'),r=c.getBoundingClientRect();
+  const ls=view.querySelector('.ls'),c=btn.querySelector('.ls-c'),r=c.getBoundingClientRect(),red=secReduce();
   const side=document.createElement('div');side.className='sec-side';
   side.innerHTML='<div class="sec-h"><span class="sec-ic"></span><span class="sec-t" data-ls="'+name+'">'+trL(name)+'</span></div>';
   side.querySelector('.sec-ic').append(c.querySelector('svg').cloneNode(true));
@@ -1564,36 +1568,63 @@ function openSection(btn,name){
   page.innerHTML='<div class="sec-pt" data-ls="'+name+'">'+trL(name)+'</div>';
   const roll=document.createElement('div');roll.className='sec-roll';
   view.append(page,side,roll);
-  secEl={side,page,btn,roll};ls.classList.add('ls-off');
-  if(secReduce()){roll.remove();secEl.roll=null;return}
+  /* lo que se apaga: el resto de botones, la estrella, las lineas y la etiqueta del elegido */
+  const others=[...ls.querySelectorAll('.ls-b,.ls-m,.ls-lines')].filter(x=>x!==btn).concat([btn.querySelector('.ls-t')]);
+  secEl={side,page,btn,roll,others,c,fades:[],act:null};
+  if(red){others.forEach(x=>{x.style.opacity='0'});c.style.opacity='0';roll.remove();secEl.roll=null;return}
   secBusy=true;
-  const fs=side.getBoundingClientRect(),fp=page.getBoundingClientRect(),E='cubic-bezier(.7,0,.2,1)';
-  const hid=fs.right-fp.left,x0=fs.right-12,x1=fp.right-12;   /* hid = parte de la pagina que queda tras el rectangulo */
-  side.animate([{left:r.left+'px',top:r.top+'px',width:r.width+'px',height:r.height+'px',borderRadius:'50%'},{left:fs.left+'px',top:fs.top+'px',width:fs.width+'px',height:fs.height+'px',borderRadius:'13px'}],{duration:620,easing:E});
-  side.firstChild.animate([{opacity:0},{opacity:1}],{duration:320,delay:380,easing:'ease-out',fill:'backwards'});
-  /* se desenrolla: el borde derecho de la pagina avanza desde detras del rectangulo y el rodillo va en cabeza */
-  const T={duration:900,delay:420,easing:E,fill:'backwards'};
-  page.animate([{clipPath:'inset(0px '+(fp.width-hid)+'px 0px 0px)'},{clipPath:'inset(0px 0px 0px 0px)'}],T);
-  roll.animate([{left:x0+'px',opacity:0},{left:x0+'px',opacity:1,offset:.04},{left:x1+'px',opacity:1,offset:.94},{left:x1+'px',opacity:0}],{duration:900,delay:420,easing:E,fill:'both'}).onfinish=()=>{secBusy=false;roll.style.display='none'};
+  const E='cubic-bezier(.7,0,.2,1)',fs=side.getBoundingClientRect(),fp=page.getBoundingClientRect();
+  const hid=fs.right-fp.left,x0=fs.right-12,x1=fp.right-12;
+  secEl.fades=others.map(x=>x.animate([{opacity:1},{opacity:0}],{duration:320,easing:'ease-out',fill:'forwards'}));
+  /* 1) aparece el rectangulo (vacio) a la izquierda y el icono circular viaja hasta su centro */
+  side.firstChild.style.opacity='0';
+  side.animate([{opacity:0,transform:'translateX(-14px)'},{opacity:1,transform:'none'}],{duration:420,delay:60,easing:'ease-out',fill:'backwards'});
+  const orb=document.createElement('div');orb.className='sec-orb';orb.append(c.querySelector('svg').cloneNode(true));
+  const cx=fs.left+fs.width/2-r.width/2,cy=fs.top+fs.height/2-r.height/2,M=700;
+  orb.style.cssText='left:'+cx+'px;top:'+cy+'px;width:'+r.width+'px;height:'+r.height+'px';
+  view.append(orb);
+  secEl.act=c.animate([{opacity:1},{opacity:0}],{duration:40,fill:'forwards'});   /* el original deja paso al que viaja */
+  orb.animate([{left:r.left+'px',top:r.top+'px'},{left:cx+'px',top:cy+'px'}],{duration:M,easing:E});
+  /* 2) en el centro, el borde del circulo se "activa": brilla, late un anillo y el circulo se desvanece */
+  const G=1100;
+  orb.animate([
+    {borderColor:'#5b6bb4',boxShadow:'0 0 0 0 #8ab4ff00',transform:'scale(1)',opacity:1},
+    {borderColor:'#dbe7ff',boxShadow:'0 0 24px 5px #8ab4ffaa, inset 0 0 16px #8ab4ff55',transform:'scale(1.07)',opacity:1,offset:.32},
+    {borderColor:'#8ab4ff',boxShadow:'0 0 34px 9px #8ab4ff77',transform:'scale(1.05)',opacity:1,offset:.62},
+    {borderColor:'#8ab4ff00',boxShadow:'0 0 48px 16px #8ab4ff00',transform:'scale(1.2)',opacity:0}
+  ],{duration:G,delay:M,easing:'ease-in-out',fill:'both'}).onfinish=()=>orb.remove();
+  const ring=document.createElement('div');
+  ring.style.cssText='position:absolute;z-index:3;pointer-events:none;box-sizing:border-box;border:1.5px solid #8ab4ff;border-radius:50%;left:'+cx+'px;top:'+cy+'px;width:'+r.width+'px;height:'+r.height+'px';
+  view.append(ring);
+  ring.animate([{transform:'scale(1)',opacity:0,offset:0},{transform:'scale(1)',opacity:.9,offset:.001},{transform:'scale(2)',opacity:0}],{duration:900,delay:M+200,easing:'ease-out',fill:'both'}).onfinish=()=>ring.remove();
+  /* 3) y solo entonces se carga el resto: el titulo del rectangulo y, desde debajo, la pagina que se desenrolla */
+  const D0=M+G-250;
+  side.firstChild.animate([{opacity:0},{opacity:1}],{duration:360,delay:D0,easing:'ease-out',fill:'both'});
+  const T={duration:900,delay:D0+250,easing:E,fill:'backwards'};
+  page.animate([{clipPath:'inset(0px '+fp.width+'px 0px 0px)'},{clipPath:'inset(0px 0px 0px 0px)'}],T);
+  roll.animate([{left:x0+'px',opacity:0},{left:x0+'px',opacity:1,offset:.04},{left:x1+'px',opacity:1,offset:.94},{left:x1+'px',opacity:0}],{duration:900,delay:D0+250,easing:E,fill:'both'}).onfinish=()=>{secBusy=false;roll.style.display='none'};
 }
 function closeSection(){
   if(!secEl||secBusy)return;
-  const {side,page,btn,roll}=secEl,view=document.getElementById('lugar-view'),ls=view&&view.querySelector('.ls');
+  const {side,page,btn,roll,others,c,fades,act}=secEl,view=document.getElementById('lugar-view');
+  /* vuelve a mostrarse todo lo que se habia apagado (con un fundido) */
+  const restore=(fade)=>{
+    (fades||[]).forEach(an=>an.cancel());if(act)act.cancel();
+    others.concat([c]).forEach(x=>{x.style.opacity='';if(fade)x.animate([{opacity:0},{opacity:1}],{duration:380,easing:'ease-out'})});
+  };
   const done=()=>{side.remove();page.remove();if(roll)roll.remove();secEl=null;secBusy=false};
-  if(secReduce()||!view){if(ls)ls.classList.remove('ls-off');done();return}
+  if(secReduce()||!view){restore(false);done();return}
   secBusy=true;
-  const r=btn.querySelector('.ls-c').getBoundingClientRect(),fs=side.getBoundingClientRect(),fp=page.getBoundingClientRect(),E='cubic-bezier(.7,0,.2,1)';
+  const fs=side.getBoundingClientRect(),fp=page.getBoundingClientRect();
   const hid=fs.right-fp.left,x0=fs.right-12,x1=fp.right-12;
-  /* se enrolla: el rodillo vuelve por la pagina y esta se recoge tras el rectangulo */
+  /* se enrolla el pergamino, se va el rectangulo y regresan los botones */
   roll.style.display='';
   roll.animate([{left:x1+'px',opacity:0},{left:x1+'px',opacity:1,offset:.04},{left:x0+'px',opacity:1,offset:.94},{left:x0+'px',opacity:0}],{duration:560,easing:'cubic-bezier(.5,0,.3,1)',fill:'forwards'});
-  page.animate([{clipPath:'inset(0px 0px 0px 0px)'},{clipPath:'inset(0px '+(fp.width-hid)+'px 0px 0px)'}],{duration:560,easing:'cubic-bezier(.5,0,.3,1)',fill:'forwards'});
+  page.animate([{clipPath:'inset(0px 0px 0px 0px)'},{clipPath:'inset(0px '+(fp.width-hid)+'px 0px 0px)',offset:.97},{clipPath:'inset(0px '+fp.width+'px 0px 0px)'}],{duration:560,easing:'cubic-bezier(.5,0,.3,1)',fill:'forwards'});
   side.firstChild.animate([{opacity:1},{opacity:0}],{duration:200,delay:360,fill:'forwards'});
-  setTimeout(()=>{
-    if(ls)ls.classList.remove('ls-off');
-    const m=side.animate([{left:fs.left+'px',top:fs.top+'px',width:fs.width+'px',height:fs.height+'px',borderRadius:'13px'},{left:r.left+'px',top:r.top+'px',width:r.width+'px',height:r.height+'px',borderRadius:'50%'}],{duration:520,easing:E,fill:'forwards'});
-    m.onfinish=done;
-  },560);
+  side.animate([{opacity:1,transform:'none'},{opacity:0,transform:'translateX(-12px)'}],{duration:340,delay:560,easing:'ease-in',fill:'forwards'});
+  setTimeout(()=>restore(true),760);
+  setTimeout(done,1180);
 }
 /* centra cada dibujo en su circulo: mueve el encuadre (viewBox) para que el centro del dibujo quede en el centro, sin cambiar su tamano */
 function lugarCenter(root){
