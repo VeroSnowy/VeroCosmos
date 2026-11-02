@@ -212,6 +212,14 @@ body.guide-page #head h1{display:none}
 #ss-svg .belt{fill:none;stroke-linecap:round;pointer-events:none}
 #ss-svg .bl{fill:#c9d1f2;font-style:italic;pointer-events:none}
 #ss-svg #ss-comet text{fill:#d7ecff;pointer-events:none}
+#topo{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
+#topo .tg{transform-origin:50% 50%;animation:topoDrift 28s ease-in-out infinite alternate}
+#topo .tl{fill:none;stroke:#5b6bb4;stroke-width:1.1;stroke-linecap:round;stroke-linejoin:round;opacity:0;animation:topoIn .9s ease calc(var(--i)*.13s + .15s) forwards,topoPulse 7s ease-in-out calc(var(--i)*.28s + 2.2s) infinite}
+#topo .ti{stroke:#8ab4ff;stroke-width:1.7}
+@keyframes topoIn{from{opacity:0}to{opacity:.3}}
+@keyframes topoPulse{0%,100%{opacity:.3}45%{opacity:.62}}
+@keyframes topoDrift{from{transform:scale(1) translate(0,0)}to{transform:scale(1.07) translate(-1.2%,.8%)}}
+@media(prefers-reduced-motion:reduce){#topo .tg{animation:none}#topo .tl{animation:none;opacity:.4}}
 #ss-svg .pl *{pointer-events:none}#ss-svg .pl .hit{pointer-events:all}
 .pl .halo{opacity:0;transition:opacity .2s ease;pointer-events:none}
 .pl:hover .halo,.pl:focus-visible .halo{opacity:1}
@@ -1415,27 +1423,66 @@ function logoGo(ev){
   openAbout(true);
   setTimeout(()=>{qs&&(qs._go=true);qsStart()},800);
 }
-/* Lugar para observar: pagina a pantalla completa (por ahora en blanco) que se abre con la misma expansion que el logo */
-let lugarEl=null;
+/* Mapa topografico minimalista (distinto cada vez que se abre): curvas de nivel calculadas sobre un relieve inventado; aparecen de fuera hacia dentro y un pulso recorre las curvas */
+function topoSvg(){
+  const W=1000,H=700,NX=100,NY=70,cw=W/NX,ch=H/NY;
+  let s=(Math.random()*4294967296)>>>0;const rnd=()=>{s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
+  const hills=[];const NH=10+Math.floor(rnd()*7);for(let i=0;i<NH;i++)hills.push({x:W*(-.05+1.1*rnd()),y:H*(-.05+1.1*rnd()),r:60+110*rnd(),a:(rnd()<.38?-1:1)*(.5+.6*rnd())});
+  const ph=[rnd()*6.28,rnd()*6.28,rnd()*6.28];
+  const hf=(x,y)=>{let h=0;for(const k of hills){const dx=x-k.x,dy=y-k.y;h+=k.a*Math.exp(-(dx*dx+dy*dy)/(2*k.r*k.r))}
+    return h+.1*Math.sin(x*.016+ph[0])*Math.cos(y*.019+ph[1])+.06*Math.sin(x*.041+y*.029+ph[2])+.035*Math.cos(x*.07-y*.057+ph[0])};
+  const g=[];for(let j=0;j<=NY;j++){const row=[];for(let i=0;i<=NX;i++)row.push(hf(i*cw,j*ch));g.push(row)}
+  let gmin=1e9,gmax=-1e9;for(const row of g)for(const v of row){if(v<gmin)gmin=v;if(v>gmax)gmax=v}
+  const L=22,lo=gmin+.05*(gmax-gmin),hi=gmax-.03*(gmax-gmin),out=[];
+  for(let n=0;n<L;n++){
+    const t=lo+(hi-lo)*n/(L-1);let d='';
+    const P=(x0,y0,v0,x1,y1,v1)=>{const u=(t-v0)/(v1-v0);return[(x0+(x1-x0)*u).toFixed(1),(y0+(y1-y0)*u).toFixed(1)]};
+    for(let j=0;j<NY;j++)for(let i=0;i<NX;i++){
+      const v00=g[j][i],v10=g[j][i+1],v11=g[j+1][i+1],v01=g[j+1][i],x=i*cw,y=j*ch;
+      const c=(v00>t?8:0)|(v10>t?4:0)|(v11>t?2:0)|(v01>t?1:0);if(c===0||c===15)continue;
+      const T=()=>P(x,y,v00,x+cw,y,v10),R=()=>P(x+cw,y,v10,x+cw,y+ch,v11),B=()=>P(x,y+ch,v01,x+cw,y+ch,v11),Lf=()=>P(x,y,v00,x,y+ch,v01);
+      const seg=(p,q)=>{d+='M'+p[0]+' '+p[1]+'L'+q[0]+' '+q[1]};
+      switch(c){case 1:case 14:seg(Lf(),B());break;case 2:case 13:seg(B(),R());break;case 3:case 12:seg(Lf(),R());break;case 4:case 11:seg(T(),R());break;
+        case 6:case 9:seg(T(),B());break;case 7:case 8:seg(Lf(),T());break;case 5:seg(Lf(),T());seg(B(),R());break;case 10:seg(T(),R());seg(Lf(),B());break}
+    }
+    if(d)out.push('<path d="'+d+'" class="tl'+(n%5===4?' ti':'')+'" style="--i:'+n+'"/>');
+  }
+  return '<svg id="topo" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><g class="tg">'+out.join('')+'</g></svg>';
+}
+/* Lugar para observar: pagina a pantalla completa (por ahora en blanco) que se abre con la misma expansion que el logo.
+   Tiene su propia URL (/guia-astronomica/lugar-para-observar): se abre con la animacion al pulsar la tarjeta y directamente si se entra por la URL */
+let lugarEl=null,lugarPushed=false;
 function lugarKey(e){if(e.key==='Escape'&&lugarEl){e.preventDefault();e.stopPropagation();closeLugar()}}
-function closeLugar(){
+function removeLugar(){
   if(!lugarEl)return;
   const el=lugarEl;lugarEl=null;document.removeEventListener('keydown',lugarKey,true);
   el.style.transition='opacity .28s ease';el.style.opacity='0';el.style.pointerEvents='none';
   setTimeout(()=>el.remove(),300);
 }
-function openLugar(card){
+/* cerrar con la flecha o Esc: si se abrio desde la guia, "atras" del navegador; si se entro por la URL, vuelve a la guia */
+function closeLugar(){
+  if(!lugarEl)return;
+  if(lugarPushed){lugarPushed=false;try{T0.history.back();return}catch(e){}}
+  removeLugar();
+  routeQuiet=true;try{setPageActive('guide')}finally{routeQuiet=false}
+  topGo('guide',false);
+}
+function openLugar(card,fromUrl){
   if(lugarEl||(card&&card._busy))return;if(card)card._busy=true;
   const view=document.createElement('div');view.id='lugar-view';view.setAttribute('role','dialog');view.setAttribute('aria-label','Lugar para observar');
   view.style.cssText='position:fixed;inset:0;z-index:100002;background:radial-gradient(ellipse at 50% 40%,#111936 0%,#080b19 55%,#05060f 100%);color:#eef1ff';
-  view.innerHTML='<button type="button" id="lugar-back" aria-label="Volver" style="position:absolute;top:12px;left:16px;display:flex;align-items:center;justify-content:center;width:34px;height:34px;padding:0;border:1px solid #232846;border-radius:7px;background:#0e1226ef;color:#eef1ff;cursor:pointer;transition:background .18s,border-color .18s"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button>';
-  const bk=view.firstChild;
+  view.innerHTML=''+topoSvg()+'<button type="button" id="lugar-back" aria-label="Volver" style="position:absolute;top:12px;left:16px;display:flex;align-items:center;justify-content:center;width:34px;height:34px;padding:0;border:1px solid #232846;border-radius:7px;background:#0e1226ef;color:#eef1ff;cursor:pointer;transition:background .18s,border-color .18s"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button>';
+  const bk=view.querySelector('#lugar-back');
   bk.addEventListener('mouseenter',()=>{bk.style.background='#151a32';bk.style.borderColor='#8ab4ff'});
   bk.addEventListener('mouseleave',()=>{bk.style.background='#0e1226ef';bk.style.borderColor='#232846'});
   bk.addEventListener('click',closeLugar);
-  const show=()=>{if(card)card._busy=false;lugarEl=view;document.addEventListener('keydown',lugarKey,true);try{bk.focus({preventScroll:true})}catch(e){}};
+  const show=()=>{
+    if(card)card._busy=false;lugarEl=view;document.addEventListener('keydown',lugarKey,true);
+    try{bk.focus({preventScroll:true})}catch(e){}
+    if(!fromUrl)lugarPushed=topGo('lugar',true);
+  };
   const reduce=typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if(reduce||!card||!card.animate){document.body.append(view);show();return}
+  if(fromUrl||reduce||!card||!card.animate){document.body.append(view);show();return}
   /* misma expansion que el logo: el cuadrado de la tarjeta crece hasta ocupar la pantalla y su borde brilla */
   const r=card.getBoundingClientRect(),W=innerWidth,H=innerHeight;
   const c0='inset('+r.top+'px '+(W-r.right)+'px '+(H-r.bottom)+'px '+r.left+'px round 13px)';
@@ -1453,13 +1500,17 @@ function openLugar(card){
   ],T);
   ov.animate([{clipPath:c0},{clipPath:'inset(0px 0px 0px 0px round 0px)'}],T);
   ov.lastChild.animate([{opacity:0},{opacity:.6}],T);
-  setTimeout(()=>{document.body.append(view);show();setTimeout(()=>{ov.remove();bd.remove()},150)},800);
+  /* el relleno oscuro del cuadrado aparece despues de que el icono y el texto empiecen a desvanecerse, para que no desaparezcan de golpe */
+  ov.firstChild.animate([{opacity:0},{opacity:0,offset:.18},{opacity:1}],T);
+  const fade=[card.querySelector('.gk-ic'),card.querySelector('.gk-tx')||card.querySelector('.gk-t')].filter(Boolean)
+    .map(el=>el.animate([{opacity:1,transform:'none',filter:'blur(0px)'},{opacity:0,transform:'scale(1.14)',filter:'blur(3px)'}],{duration:460,easing:'ease-out',fill:'forwards'}));
+  setTimeout(()=>{document.body.append(view);show();setTimeout(()=>{ov.remove();bd.remove();fade.forEach(f=>f.cancel())},150)},800);
 }
 /* Rutas: la URL de la ventana superior (mismo origen) refleja la pagina abierta sin recargar */
-const ROUTES={principal:{path:'',title:'Vero Cosmos'},atlas:{path:'/atlas-astrofotografico',title:'Atlas astrofotográfico · Vero Cosmos'},guide:{path:'/guia-astronomica',title:'Guía astronómica · Vero Cosmos'},about:{path:'/quienes-somos',title:'¿Quiénes somos? · Vero Cosmos'}};
+const ROUTES={principal:{path:'',title:'Vero Cosmos'},atlas:{path:'/atlas-astrofotografico',title:'Atlas astrofotográfico · Vero Cosmos'},guide:{path:'/guia-astronomica',title:'Guía astronómica · Vero Cosmos'},about:{path:'/quienes-somos',title:'¿Quiénes somos? · Vero Cosmos'},lugar:{path:'/guia-astronomica/lugar-para-observar',title:'Lugar para observar · Vero Cosmos'}};
 function titleFor(k){
   if(!window.vcI18n||vcI18n.lang==='es')return ROUTES[k].title;
-  const t=vcI18n.t,nm={principal:'Vero Cosmos',atlas:t('Atlas Astrofotográfico'),guide:t('Guía Astronómica'),about:t('¿Quiénes somos?')}[k];
+  const t=vcI18n.t,nm={principal:'Vero Cosmos',atlas:t('Atlas Astrofotográfico'),guide:t('Guía Astronómica'),about:t('¿Quiénes somos?'),lugar:t('Lugar para observar')}[k];
   return k==='principal'?nm:nm+' \u00b7 Vero Cosmos';
 }
 let T0=window;try{T0=window.top;void T0.location.pathname}catch(e){T0=window}
@@ -1607,15 +1658,17 @@ function routeFromLocation(){
   const key=Object.keys(ROUTES).find(k=>ROUTES[k].path===p)||'principal';
   routeQuiet=true;
   try{
+    if(key==='lugar'){removeAbout();setPageActive('guide');try{T0.document.title=titleFor('lugar')}catch(e){}if(!lugarEl)openLugar(null,true)}
+    else{removeLugar();lugarPushed=false;
     if(key==='about'){if(!qs){beforeAbout=curPage;openAbout(false)}}
-    else{removeAbout();setPageActive(key);try{T0.document.title=titleFor(key)}catch(e){}}
-    const fn=key==='about'?null:fichaFromHash();
+    else{removeAbout();setPageActive(key);try{T0.document.title=titleFor(key)}catch(e){}}}
+    const fn=(key==='about'||key==='lugar')?null:fichaFromHash();
     if(fn){if(!fi)openFicha(fn,true)}else{removeFicha();fichaPushed=false}
   }finally{routeQuiet=false}
   if(afterBack){const f=afterBack;afterBack=null;f()}
 }
 if(T0!==window)T0.addEventListener('popstate',routeFromLocation);
-window.addEventListener('vc-lang',()=>{try{if(T0!==window)T0.document.title=titleFor(qs?'about':curPage)}catch(e){}});
+window.addEventListener('vc-lang',()=>{try{if(T0!==window)T0.document.title=titleFor(qs?'about':lugarEl?'lugar':curPage)}catch(e){}});
 /* Al volver con "atras" (bfcache) la pagina se restaura tal cual: quitar la transicion del logo para no quedarse atascado */
 function clearLogoGo(){document.querySelectorAll('.logo-go').forEach(n=>n.remove())}
 window.addEventListener('pageshow',clearLogoGo);
