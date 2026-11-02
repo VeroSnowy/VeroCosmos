@@ -263,11 +263,26 @@ body.guide-page #head h1{display:none}
 .sec-body p{margin:0 0 12px}
 .sec-body p.sec-q{margin:18px 0 6px;font-weight:700;color:#f5f7ff}
 .sec-page .sec-body{display:none;overflow:visible;padding:0 16px 16px}
+/* en "Lugar para observar" el menu, el idioma y el logo siguen visibles por encima de la pagina */
+body.lugar-on #head,body.lugar-on .vc-lang,body.lugar-on #logo-btn{z-index:100004}
+body.lugar-on #head h1{display:none}
+@media(max-width:480px){#lugar-title{font-size:16px!important}}
+@media(max-width:350px){#lugar-title{display:none!important}}
 @media(max-width:640px){#lugar-view{--sw:54px}.sec-side .sec-body{display:none}.sec-page .sec-body{display:block}.sec-page .sec-body{padding:0 12px 12px}.sec-pt{padding:12px 12px 8px}.sec-h{padding:12px 0}}
 .sec-side.sec-nogo{visibility:hidden}
 .sec-body.sec-cp{line-height:1.32}.sec-body.sec-cp p{margin:0 0 4px}.sec-body.sec-cp p.sec-q{margin:7px 0 2px}
 /* pantallas muy bajas (movil en horizontal): menos margenes para que quepa el texto */
 @media(max-height:420px){.sec-side,.sec-page{top:50px;bottom:8px}.sec-pt{padding:5px 12px 0;font-size:14px}.sec-page .sec-body{padding-bottom:6px}.sec-h{padding-top:8px;padding-bottom:6px}}
+/* dibujo interactivo (escala de Bortle): ocupa la parte visible de la pagina */
+.sec-viz{position:absolute;top:0;bottom:0;right:0;left:calc(var(--sw,clamp(64px,24vw,310px))/2);display:flex}
+.sec-tg{display:none;position:absolute;top:8px;left:calc(var(--sw,clamp(64px,24vw,310px))/2 + 8px);z-index:6;width:34px;height:34px;padding:0;align-items:center;justify-content:center;border:1.5px solid #5b6bb4;border-radius:50%;background:#0e1430;color:#b9c9ff;cursor:pointer;transition:border-color .2s ease,transform .2s ease}
+.sec-tg:hover,.sec-tg:focus-visible{border-color:#8ab4ff;transform:translateY(-1px);outline:none}
+.sec-tg svg{width:18px;height:18px;display:block}
+.sec-tg svg path,.sec-tg svg circle{stroke-width:1.7px;vector-effect:non-scaling-stroke}
+.sec-tg .ic-txt{display:block}.sec-tg .ic-viz{display:none}
+.sec-page.sec-showtext .sec-tg .ic-txt{display:none}.sec-page.sec-showtext .sec-tg .ic-viz{display:block}
+@media(max-width:640px){.sec-tg{display:flex}.sec-viz-page:not(.sec-showtext) .sec-body,.sec-viz-page:not(.sec-showtext) .sec-pt{display:none}.sec-viz-page.sec-showtext .sec-viz{display:none}}
+.sec-pgmode .sec-tg{display:flex}.sec-pgmode .sec-viz-page:not(.sec-showtext) .sec-body,.sec-pgmode .sec-viz-page:not(.sec-showtext) .sec-pt{display:none}.sec-pgmode .sec-viz-page.sec-showtext .sec-viz{display:none}
 .sec-pgmode .sec-side .sec-body{display:none}.sec-pgmode .sec-page .sec-body{display:block}.sec-pgmode .sec-pt{display:block}
 .sec-h{display:flex;align-items:center;gap:12px;padding:16px;color:#b9c9ff;white-space:nowrap}
 .sec-ic{flex:none;display:flex;align-items:center;justify-content:center;width:40px;height:40px;border:1px solid #414e7a;border-radius:10px;background:#192443}
@@ -1574,7 +1589,7 @@ const SEC_TXT={
   'Contaminación Lumínica':[
     {p:'Encontrar un lugar lejos de las luces y los destellos de las calles es clave para ayudarnos a observar objetos distantes o a desvelar imágenes con mayor nitidez.'},
     {q:'¿Qué es la contaminación lumínica?'},
-    {p:'La contaminación lumínica se produce a través de los procesos de refracción y reflexión de la luz en las zonas altamente afectadas por fuentes de luz. Estas, para el ojo humano, son casi imperceptibles pero a la hora de operar con telescopios pueden incluso imposibilitarnos fotografiar ciertos objetos.'},
+    {p:'La contaminación lumínica se produce a través de procesos lumínicos de disipación en la atmósfera en las zonas altamente afectadas por fuentes de luz artificial. Estas, para el ojo humano, son casi imperceptibles pero a la hora de operar con telescopios pueden incluso imposibilitarnos fotografiar ciertos objetos.'},
     {q:'¿Cuáles son los mejores lugares?'},
     {p:'Principalmente lugares rurales, alejados de la gran ciudad y en su mayoría en obscuridad. En general, la ausencia de fuentes de luz.'},
     {q:'¿Y la luz de la Luna?'},
@@ -1590,7 +1605,7 @@ function secFitAll(view,sb,pb,page){
   const lang=()=>setTimeout(fit,30);
   let busy=false;
   function fit(){
-    if(!view.isConnected){window.removeEventListener('vc-lang',lang);window.removeEventListener('resize',fit);return}
+    if(!view.isConnected||!sb.isConnected){window.removeEventListener('vc-lang',lang);window.removeEventListener('resize',fit);ros.forEach(o=>o.disconnect());return}
     if(busy)return;busy=true;
     try{
       view.classList.remove('sec-pgmode');view.querySelector('.sec-side').classList.remove('sec-nogo');
@@ -1617,7 +1632,7 @@ function secFitAll(view,sb,pb,page){
     }
   }
   window.addEventListener('vc-lang',lang);window.addEventListener('resize',fit);
-  fit();try{new ResizeObserver(fit).observe(sb);new ResizeObserver(fit).observe(page)}catch(e){}
+  const ros=[];fit();try{[sb,page].forEach(el=>{const o=new ResizeObserver(fit);o.observe(el);ros.push(o)})}catch(e){}
 }
 function secBody(name){
   const L=SEC_TXT[name];if(!L)return null;
@@ -1625,6 +1640,20 @@ function secBody(name){
   const d=document.createElement('div');d.className='sec-body';
   d.innerHTML=L.map(x=>{const t=x.q||x.p;return '<p'+(x.q?' class="sec-q"':'')+' data-ls="'+esc(t)+'">'+esc(trL(t))+'</p>'}).join('');
   return d;
+}
+/* Secciones con dibujo interactivo: se cargan bajo demanda (bortle.js) */
+const SEC_VIZ={'Contaminación Lumínica':{src:'bortle.js?v=3',api:'vcBortle'}};
+function secLoadViz(def,cb){
+  if(window[def.api]){cb();return}
+  let s=document.querySelector('script[data-viz="'+def.api+'"]');
+  if(!s){s=document.createElement('script');s.src=def.src;s.dataset.viz=def.api;document.head.append(s)}
+  s.addEventListener('load',cb)
+}
+function secToggleBtn(page){
+  const b=document.createElement('button');b.type='button';b.className='sec-tg';b.setAttribute('aria-label','Texto / dibujo');
+  b.innerHTML='<svg class="ic-txt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 11h16M4 16h16M4 21h9"/></svg><svg class="ic-viz" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 20l6.5-10 4 6 2.5-3.5L22 20z"/><circle cx="17" cy="6" r="2"/></svg>';
+  b.addEventListener('click',()=>{page.classList.toggle('sec-showtext');window.dispatchEvent(new Event('resize'))});
+  return b;
 }
 function openSection(btn,name){
   const view=document.getElementById('lugar-view');if(!view||secEl||secBusy)return;
@@ -1636,11 +1665,14 @@ function openSection(btn,name){
   page.innerHTML='<div class="sec-pt" data-ls="'+name+'">'+trL(name)+'</div>';
   const roll=document.createElement('div');roll.className='sec-roll';
   const bdS=secBody(name),bdP=bdS&&secBody(name);if(bdS){side.append(bdS);page.append(bdP)}
+  const vzDef=SEC_VIZ[name];let vzHost=null;
+  if(vzDef){vzHost=document.createElement('div');vzHost.className='sec-viz';page.append(vzHost,secToggleBtn(page));page.classList.add('sec-viz-page')}
   view.append(page,side,roll);
   if(bdS)secFitAll(view,bdS,bdP,page);
   /* lo que se apaga: el resto de botones, la estrella, las lineas y la etiqueta del elegido */
   const others=[...ls.querySelectorAll('.ls-b,.ls-m,.ls-lines')].filter(x=>x!==btn).concat([btn.querySelector('.ls-t')]);
-  secEl={side,page,btn,roll,others,c,fades:[],act:null};
+  secEl={side,page,btn,roll,others,c,fades:[],act:null,vz:null};
+  if(vzHost)secLoadViz(vzDef,()=>{if(secEl&&secEl.page===page)secEl.vz=window[vzDef.api].mount(vzHost)});
   if(red){others.forEach(x=>{x.style.opacity='0'});c.style.opacity='0';roll.remove();secEl.roll=null;return}
   if(bdS)bdS.style.opacity='0';
   secBusy=true;
@@ -1684,7 +1716,7 @@ function closeSection(){
     (fades||[]).forEach(an=>an.cancel());if(act)act.cancel();
     others.concat([c]).forEach(x=>{x.style.opacity='';if(fade)x.animate([{opacity:0},{opacity:1}],{duration:380,easing:'ease-out'})});
   };
-  const done=()=>{side.remove();page.remove();if(roll)roll.remove();secEl=null;secBusy=false};
+  const done=()=>{if(secEl&&secEl.vz)secEl.vz.destroy();side.remove();page.remove();if(roll)roll.remove();secEl=null;secBusy=false};
   if(secReduce()||!view){restore(false);done();return}
   secBusy=true;
   const fs=side.getBoundingClientRect(),fp=page.getBoundingClientRect();
@@ -1710,11 +1742,14 @@ function lugarCenter(root){
 /* Lugar para observar: pagina a pantalla completa (por ahora en blanco) que se abre con la misma expansion que el logo.
    Tiene su propia URL (/guia-astronomica/lugar-para-observar): se abre con la animacion al pulsar la tarjeta y directamente si se entra por la URL */
 let lugarEl=null,lugarPushed=false;
-function lugarKey(e){if(e.key==='Escape'&&lugarEl){e.preventDefault();e.stopPropagation();closeLugar()}}
+function lugarKey(e){if(e.key==='Escape'&&lugarEl){e.preventDefault();e.stopPropagation();if(pageMenu.classList.contains('open')){closePageMenu();return}closeLugar()}}
+/* ir a otra pagina desde el menu o el logo cierra "Lugar para observar" */
+document.addEventListener('click',ev=>{if(lugarEl&&ev.target.closest&&ev.target.closest('#page-menu a,#logo-btn')){lugarPushed=false;removeLugar()}},true);
 function removeLugar(){
   if(!lugarEl)return;
+  if(secEl&&secEl.vz)secEl.vz.destroy();
   secEl=null;secBusy=false;
-  const el=lugarEl;lugarEl=null;document.removeEventListener('keydown',lugarKey,true);if(el._lang)window.removeEventListener('vc-lang',el._lang);
+  const el=lugarEl;lugarEl=null;document.body.classList.remove('lugar-on');document.removeEventListener('keydown',lugarKey,true);if(el._lang)window.removeEventListener('vc-lang',el._lang);
   el.style.transition='opacity .28s ease';el.style.opacity='0';el.style.pointerEvents='none';
   setTimeout(()=>el.remove(),300);
 }
@@ -1731,7 +1766,7 @@ function openLugar(card,fromUrl){
   if(lugarEl||(card&&card._busy))return;if(card)card._busy=true;
   const view=document.createElement('div');view.id='lugar-view';view.setAttribute('role','dialog');view.setAttribute('aria-label','Lugar para observar');
   view.style.cssText='position:fixed;inset:0;z-index:100002;background:radial-gradient(ellipse at 50% 40%,#111936 0%,#080b19 55%,#05060f 100%);color:#eef1ff';
-  view.innerHTML=''+topoSvg()+lugarStar()+'<button type="button" id="lugar-back" aria-label="Volver" style="position:absolute;top:12px;left:16px;display:flex;align-items:center;justify-content:center;width:34px;height:34px;padding:0;border:1px solid #232846;border-radius:7px;background:#0e1226ef;color:#eef1ff;cursor:pointer;transition:background .18s,border-color .18s"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><span id="lugar-title" style="position:absolute;top:12px;left:60px;height:34px;display:flex;align-items:center;font:400 20px/1 \'Iowan Old Style\',Georgia,serif;color:#f5f7ff;white-space:nowrap;pointer-events:none;transition:opacity .45s ease"></span>';
+  view.innerHTML=''+topoSvg()+lugarStar()+'<button type="button" id="lugar-back" aria-label="Volver" style="position:absolute;top:12px;left:60px;display:flex;align-items:center;justify-content:center;width:34px;height:34px;padding:0;border:1px solid #232846;border-radius:7px;background:#0e1226ef;color:#eef1ff;cursor:pointer;transition:background .18s,border-color .18s"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><span id="lugar-title" style="position:absolute;top:12px;left:104px;height:34px;display:flex;align-items:center;font:400 20px/1 \'Iowan Old Style\',Georgia,serif;color:#f5f7ff;white-space:nowrap;pointer-events:none;transition:opacity .45s ease"></span>';
   const bk=view.querySelector('#lugar-back'),tt=view.querySelector('#lugar-title');
   /* el titulo sigue al idioma elegido */
   const tr=k=>window.vcI18n?vcI18n.t(k):k;
@@ -1742,7 +1777,7 @@ function openLugar(card,fromUrl){
   bk.addEventListener('click',closeLugar);
   view.querySelectorAll('.ls-b').forEach(b=>b.addEventListener('click',()=>openSection(b,b.getAttribute('aria-label'))));
   const show=()=>{
-    if(card)card._busy=false;lugarEl=view;document.addEventListener('keydown',lugarKey,true);
+    if(card)card._busy=false;lugarEl=view;document.body.classList.add('lugar-on');document.addEventListener('keydown',lugarKey,true);
     try{bk.focus({preventScroll:true})}catch(e){}
     if(!fromUrl)lugarPushed=topGo('lugar',true);
   };
@@ -2015,7 +2050,7 @@ function vcSky(cv,active){
 }
 vcSky(document.getElementById("sky"),()=>document.body.classList.contains("principal-page"));
 </script>
-<script src="vc-i18n.js?v=38"></script>
+<script src="vc-i18n.js?v=40"></script>
 <script>vcI18n.mount(document.getElementById("stage"));</script>
 </body>
 </html>
