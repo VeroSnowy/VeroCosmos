@@ -444,7 +444,21 @@ const DICT={
     "Meteorología":"Meteorology",
     "Elección del lugar":"Site Selection",
     "Preparación":"Preparation",
-    "Mi Lugar":"My Place"
+    "Mi Lugar":"My Place",
+    "Encontrar un lugar lejos de las luces y los destellos de las calles es clave para ayudarnos a observar objetos distantes o a desvelar imágenes con mayor nitidez.":"Finding a place away from the lights and glare of the streets is key to helping us observe distant objects or reveal images with greater sharpness.",
+    "¿Qué es la contaminación lumínica?":"What is light pollution?",
+    "La contaminación lumínica se produce a través de los procesos de refracción y reflexión de la luz en las zonas altamente afectadas por fuentes de luz. Estas, para el ojo humano, son casi imperceptibles pero a la hora de operar con telescopios pueden incluso imposibilitarnos fotografiar ciertos objetos.":"Light pollution is produced through the processes of refraction and reflection of light in areas heavily affected by light sources. These are almost imperceptible to the human eye, but when operating telescopes they can even make it impossible for us to photograph certain objects.",
+    "¿Cuáles son los mejores lugares?":"What are the best places?",
+    "Principalmente lugares rurales, alejados de la gran ciudad y en su mayoría en obscuridad. En general, la ausencia de fuentes de luz.":"Mainly rural places, far from the big city and mostly in darkness. In general, the absence of light sources.",
+    "¿Y la luz de la Luna?":"What about the light of the Moon?",
+    "A veces, olvidamos la luz de nuestra damisela de la noche. Sin embargo, esta es una de las mayores fuentes de la misma por lo que conviene evitarla saliendo a observar en días de Luna Nueva cuando se pretenda observar objetos de espacio profundo.":"Sometimes we forget the light of our damsel of the night. However, it is one of the greatest sources of the same, so it is best to avoid it by going out to observe on New Moon days when the aim is to observe deep-space objects.",
+    "Escala de Bortle":"Bortle Scale",
+    "Cielo más oscuro":"Darkest sky",
+    "Cielo más claro":"Brightest sky",
+    "Vía Láctea":"Milky Way",
+    "Galaxia de Andrómeda":"Andromeda Galaxy",
+    "Nebulosa de Orión":"Orion Nebula",
+    "Pléyades":"Pleiades"
   },
   fr:{
     /* PAGINA PRINCIPAL */
@@ -904,7 +918,21 @@ const DICT={
     "Meteorología":"Météorologie",
     "Elección del lugar":"Choix du lieu",
     "Preparación":"Préparation",
-    "Mi Lugar":"Mon lieu"
+    "Mi Lugar":"Mon lieu",
+    "Encontrar un lugar lejos de las luces y los destellos de las calles es clave para ayudarnos a observar objetos distantes o a desvelar imágenes con mayor nitidez.":"Trouver un endroit loin des lumières et des éclats des rues est essentiel pour nous aider à observer des objets lointains ou à révéler des images avec plus de netteté.",
+    "¿Qué es la contaminación lumínica?":"Qu'est-ce que la pollution lumineuse ?",
+    "La contaminación lumínica se produce a través de los procesos de refracción y reflexión de la luz en las zonas altamente afectadas por fuentes de luz. Estas, para el ojo humano, son casi imperceptibles pero a la hora de operar con telescopios pueden incluso imposibilitarnos fotografiar ciertos objetos.":"La pollution lumineuse se produit par les processus de réfraction et de réflexion de la lumière dans les zones fortement touchées par des sources lumineuses. Celles-ci sont presque imperceptibles pour l'œil humain, mais lorsqu'on utilise des télescopes, elles peuvent même nous empêcher de photographier certains objets.",
+    "¿Cuáles son los mejores lugares?":"Quels sont les meilleurs endroits ?",
+    "Principalmente lugares rurales, alejados de la gran ciudad y en su mayoría en obscuridad. En general, la ausencia de fuentes de luz.":"Principalement des lieux ruraux, éloignés de la grande ville et, pour la plupart, dans l'obscurité. En général, l'absence de sources lumineuses.",
+    "¿Y la luz de la Luna?":"Et la lumière de la Lune ?",
+    "A veces, olvidamos la luz de nuestra damisela de la noche. Sin embargo, esta es una de las mayores fuentes de la misma por lo que conviene evitarla saliendo a observar en días de Luna Nueva cuando se pretenda observar objetos de espacio profundo.":"Parfois, nous oublions la lumière de notre damoiselle de la nuit. Pourtant, c'en est l'une des plus grandes sources, c'est pourquoi il convient de l'éviter en sortant observer les jours de Nouvelle Lune lorsqu'on souhaite observer des objets de l'espace profond.",
+    "Escala de Bortle":"Échelle de Bortle",
+    "Cielo más oscuro":"Ciel le plus sombre",
+    "Cielo más claro":"Ciel le plus lumineux",
+    "Vía Láctea":"Voie lactée",
+    "Galaxia de Andrómeda":"Galaxie d'Andromède",
+    "Nebulosa de Orión":"Nébuleuse d'Orion",
+    "Pléyades":"Pléiades"
   }
 };
 const DICTH={

@@ -249,11 +249,26 @@ body.guide-page #head h1{display:none}
 .ls.ls-off{opacity:0;pointer-events:none}
 /* al pulsar un icono: un rectangulo a la izquierda (el circulo convertido) y, hacia la derecha, la pagina */
 .sec-side,.sec-page{position:absolute;top:64px;bottom:16px;box-sizing:border-box;border:1.5px solid #5b6bb4;border-radius:13px;overflow:hidden}
-.sec-side{left:16px;width:clamp(64px,24vw,280px);z-index:2;background:linear-gradient(120deg,#111a35,#0b1025);box-shadow:8px 0 22px #05060fcc}
+.sec-side{display:flex;flex-direction:column;left:16px;width:var(--sw,clamp(64px,24vw,310px));z-index:2;background:linear-gradient(120deg,#111a35,#0b1025);box-shadow:8px 0 22px #05060fcc}
 /* la pagina empieza oculta tras el rectangulo (de ahi sale) y ocupa hasta el borde derecho */
-.sec-page{left:calc(16px + clamp(64px,24vw,280px)/2);right:16px;z-index:1;padding-left:calc(clamp(64px,24vw,280px)/2);background:linear-gradient(120deg,#131c3b,#0c1129)}
+.sec-page{left:calc(16px + var(--sw,clamp(64px,24vw,310px))/2);right:16px;z-index:1;padding-left:calc(var(--sw,clamp(64px,24vw,310px))/2);background:linear-gradient(120deg,#131c3b,#0c1129)}
 /* el rodillo del pergamino: un cilindro que recorre la pagina mientras se desenrolla */
 .sec-roll{position:absolute;top:58px;bottom:10px;width:24px;z-index:3;border-radius:12px;pointer-events:none;border:1px solid #5b6bb4;background:linear-gradient(90deg,#0b1025 0%,#2a376f 28%,#8199d8 50%,#2a376f 72%,#0b1025 100%);box-shadow:-10px 0 20px #05060f99,0 0 14px #5b7bff44}
+.sec-orb{position:absolute;z-index:4;box-sizing:border-box;display:flex;align-items:center;justify-content:center;border-radius:50%;border:1.5px solid #5b6bb4;background:linear-gradient(120deg,#111a35,#0b1025);color:#b9c9ff;pointer-events:none}
+.sec-orb svg{width:52%;height:52%;display:block;overflow:visible}
+.sec-orb svg path,.sec-orb svg circle{stroke-width:1.7px;vector-effect:non-scaling-stroke}
+.sec-orb .ac{stroke:#f8d874}
+.sec-body{flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;padding:2px 18px 18px;font:400 14px/1.6 system-ui,sans-serif;color:#c9d1f2}
+.sec-body::-webkit-scrollbar{display:none}
+.sec-body p{margin:0 0 12px}
+.sec-body p.sec-q{margin:18px 0 6px;font-weight:700;color:#f5f7ff}
+.sec-page .sec-body{display:none;overflow:visible;padding:0 16px 16px}
+@media(max-width:640px){#lugar-view{--sw:54px}.sec-side .sec-body{display:none}.sec-page .sec-body{display:block}.sec-page .sec-body{padding:0 12px 12px}.sec-pt{padding:12px 12px 8px}.sec-h{padding:12px 0}}
+.sec-side.sec-nogo{visibility:hidden}
+.sec-body.sec-cp{line-height:1.32}.sec-body.sec-cp p{margin:0 0 4px}.sec-body.sec-cp p.sec-q{margin:7px 0 2px}
+/* pantallas muy bajas (movil en horizontal): menos margenes para que quepa el texto */
+@media(max-height:420px){.sec-side,.sec-page{top:50px;bottom:8px}.sec-pt{padding:5px 12px 0;font-size:14px}.sec-page .sec-body{padding-bottom:6px}.sec-h{padding-top:8px;padding-bottom:6px}}
+.sec-pgmode .sec-side .sec-body{display:none}.sec-pgmode .sec-page .sec-body{display:block}.sec-pgmode .sec-pt{display:block}
 .sec-h{display:flex;align-items:center;gap:12px;padding:16px;color:#b9c9ff;white-space:nowrap}
 .sec-ic{flex:none;display:flex;align-items:center;justify-content:center;width:40px;height:40px;border:1px solid #414e7a;border-radius:10px;background:#192443}
 .sec-ic svg{width:26px;height:26px;display:block;overflow:visible}
@@ -1554,6 +1569,63 @@ function lugarStar(){
 const trL=k=>window.vcI18n?vcI18n.t(k):k;
 let secEl=null,secBusy=false;
 const secReduce=()=>typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+/* Contenido de las secciones. "q" = pregunta en negrita. */
+const SEC_TXT={
+  'Contaminación Lumínica':[
+    {p:'Encontrar un lugar lejos de las luces y los destellos de las calles es clave para ayudarnos a observar objetos distantes o a desvelar imágenes con mayor nitidez.'},
+    {q:'¿Qué es la contaminación lumínica?'},
+    {p:'La contaminación lumínica se produce a través de los procesos de refracción y reflexión de la luz en las zonas altamente afectadas por fuentes de luz. Estas, para el ojo humano, son casi imperceptibles pero a la hora de operar con telescopios pueden incluso imposibilitarnos fotografiar ciertos objetos.'},
+    {q:'¿Cuáles son los mejores lugares?'},
+    {p:'Principalmente lugares rurales, alejados de la gran ciudad y en su mayoría en obscuridad. En general, la ausencia de fuentes de luz.'},
+    {q:'¿Y la luz de la Luna?'},
+    {p:'A veces, olvidamos la luz de nuestra damisela de la noche. Sin embargo, esta es una de las mayores fuentes de la misma por lo que conviene evitarla saliendo a observar en días de Luna Nueva cuando se pretenda observar objetos de espacio profundo.'}
+  ]
+};
+/* ajusta letra y ancho del rectangulo para que el texto quepa entero, sin desplazarse, en cualquier pantalla e idioma:
+   1) letra de 14 a 12 px; 2) si no basta, se ensancha el rectangulo (hasta casi la mitad de la pantalla); 3) como ultimo recurso, letra mas pequena.
+   En pantallas estrechas el texto va en la pagina de la derecha y solo se ajusta la letra. */
+function secFitAll(view,sb,pb,page){
+  /* con letra pequena (menos de 12 px) tambien se compactan los espacios entre lineas y parrafos */
+  const fz=(el,s)=>{el.style.fontSize=s+'px';el.classList.toggle('sec-cp',s<12)};
+  const lang=()=>setTimeout(fit,30);
+  let busy=false;
+  function fit(){
+    if(!view.isConnected){window.removeEventListener('vc-lang',lang);window.removeEventListener('resize',fit);return}
+    if(busy)return;busy=true;
+    try{
+      view.classList.remove('sec-pgmode');view.querySelector('.sec-side').classList.remove('sec-nogo');
+      if(sb.offsetParent){
+        const ok=()=>sb.scrollHeight<=sb.clientHeight+1,set=s=>{fz(sb,s);return ok()};
+        view.style.removeProperty('--sw');
+        let done=false;
+        for(let s=14;s>=12&&!done;s-=.5)done=set(s);
+        if(!done){
+          const w0=Math.ceil(sb.parentNode.getBoundingClientRect().width/10)*10,maxW=Math.min(Math.round(innerWidth*(innerHeight<560?.6:.46)),innerHeight<560?640:520);
+          for(let w=w0+20;w<=maxW&&!done;w+=20){view.style.setProperty('--sw',w+'px');for(let s=12.5;s>=11.5&&!done;s-=.5)done=set(s)}
+          if(!done){view.style.setProperty('--sw',maxW+'px');for(let s=11;s>=10.5&&!done;s-=.5)done=set(s)}
+          if(!done){view.classList.add('sec-pgmode');fitPage()}
+        }
+      }else if(pb.offsetParent){fitPage()}
+    }finally{busy=false}
+  }
+  function fitPage(){
+    {
+        pb.style.fontSize='';let s=14;const ok=()=>page.scrollHeight<=page.clientHeight+1;
+        fz(pb,s);view.style.removeProperty('--sw');view.querySelector('.sec-side').classList.remove('sec-nogo');
+        while(!ok()&&s>11){s-=.5;fz(pb,s)}
+        if(!ok()){view.style.setProperty('--sw','0px');view.querySelector('.sec-side').classList.add('sec-nogo');s=12;fz(pb,s);while(!ok()&&s>9){s-=.5;fz(pb,s)}}
+    }
+  }
+  window.addEventListener('vc-lang',lang);window.addEventListener('resize',fit);
+  fit();try{new ResizeObserver(fit).observe(sb);new ResizeObserver(fit).observe(page)}catch(e){}
+}
+function secBody(name){
+  const L=SEC_TXT[name];if(!L)return null;
+  const esc=s=>s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+  const d=document.createElement('div');d.className='sec-body';
+  d.innerHTML=L.map(x=>{const t=x.q||x.p;return '<p'+(x.q?' class="sec-q"':'')+' data-ls="'+esc(t)+'">'+esc(trL(t))+'</p>'}).join('');
+  return d;
+}
 function openSection(btn,name){
   const view=document.getElementById('lugar-view');if(!view||secEl||secBusy)return;
   const ls=view.querySelector('.ls'),c=btn.querySelector('.ls-c'),r=c.getBoundingClientRect(),red=secReduce();
@@ -1563,33 +1635,46 @@ function openSection(btn,name){
   const page=document.createElement('div');page.className='sec-page';
   page.innerHTML='<div class="sec-pt" data-ls="'+name+'">'+trL(name)+'</div>';
   const roll=document.createElement('div');roll.className='sec-roll';
+  const bdS=secBody(name),bdP=bdS&&secBody(name);if(bdS){side.append(bdS);page.append(bdP)}
   view.append(page,side,roll);
+  if(bdS)secFitAll(view,bdS,bdP,page);
   /* lo que se apaga: el resto de botones, la estrella, las lineas y la etiqueta del elegido */
   const others=[...ls.querySelectorAll('.ls-b,.ls-m,.ls-lines')].filter(x=>x!==btn).concat([btn.querySelector('.ls-t')]);
   secEl={side,page,btn,roll,others,c,fades:[],act:null};
   if(red){others.forEach(x=>{x.style.opacity='0'});c.style.opacity='0';roll.remove();secEl.roll=null;return}
+  if(bdS)bdS.style.opacity='0';
   secBusy=true;
-  const E='cubic-bezier(.7,0,.2,1)';
-  /* 1) el circulo elegido se "activa": el borde brilla, late un anillo y se desvanece */
-  secEl.fades=others.map(x=>x.animate([{opacity:1},{opacity:0}],{duration:320,easing:'ease-out',fill:'forwards'}));
-  secEl.act=c.animate([
-    {boxShadow:'0 0 0 0 #8ab4ff00',borderColor:'#5b6bb4',transform:'scale(1)',opacity:1},
-    {boxShadow:'0 0 22px 4px #8ab4ffaa, inset 0 0 14px #8ab4ff55',borderColor:'#dbe7ff',transform:'scale(1.06)',opacity:1,offset:.38},
-    {boxShadow:'0 0 32px 8px #8ab4ff88',borderColor:'#8ab4ff',transform:'scale(1.05)',opacity:1,offset:.62},
-    {boxShadow:'0 0 46px 16px #8ab4ff00',borderColor:'#8ab4ff00',transform:'scale(1.2)',opacity:0}
-  ],{duration:950,easing:'ease-in-out',fill:'forwards'});
-  const ring=document.createElement('div');
-  ring.style.cssText='position:absolute;z-index:3;pointer-events:none;box-sizing:border-box;border:1.5px solid #8ab4ff;border-radius:50%;left:'+r.left+'px;top:'+r.top+'px;width:'+r.width+'px;height:'+r.height+'px';
-  view.append(ring);
-  ring.animate([{transform:'scale(1)',opacity:.9},{transform:'scale(1.9)',opacity:0}],{duration:900,delay:260,easing:'ease-out',fill:'both'}).onfinish=()=>ring.remove();
-  /* 2) cuando el circulo se desvanece, se carga la informacion: el rectangulo con su titulo y, desde detras, la pagina */
-  const D0=720,fs=side.getBoundingClientRect(),fp=page.getBoundingClientRect();
+  const E='cubic-bezier(.7,0,.2,1)',fs=side.getBoundingClientRect(),fp=page.getBoundingClientRect();
   const hid=fs.right-fp.left,x0=fs.right-12,x1=fp.right-12;
-  side.animate([{opacity:0,transform:'translateX(-12px)'},{opacity:1,transform:'none'}],{duration:400,delay:D0,easing:'ease-out',fill:'backwards'});
-  side.firstChild.animate([{opacity:0},{opacity:1}],{duration:320,delay:D0+260,easing:'ease-out',fill:'backwards'});
-  const T={duration:900,delay:D0+480,easing:E,fill:'backwards'};
+  secEl.fades=others.map(x=>x.animate([{opacity:1},{opacity:0}],{duration:320,easing:'ease-out',fill:'forwards'}));
+  /* 1) aparece el rectangulo (vacio) a la izquierda y el icono circular viaja hasta su centro */
+  side.firstChild.style.opacity='0';
+  side.animate([{opacity:0,transform:'translateX(-14px)'},{opacity:1,transform:'none'}],{duration:420,delay:60,easing:'ease-out',fill:'backwards'});
+  const orb=document.createElement('div');orb.className='sec-orb';orb.append(c.querySelector('svg').cloneNode(true));
+  const cx=fs.left+fs.width/2-r.width/2,cy=fs.top+fs.height/2-r.height/2,M=700;
+  orb.style.cssText='left:'+cx+'px;top:'+cy+'px;width:'+r.width+'px;height:'+r.height+'px';
+  view.append(orb);
+  secEl.act=c.animate([{opacity:1},{opacity:0}],{duration:40,fill:'forwards'});   /* el original deja paso al que viaja */
+  orb.animate([{left:r.left+'px',top:r.top+'px'},{left:cx+'px',top:cy+'px'}],{duration:M,easing:E});
+  /* 2) en el centro, el borde del circulo se "activa": brilla, late un anillo y el circulo se desvanece */
+  const G=1100;
+  orb.animate([
+    {borderColor:'#5b6bb4',boxShadow:'0 0 0 0 #8ab4ff00',transform:'scale(1)',opacity:1},
+    {borderColor:'#dbe7ff',boxShadow:'0 0 24px 5px #8ab4ffaa, inset 0 0 16px #8ab4ff55',transform:'scale(1.07)',opacity:1,offset:.32},
+    {borderColor:'#8ab4ff',boxShadow:'0 0 34px 9px #8ab4ff77',transform:'scale(1.05)',opacity:1,offset:.62},
+    {borderColor:'#8ab4ff00',boxShadow:'0 0 48px 16px #8ab4ff00',transform:'scale(1.2)',opacity:0}
+  ],{duration:G,delay:M,easing:'ease-in-out',fill:'both'}).onfinish=()=>orb.remove();
+  const ring=document.createElement('div');
+  ring.style.cssText='position:absolute;z-index:3;pointer-events:none;box-sizing:border-box;border:1.5px solid #8ab4ff;border-radius:50%;left:'+cx+'px;top:'+cy+'px;width:'+r.width+'px;height:'+r.height+'px';
+  view.append(ring);
+  ring.animate([{transform:'scale(1)',opacity:0,offset:0},{transform:'scale(1)',opacity:.9,offset:.001},{transform:'scale(2)',opacity:0}],{duration:900,delay:M+200,easing:'ease-out',fill:'both'}).onfinish=()=>ring.remove();
+  /* 3) y solo entonces se carga el resto: el titulo del rectangulo y, desde debajo, la pagina que se desenrolla */
+  const D0=M+G-250;
+  side.firstChild.animate([{opacity:0},{opacity:1}],{duration:360,delay:D0,easing:'ease-out',fill:'both'});
+  if(bdS)bdS.animate([{opacity:0},{opacity:1}],{duration:520,delay:D0+140,easing:'ease-out',fill:'both'});
+  const T={duration:900,delay:D0+250,easing:E,fill:'backwards'};
   page.animate([{clipPath:'inset(0px '+fp.width+'px 0px 0px)'},{clipPath:'inset(0px 0px 0px 0px)'}],T);
-  roll.animate([{left:x0+'px',opacity:0},{left:x0+'px',opacity:1,offset:.04},{left:x1+'px',opacity:1,offset:.94},{left:x1+'px',opacity:0}],{duration:900,delay:D0+480,easing:E,fill:'both'}).onfinish=()=>{secBusy=false;roll.style.display='none'};
+  roll.animate([{left:x0+'px',opacity:0},{left:x0+'px',opacity:1,offset:.04},{left:x1+'px',opacity:1,offset:.94},{left:x1+'px',opacity:0}],{duration:900,delay:D0+250,easing:E,fill:'both'}).onfinish=()=>{secBusy=false;roll.style.display='none'};
 }
 function closeSection(){
   if(!secEl||secBusy)return;
@@ -1930,7 +2015,7 @@ function vcSky(cv,active){
 }
 vcSky(document.getElementById("sky"),()=>document.body.classList.contains("principal-page"));
 </script>
-<script src="vc-i18n.js?v=36"></script>
+<script src="vc-i18n.js?v=38"></script>
 <script>vcI18n.mount(document.getElementById("stage"));</script>
 </body>
 </html>
