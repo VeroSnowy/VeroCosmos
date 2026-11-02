@@ -1575,8 +1575,13 @@ function lugarStar(){
     o+='<button type="button" class="ls-b" style="--x:'+pos[k][0].toFixed(2)+'%;--y:'+pos[k][1].toFixed(2)+'%;--k:'+k+'" aria-label="'+n+'"><span class="ls-c">'+ICON[n]+'</span><span class="ls-t" data-ls="'+n+'">'+n+'</span></button>';
   });
   /* boton central con forma de estrella */
-  const st=[];for(let k=0;k<10;k++){const r=k%2?19.5:48,t=(-90+36*k)*Math.PI/180;st.push((50+r*Math.cos(t)).toFixed(2)+','+(54+r*Math.sin(t)).toFixed(2))}
-  o+='<button type="button" class="ls-m" aria-label="Mi Lugar"><svg class="ls-st" viewBox="0 0 100 100" aria-hidden="true"><defs><linearGradient id="lsStar" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#111a35" stop-opacity=".85"/><stop offset="1" stop-color="#0b1025" stop-opacity=".85"/></linearGradient></defs><polygon class="ls-sf" points="'+st.join(' ')+'"/></svg>'
+  /* estrella esponjosa: brazos gruesos con puntas y entrantes redondeados */
+  const sv=[];for(let k=0;k<10;k++){const r=k%2?26:52,t=(-90+36*k)*Math.PI/180;sv.push([50+r*Math.cos(t),55+r*Math.sin(t)])}
+  /* cada esquina se redondea con una curva y los lados se abomban un poco hacia fuera */
+  const cn=sv.map((c,k)=>{const p=sv[(k+9)%10],n=sv[(k+1)%10],f=k%2?.3:.42;return{c,a:[c[0]+(p[0]-c[0])*f,c[1]+(p[1]-c[1])*f],b:[c[0]+(n[0]-c[0])*f,c[1]+(n[1]-c[1])*f]}});
+  const F=v=>v[0].toFixed(2)+' '+v[1].toFixed(2);
+  let sd='M'+F(cn[0].a);cn.forEach((q,k)=>{const nx=cn[(k+1)%10].a,m=[(q.b[0]+nx[0])/2,(q.b[1]+nx[1])/2],dx=m[0]-50,dy=m[1]-55,dl=Math.hypot(dx,dy)||1;sd+='Q'+F(q.c)+' '+F(q.b)+'Q'+F([m[0]+dx/dl*2.2,m[1]+dy/dl*2.2])+' '+F(nx)});sd+='Z';
+  o+='<button type="button" class="ls-m" aria-label="Mi Lugar"><svg class="ls-st" viewBox="0 0 100 100" aria-hidden="true"><defs><linearGradient id="lsStar" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#111a35" stop-opacity=".85"/><stop offset="1" stop-color="#0b1025" stop-opacity=".85"/></linearGradient></defs><path class="ls-sf" d="'+sd+'"/></svg>'
     +'<span class="ls-mi">'+S('<path class="ac" d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle class="ac" cx="12" cy="10" r="3"/>')+'</span><span class="ls-mt" data-ls="Mi Lugar">Mi Lugar</span></button>';
   return o+'</div>';
 }
@@ -1589,7 +1594,7 @@ const SEC_TXT={
   'Contaminación Lumínica':[
     {p:'Encontrar un lugar lejos de las luces y los destellos de las calles es clave para ayudarnos a observar objetos distantes o a desvelar imágenes con mayor nitidez.'},
     {q:'¿Qué es la contaminación lumínica?'},
-    {p:'La contaminación lumínica se produce a través de procesos lumínicos de disipación en la atmósfera en las zonas altamente afectadas por fuentes de luz artificial. Estas, para el ojo humano, son casi imperceptibles pero a la hora de operar con telescopios pueden incluso imposibilitarnos fotografiar ciertos objetos.'},
+    {p:'La contaminación lumínica se produce a través de procesos lumínicos de dispersión en la atmósfera en las zonas altamente afectadas por fuentes de luz artificial. Estas, para el ojo humano, son casi imperceptibles pero a la hora de operar con telescopios pueden incluso imposibilitarnos fotografiar ciertos objetos.'},
     {q:'¿Cuáles son los mejores lugares?'},
     {p:'Principalmente lugares rurales, alejados de la gran ciudad y en su mayoría en obscuridad. En general, la ausencia de fuentes de luz.'},
     {q:'¿Y la luz de la Luna?'},
@@ -2050,7 +2055,7 @@ function vcSky(cv,active){
 }
 vcSky(document.getElementById("sky"),()=>document.body.classList.contains("principal-page"));
 </script>
-<script src="vc-i18n.js?v=40"></script>
+<script src="vc-i18n.js?v=41"></script>
 <script>vcI18n.mount(document.getElementById("stage"));</script>
 </body>
 </html>
