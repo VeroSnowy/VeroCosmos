@@ -1613,6 +1613,15 @@ const SEC_TXT={
     {p:'Estos son por definición el gran enemigo de la fotografía celeste. Árboles, edificios, montañas... todos ellos nos bloquean parcialmente zonas del cielo o nos ocultan parte del horizonte visible en otro entorno.'},
     {q:'¿Es mejor el campo que la ciudad?'},
     {p:'En definitiva, el campo y el mundo rural ofrecen alternativas más beneficiosas para la observación astronómica debido a su baja contaminación lumínica, un menor número de obstáculos al ser poblaciones pequeñas y normalmente cercanía a montañas o colinas.'}
+  ],
+  'Meteorología':[
+    {p:'El lugar perfecto, los mejores aparatos y, de repente, una nube en medio de nuestro objetivo. La tan olvidada y odiada meteorología es uno de los grandes pilares para escoger un buen lugar de observación. Tanto las nubes, el viento o la temperatura pueden ser factores clave para sacar la mejor fotografía.'},
+    {q:'¿Qué es el seeing (estabilidad atmosférica)?'},
+    {p:'El "seeing", o en español "estabilidad atmosférica", se trata de la turbulencia del aire. Este trata de un efecto de desviación de la luz producido por las distintas corrientes térmicas entre las capas de la atmósfera haciendo que las estrellas titilen o que los planetas se vean borrosos.'},
+    {q:'¿Cómo afecta la transparencia del cielo?'},
+    {p:'La transparencia hace referencia a la humedad del entorno, polvo, calima o cirros finos. En general, mide la claridad con la que un telescopio es capaz de atravesar la atmósfera para ver un objeto. Para galaxias y nebulosas se recomiendan cielos de alta transparencia debido a su lejanía.'},
+    {q:'¿El frío, el viento y el punto de rocío tienen un papel en todo esto?'},
+    {p:'Los aparatos de observación (telescopios) tienen lentes muy sensibles que debido a la humedad del ambiente, el viento y el frío pueden generar rocío o incluso congelarse/condensarse. Muchos de estos aparatos incluyen sistema anti-rocío, sin embargo de no tenerlo hay que tener en cuenta el tiempo del lugar escogido en el momento determinado.'}
   ]
 };
 /* ajusta letra y ancho del rectangulo para que el texto quepa entero, sin desplazarse, en cualquier pantalla e idioma:
@@ -1661,7 +1670,7 @@ function secBody(name){
   return d;
 }
 /* Secciones con dibujo interactivo: se cargan bajo demanda (bortle.js) */
-const SEC_VIZ={'Contaminación Lumínica':{src:'bortle.js?v=3',api:'vcBortle'},'Entorno':{src:'entorno.js?v=1',api:'vcEntorno'}};
+const SEC_VIZ={'Contaminación Lumínica':{src:'bortle.js?v=3',api:'vcBortle'},'Entorno':{src:'entorno.js?v=1',api:'vcEntorno'},'Meteorología':{src:'meteo.js?v=1',api:'vcMeteo'}};
 function secLoadViz(def,cb){
   if(window[def.api]){cb();return}
   let s=document.querySelector('script[data-viz="'+def.api+'"]');
@@ -1692,7 +1701,11 @@ function openSection(btn,name){
   const others=[...ls.querySelectorAll('.ls-b,.ls-m,.ls-lines')].filter(x=>x!==btn).concat([btn.querySelector('.ls-t')]);
   secEl={side,page,btn,roll,others,c,fades:[],act:null,vz:null};
   if(vzHost)secLoadViz(vzDef,()=>{if(secEl&&secEl.page===page)secEl.vz=window[vzDef.api].mount(vzHost)});
-  if(red){others.forEach(x=>{x.style.opacity='0'});c.style.opacity='0';roll.remove();secEl.roll=null;return}
+  /* movimiento reducido: sin desplazamientos, solo un fundido suave */
+  if(red){
+    others.forEach(x=>{x.style.opacity='0'});c.style.opacity='0';roll.remove();secEl.roll=null;
+    if(side.animate){const F={duration:420,easing:'ease-out',fill:'backwards'};others.concat([c]).forEach(x=>x.animate([{opacity:1},{opacity:0}],{duration:300,easing:'ease-out'}));side.animate([{opacity:0},{opacity:1}],F);page.animate([{opacity:0},{opacity:1}],Object.assign({},F,{delay:120}))}
+    return}
   if(bdS)bdS.style.opacity='0';
   secBusy=true;
   const E='cubic-bezier(.7,0,.2,1)',fs=side.getBoundingClientRect(),fp=page.getBoundingClientRect();
@@ -1736,7 +1749,12 @@ function closeSection(){
     others.concat([c]).forEach(x=>{x.style.opacity='';if(fade)x.animate([{opacity:0},{opacity:1}],{duration:380,easing:'ease-out'})});
   };
   const done=()=>{if(secEl&&secEl.vz)secEl.vz.destroy();side.remove();page.remove();if(roll)roll.remove();secEl=null;secBusy=false};
-  if(secReduce()||!view){restore(false);done();return}
+  if(!view){restore(false);done();return}
+  /* movimiento reducido: la seccion se desvanece y vuelven los botones con un fundido */
+  if(secReduce()){
+    if(!side.animate){restore(false);done();return}
+    secBusy=true;const F={duration:300,easing:'ease-in',fill:'forwards'};side.animate([{opacity:1},{opacity:0}],F);const pa=page.animate([{opacity:1},{opacity:0}],F);
+    pa.onfinish=()=>{restore(true);done()};return}
   secBusy=true;
   const fs=side.getBoundingClientRect(),fp=page.getBoundingClientRect();
   const hid=fs.right-fp.left,x0=fs.right-12,x1=fp.right-12;
@@ -1809,7 +1827,12 @@ function openLugar(card,fromUrl){
     if(!fromUrl)lugarPushed=topGo('lugar',true);
   };
   const reduce=typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if(fromUrl||reduce||!card||!card.animate){document.body.append(view);lugarCenter(view);show();document.body.classList.add('lugar-cover');return}
+  if(fromUrl||reduce||!card||!card.animate){
+    document.body.append(view);lugarCenter(view);show();
+    /* movimiento reducido (desde la guia): la pagina aparece con un fundido en vez de expandirse */
+    if(reduce&&!fromUrl&&view.animate){const fa=view.animate([{opacity:0},{opacity:1}],{duration:450,easing:'ease-out'});fa.onfinish=()=>{if(lugarEl===view)document.body.classList.add('lugar-cover')}}
+    else document.body.classList.add('lugar-cover');
+    return}
   /* misma expansion que el logo: el cuadrado de la tarjeta crece hasta ocupar la pantalla y su borde brilla */
   const r=card.getBoundingClientRect(),W=innerWidth,H=innerHeight;
   const c0='inset('+r.top+'px '+(W-r.right)+'px '+(H-r.bottom)+'px '+r.left+'px round 13px)';
@@ -2077,7 +2100,7 @@ function vcSky(cv,active){
 }
 vcSky(document.getElementById("sky"),()=>document.body.classList.contains("principal-page")&&!document.body.classList.contains("lugar-cover"));
 </script>
-<script src="vc-i18n.js?v=45"></script>
+<script src="vc-i18n.js?v=46"></script>
 <script>vcI18n.mount(document.getElementById("stage"));</script>
 </body>
 </html>
