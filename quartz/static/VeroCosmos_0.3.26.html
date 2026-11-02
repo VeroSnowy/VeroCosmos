@@ -1599,6 +1599,15 @@ const SEC_TXT={
     {p:'Principalmente lugares rurales, alejados de la gran ciudad y en su mayoría en obscuridad. En general, la ausencia de fuentes de luz.'},
     {q:'¿Y la luz de la Luna?'},
     {p:'A veces, olvidamos la luz de nuestra damisela de la noche. Sin embargo, esta es una de las mayores fuentes de la misma por lo que conviene evitarla saliendo a observar en días de Luna Nueva cuando se pretenda observar objetos de espacio profundo.'}
+  ],
+  'Entorno':[
+    {p:'Muchas veces pasamos por alto un detalle muy importante a la hora de observar el firmamento. Este es el entorno, el relieve o la zona en lo que lo hacemos, distintas ubicaciones nos dotan de diferentes resultados.'},
+    {q:'¿Son mejores los lugares elevados?'},
+    {p:'En general, esta respuesta es afirmativa. En zonas elevadas encontramos un mayor campo de visión del firmamento, lo que nos permite observar una mayor extensión del cielo, evitar obstáculos naturales y/o humanos y, en determinadas ubicaciones, conseguir cielos más nítidos debido a una menor influencia de la contaminación lumínica.'},
+    {q:'¿Por qué debemos evitar los obstáculos?'},
+    {p:'Estos son por definición el gran enemigo de la fotografía celeste. Árboles, edificios, montañas... todos ellos nos bloquean parcialmente zonas del cielo o nos ocultan parte del horizonte visible en otro entorno.'},
+    {q:'¿Es mejor el campo que la ciudad?'},
+    {p:'En definitiva el campo y el mundo rural ofrecen alternativas más beneficiosas para la observación astronómica debido a su ausencia de contaminación lumínica, un menor número de obstáculos al ser poblaciones pequeñas y normalmente cercanía a montañas o colinas.'}
   ]
 };
 /* ajusta letra y ancho del rectangulo para que el texto quepa entero, sin desplazarse, en cualquier pantalla e idioma:
@@ -1647,7 +1656,7 @@ function secBody(name){
   return d;
 }
 /* Secciones con dibujo interactivo: se cargan bajo demanda (bortle.js) */
-const SEC_VIZ={'Contaminación Lumínica':{src:'bortle.js?v=3',api:'vcBortle'}};
+const SEC_VIZ={'Contaminación Lumínica':{src:'bortle.js?v=3',api:'vcBortle'},'Entorno':{src:'entorno.js?v=1',api:'vcEntorno'}};
 function secLoadViz(def,cb){
   if(window[def.api]){cb();return}
   let s=document.querySelector('script[data-viz="'+def.api+'"]');
@@ -2055,7 +2064,7 @@ function vcSky(cv,active){
 }
 vcSky(document.getElementById("sky"),()=>document.body.classList.contains("principal-page"));
 </script>
-<script src="vc-i18n.js?v=41"></script>
+<script src="vc-i18n.js?v=43"></script>
 <script>vcI18n.mount(document.getElementById("stage"));</script>
 </body>
 </html>

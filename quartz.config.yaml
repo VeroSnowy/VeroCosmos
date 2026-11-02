@@ -5,7 +5,9 @@ configuration:
   enableSPA: false
   enablePopovers: true
   analytics:
-    provider: plausible
+    provider: umami
+    websiteId: b535d0a8-042e-45e0-9038-bce94b809332
+    host: https://cloud.umami.is
   locale: es-ES
   baseUrl: verocosmos.com
   ignorePatterns:
