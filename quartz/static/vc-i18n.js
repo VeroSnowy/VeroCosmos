@@ -439,6 +439,12 @@ const DICT={
     "Cinturón de asteroides":"Asteroid Belt",
     "Cinturón de Kuiper":"Kuiper Belt",
     "Cometa Halley":"Halley's Comet",
+    "Contaminación Lumínica":"Light Pollution",
+    "Entorno":"Surroundings",
+    "Meteorología":"Meteorology",
+    "Elección del lugar":"Site Selection",
+    "Preparación":"Preparation",
+    "Mi Lugar":"My Place"
   },
   fr:{
     /* PAGINA PRINCIPAL */
@@ -893,6 +899,12 @@ const DICT={
     "Cinturón de asteroides":"Ceinture d'astéroïdes",
     "Cinturón de Kuiper":"Ceinture de Kuiper",
     "Cometa Halley":"Comète de Halley",
+    "Contaminación Lumínica":"Pollution lumineuse",
+    "Entorno":"Environnement",
+    "Meteorología":"Météorologie",
+    "Elección del lugar":"Choix du lieu",
+    "Preparación":"Préparation",
+    "Mi Lugar":"Mon lieu"
   }
 };
 const DICTH={
