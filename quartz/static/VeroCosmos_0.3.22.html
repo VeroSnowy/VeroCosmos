@@ -263,6 +263,11 @@ body.guide-page #head h1{display:none}
 .sec-body p{margin:0 0 12px}
 .sec-body p.sec-q{margin:18px 0 6px;font-weight:700;color:#f5f7ff}
 .sec-page .sec-body{display:none;overflow:visible;padding:0 16px 16px}
+/* en "Lugar para observar" el menu, el idioma y el logo siguen visibles por encima de la pagina */
+body.lugar-on #head,body.lugar-on .vc-lang,body.lugar-on #logo-btn{z-index:100004}
+body.lugar-on #head h1{display:none}
+@media(max-width:480px){#lugar-title{font-size:16px!important}}
+@media(max-width:350px){#lugar-title{display:none!important}}
 @media(max-width:640px){#lugar-view{--sw:54px}.sec-side .sec-body{display:none}.sec-page .sec-body{display:block}.sec-page .sec-body{padding:0 12px 12px}.sec-pt{padding:12px 12px 8px}.sec-h{padding:12px 0}}
 .sec-side.sec-nogo{visibility:hidden}
 .sec-body.sec-cp{line-height:1.32}.sec-body.sec-cp p{margin:0 0 4px}.sec-body.sec-cp p.sec-q{margin:7px 0 2px}
@@ -1584,7 +1589,7 @@ const SEC_TXT={
   'Contaminación Lumínica':[
     {p:'Encontrar un lugar lejos de las luces y los destellos de las calles es clave para ayudarnos a observar objetos distantes o a desvelar imágenes con mayor nitidez.'},
     {q:'¿Qué es la contaminación lumínica?'},
-    {p:'La contaminación lumínica se produce a través de los procesos de refracción y reflexión de la luz en las zonas altamente afectadas por fuentes de luz. Estas, para el ojo humano, son casi imperceptibles pero a la hora de operar con telescopios pueden incluso imposibilitarnos fotografiar ciertos objetos.'},
+    {p:'La contaminación lumínica se produce a través de procesos lumínicos de dispersión en la atmósfera en las zonas altamente afectadas por fuentes de luz artificial. Estas, para el ojo humano, son casi imperceptibles pero a la hora de operar con telescopios pueden incluso imposibilitarnos fotografiar ciertos objetos.'},
     {q:'¿Cuáles son los mejores lugares?'},
     {p:'Principalmente lugares rurales, alejados de la gran ciudad y en su mayoría en obscuridad. En general, la ausencia de fuentes de luz.'},
     {q:'¿Y la luz de la Luna?'},
@@ -1737,12 +1742,14 @@ function lugarCenter(root){
 /* Lugar para observar: pagina a pantalla completa (por ahora en blanco) que se abre con la misma expansion que el logo.
    Tiene su propia URL (/guia-astronomica/lugar-para-observar): se abre con la animacion al pulsar la tarjeta y directamente si se entra por la URL */
 let lugarEl=null,lugarPushed=false;
-function lugarKey(e){if(e.key==='Escape'&&lugarEl){e.preventDefault();e.stopPropagation();closeLugar()}}
+function lugarKey(e){if(e.key==='Escape'&&lugarEl){e.preventDefault();e.stopPropagation();if(pageMenu.classList.contains('open')){closePageMenu();return}closeLugar()}}
+/* ir a otra pagina desde el menu o el logo cierra "Lugar para observar" */
+document.addEventListener('click',ev=>{if(lugarEl&&ev.target.closest&&ev.target.closest('#page-menu a,#logo-btn')){lugarPushed=false;removeLugar()}},true);
 function removeLugar(){
   if(!lugarEl)return;
   if(secEl&&secEl.vz)secEl.vz.destroy();
   secEl=null;secBusy=false;
-  const el=lugarEl;lugarEl=null;document.removeEventListener('keydown',lugarKey,true);if(el._lang)window.removeEventListener('vc-lang',el._lang);
+  const el=lugarEl;lugarEl=null;document.body.classList.remove('lugar-on');document.removeEventListener('keydown',lugarKey,true);if(el._lang)window.removeEventListener('vc-lang',el._lang);
   el.style.transition='opacity .28s ease';el.style.opacity='0';el.style.pointerEvents='none';
   setTimeout(()=>el.remove(),300);
 }
@@ -1759,7 +1766,7 @@ function openLugar(card,fromUrl){
   if(lugarEl||(card&&card._busy))return;if(card)card._busy=true;
   const view=document.createElement('div');view.id='lugar-view';view.setAttribute('role','dialog');view.setAttribute('aria-label','Lugar para observar');
   view.style.cssText='position:fixed;inset:0;z-index:100002;background:radial-gradient(ellipse at 50% 40%,#111936 0%,#080b19 55%,#05060f 100%);color:#eef1ff';
-  view.innerHTML=''+topoSvg()+lugarStar()+'<button type="button" id="lugar-back" aria-label="Volver" style="position:absolute;top:12px;left:16px;display:flex;align-items:center;justify-content:center;width:34px;height:34px;padding:0;border:1px solid #232846;border-radius:7px;background:#0e1226ef;color:#eef1ff;cursor:pointer;transition:background .18s,border-color .18s"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><span id="lugar-title" style="position:absolute;top:12px;left:60px;height:34px;display:flex;align-items:center;font:400 20px/1 \'Iowan Old Style\',Georgia,serif;color:#f5f7ff;white-space:nowrap;pointer-events:none;transition:opacity .45s ease"></span>';
+  view.innerHTML=''+topoSvg()+lugarStar()+'<button type="button" id="lugar-back" aria-label="Volver" style="position:absolute;top:12px;left:60px;display:flex;align-items:center;justify-content:center;width:34px;height:34px;padding:0;border:1px solid #232846;border-radius:7px;background:#0e1226ef;color:#eef1ff;cursor:pointer;transition:background .18s,border-color .18s"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><span id="lugar-title" style="position:absolute;top:12px;left:104px;height:34px;display:flex;align-items:center;font:400 20px/1 \'Iowan Old Style\',Georgia,serif;color:#f5f7ff;white-space:nowrap;pointer-events:none;transition:opacity .45s ease"></span>';
   const bk=view.querySelector('#lugar-back'),tt=view.querySelector('#lugar-title');
   /* el titulo sigue al idioma elegido */
   const tr=k=>window.vcI18n?vcI18n.t(k):k;
@@ -1770,7 +1777,7 @@ function openLugar(card,fromUrl){
   bk.addEventListener('click',closeLugar);
   view.querySelectorAll('.ls-b').forEach(b=>b.addEventListener('click',()=>openSection(b,b.getAttribute('aria-label'))));
   const show=()=>{
-    if(card)card._busy=false;lugarEl=view;document.addEventListener('keydown',lugarKey,true);
+    if(card)card._busy=false;lugarEl=view;document.body.classList.add('lugar-on');document.addEventListener('keydown',lugarKey,true);
     try{bk.focus({preventScroll:true})}catch(e){}
     if(!fromUrl)lugarPushed=topGo('lugar',true);
   };
@@ -2043,7 +2050,7 @@ function vcSky(cv,active){
 }
 vcSky(document.getElementById("sky"),()=>document.body.classList.contains("principal-page"));
 </script>
-<script src="vc-i18n.js?v=39"></script>
+<script src="vc-i18n.js?v=41"></script>
 <script>vcI18n.mount(document.getElementById("stage"));</script>
 </body>
 </html>
