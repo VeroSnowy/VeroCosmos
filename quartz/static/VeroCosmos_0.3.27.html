@@ -213,13 +213,11 @@ body.guide-page #head h1{display:none}
 #ss-svg .bl{fill:#c9d1f2;font-style:italic;pointer-events:none}
 #ss-svg #ss-comet text{fill:#d7ecff;pointer-events:none}
 #topo{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
-#topo .tg{transform-origin:50% 50%;animation:topoDrift 28s ease-in-out infinite alternate}
-#topo .tl{fill:none;stroke:#5b6bb4;stroke-width:1.1;stroke-linecap:round;stroke-linejoin:round;opacity:0;animation:topoIn .8s ease calc(var(--i)*.06s) forwards,topoPulse 7s ease-in-out calc(var(--i)*.28s + 2.4s) infinite}
+img#topo{object-fit:cover}
+#topo .tl{fill:none;stroke:#5b6bb4;stroke-width:1.1;stroke-linecap:round;stroke-linejoin:round;opacity:0;animation:topoIn .8s ease calc(var(--i)*.06s) forwards}
 #topo .ti{stroke:#8ab4ff;stroke-width:1.7}
 @keyframes topoIn{from{opacity:0}to{opacity:.3}}
-@keyframes topoPulse{0%,100%{opacity:.3}45%{opacity:.62}}
-@keyframes topoDrift{from{transform:scale(1) translate(0,0)}to{transform:scale(1.07) translate(-1.2%,.8%)}}
-@media(prefers-reduced-motion:reduce){#topo .tg{animation:none}#topo .tl{animation:none;opacity:.4}}
+@media(prefers-reduced-motion:reduce){#topo .tl{animation:none;opacity:.3}}
 .ls{position:absolute;left:50%;top:calc(50% + 14px);--S:min(92vw,calc(100dvh - 140px),680px);--D:calc(var(--S)*.17);width:var(--S);height:var(--S);transform:translate(-50%,-50%);-webkit-tap-highlight-color:transparent}
 .ls-lines{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
 .ls-lines path{fill:none;stroke:#4f5c9c;stroke-width:1.3px;vector-effect:non-scaling-stroke;opacity:0;animation:lsFade 1.1s ease .5s forwards}
@@ -266,6 +264,8 @@ body.guide-page #head h1{display:none}
 /* en "Lugar para observar" el menu, el idioma y el logo siguen visibles por encima de la pagina */
 body.lugar-on #head,body.lugar-on .vc-lang,body.lugar-on #logo-btn{z-index:100004}
 body.lugar-on #head h1{display:none}
+/* lo que queda debajo no se pinta mientras "Lugar para observar" esta abierto (sin parpadeos) */
+body.lugar-cover #app{visibility:hidden}body.lugar-cover #app *{animation-play-state:paused!important}body.lugar-cover #head,body.lugar-cover .vc-lang,body.lugar-cover #logo-btn{visibility:visible}
 @media(max-width:480px){#lugar-title{font-size:16px!important}}
 @media(max-width:350px){#lugar-title{display:none!important}}
 @media(max-width:640px){#lugar-view{--sw:54px}.sec-side .sec-body{display:none}.sec-page .sec-body{display:block}.sec-page .sec-body{padding:0 12px 12px}.sec-pt{padding:12px 12px 8px}.sec-h{padding:12px 0}}
@@ -614,6 +614,8 @@ function groupPoint(n){
 const pos=n=>focus?groupPoint(n):(()=>{const p=skyPoint(n);return[p.x,p.y]})();
 
 function draw(){
+  /* con "Lugar para observar" abierto el atlas queda tapado: no se redibuja (evita parpadeos) */
+  if(!window.__sync&&document.body.classList.contains('lugar-cover')){requestAnimationFrame(draw);return}
   step();
   // Centro geométrico de la vista activa, usado para ambas modalidades de rotación.
   let sx=0,sy=0,sz=0;
@@ -1129,11 +1131,12 @@ function decoStart(){
     g.setAttribute('opacity',al.toFixed(2));
   }
   function run(){
-    if(document.hidden||inEarth||!wrap.offsetParent||!data){wait(4000);return}
+    if(document.hidden||inEarth||!wrap.offsetParent||!data||document.body.classList.contains('lugar-cover')){wait(4000);return}
     const t0=performance.now();
     const step=now=>{
       if(tok!==decoTok)return;
       const u=Math.min(1,(now-t0)/D);
+      if(document.body.classList.contains('lugar-cover')){g.setAttribute('opacity','0');ht.setAttribute('r','0');wait(4000);return}
       if(data&&!inEarth)draw(u);
       if(u<1)decoRaf=requestAnimationFrame(step);else{g.setAttribute('opacity','0');ht.setAttribute('r','0');wait(20000+Math.random()*25000)}
     };
@@ -1510,7 +1513,7 @@ function topoSvg(){
     return h+env*(.1*Math.sin(x*.016+ph[0])*Math.cos(y*.019+ph[1])+.06*Math.sin(x*.041+y*.029+ph[2])+.035*Math.cos(x*.07-y*.057+ph[0]))};
   const g=[];for(let j=0;j<=NY;j++){const row=[];for(let i=0;i<=NX;i++)row.push(hf(i*cw,j*ch));g.push(row)}
   let gmin=1e9,gmax=-1e9;for(const row of g)for(const v of row){if(v<gmin)gmin=v;if(v>gmax)gmax=v}
-  const L=22,lo=gmin+.05*(gmax-gmin),hi=gmax-.03*(gmax-gmin),out=[];
+  const L=22,lo=gmin+.05*(gmax-gmin),hi=gmax-.03*(gmax-gmin),out=[],fix=[];
   /* cada punto del contorno se identifica por la arista de la rejilla que cruza: asi los segmentos de celdas vecinas se enlazan
      en lineas continuas, que se dibujan como curvas suaves (Bezier por los puntos medios) en vez de tramos sueltos */
   const SM=(pts,closed)=>{
@@ -1546,8 +1549,10 @@ function topoSvg(){
     };
     for(const [id,nb] of adj)if(nb.length===1&&!seen.has(id))walk(id);   /* primero las lineas abiertas (llegan al borde) */
     for(const id of adj.keys())if(!seen.has(id))walk(id);                 /* despues las cerradas */
-    if(d)out.push('<path d="'+d+'" class="tl'+(n%5===4?' ti':'')+'" style="--i:'+n+'"/>');
+    if(d){out.push('<path d="'+d+'" class="tl'+(n%5===4?' ti':'')+'" style="--i:'+n+'"/>');fix.push('<path d="'+d+'" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity=".3" '+(n%5===4?'stroke="#8ab4ff" stroke-width="1.7"':'stroke="#5b6bb4" stroke-width="1.1"')+'/>')}
   }
+  /* copia fija del mismo mapa: cuando termina de aparecer, el SVG animado se cambia por esta imagen (sin repintados ni parpadeos) */
+  topoSvg.still='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid slice">'+fix.join('')+'</svg>';
   return '<svg id="topo" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><g class="tg">'+out.join('')+'</g></svg>';
 }
 /* Lugar para observar: cinco botones en estrella de cinco puntas y el boton central "Mi Lugar" */
@@ -1603,7 +1608,7 @@ const SEC_TXT={
   'Entorno':[
     {p:'Muchas veces pasamos por alto un detalle muy importante a la hora de observar el firmamento. Este es el entorno, el relieve o la zona en lo que lo hacemos, distintas ubicaciones nos dotan de diferentes resultados.'},
     {q:'¿Son mejores los lugares elevados?'},
-    {p:'En general esta respuesta es afirmativa. En zonas elevados encontramos un mayor ángulo del que observar el horizonte, evitamos obstáculos naturales y/o humanos y conseguimos cielos más nítidos debido a un menor efecto de la contaminación lumínica.'},
+    {p:'En general, esta respuesta es afirmativa. En zonas elevadas encontramos un mayor campo de visión del firmamento, lo que nos permite observar una mayor extensión del cielo, evitar obstáculos naturales y/o humanos y, en determinadas ubicaciones, conseguir cielos más nítidos debido a una menor influencia de la contaminación lumínica.'},
     {q:'¿Por qué debemos evitar los obstáculos?'},
     {p:'Estos son por definición el gran enemigo de la fotografía celeste. Árboles, edificios, montañas... todos ellos nos bloquean parcialmente zonas del cielo o nos ocultan parte del horizonte visible en otro entorno.'},
     {q:'¿Es mejor el campo que la ciudad?'},
@@ -1656,7 +1661,7 @@ function secBody(name){
   return d;
 }
 /* Secciones con dibujo interactivo: se cargan bajo demanda (bortle.js) */
-const SEC_VIZ={'Contaminación Lumínica':{src:'bortle.js?v=3',api:'vcBortle'}};
+const SEC_VIZ={'Contaminación Lumínica':{src:'bortle.js?v=3',api:'vcBortle'},'Entorno':{src:'entorno.js?v=1',api:'vcEntorno'}};
 function secLoadViz(def,cb){
   if(window[def.api]){cb();return}
   let s=document.querySelector('script[data-viz="'+def.api+'"]');
@@ -1763,7 +1768,7 @@ function removeLugar(){
   if(!lugarEl)return;
   if(secEl&&secEl.vz)secEl.vz.destroy();
   secEl=null;secBusy=false;
-  const el=lugarEl;lugarEl=null;document.body.classList.remove('lugar-on');document.removeEventListener('keydown',lugarKey,true);if(el._lang)window.removeEventListener('vc-lang',el._lang);
+  const el=lugarEl;lugarEl=null;document.body.classList.remove('lugar-on','lugar-cover');document.removeEventListener('keydown',lugarKey,true);if(el._lang)window.removeEventListener('vc-lang',el._lang);
   el.style.transition='opacity .28s ease';el.style.opacity='0';el.style.pointerEvents='none';
   setTimeout(()=>el.remove(),300);
 }
@@ -1782,6 +1787,14 @@ function openLugar(card,fromUrl){
   view.style.cssText='position:fixed;inset:0;z-index:100002;background:radial-gradient(ellipse at 50% 40%,#111936 0%,#080b19 55%,#05060f 100%);color:#eef1ff';
   view.innerHTML=''+topoSvg()+lugarStar()+'<button type="button" id="lugar-back" aria-label="Volver" style="position:absolute;top:12px;left:60px;display:flex;align-items:center;justify-content:center;width:34px;height:34px;padding:0;border:1px solid #232846;border-radius:7px;background:#0e1226ef;color:#eef1ff;cursor:pointer;transition:background .18s,border-color .18s"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><span id="lugar-title" style="position:absolute;top:12px;left:104px;height:34px;display:flex;align-items:center;font:400 20px/1 \'Iowan Old Style\',Georgia,serif;color:#f5f7ff;white-space:nowrap;pointer-events:none;transition:opacity .45s ease"></span>';
   const bk=view.querySelector('#lugar-back'),tt=view.querySelector('#lugar-title');
+  /* el mapa se dibuja una vez (aparece linea a linea) y despues se queda como imagen fija hasta que se vuelva a abrir */
+  const still=topoSvg.still;
+  setTimeout(()=>{
+    const sv=view.querySelector('svg#topo');if(!sv||!view.isConnected||!still)return;
+    const im=new Image();im.id='topo';im.alt='';im.setAttribute('aria-hidden','true');im.draggable=false;
+    im.onload=()=>{if(sv.isConnected)sv.replaceWith(im)};
+    im.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(still);
+  },2600);
   /* el titulo sigue al idioma elegido */
   const tr=k=>window.vcI18n?vcI18n.t(k):k;
   const setTt=()=>{tt.textContent=tr('Lugar para observar');view.querySelectorAll('[data-ls]').forEach(el=>{el.textContent=tr(el.dataset.ls)})};
@@ -1796,7 +1809,7 @@ function openLugar(card,fromUrl){
     if(!fromUrl)lugarPushed=topGo('lugar',true);
   };
   const reduce=typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if(fromUrl||reduce||!card||!card.animate){document.body.append(view);lugarCenter(view);show();return}
+  if(fromUrl||reduce||!card||!card.animate){document.body.append(view);lugarCenter(view);show();document.body.classList.add('lugar-cover');return}
   /* misma expansion que el logo: el cuadrado de la tarjeta crece hasta ocupar la pantalla y su borde brilla */
   const r=card.getBoundingClientRect(),W=innerWidth,H=innerHeight;
   const c0='inset('+r.top+'px '+(W-r.right)+'px '+(H-r.bottom)+'px '+r.left+'px round 13px)';
@@ -1820,7 +1833,7 @@ function openLugar(card,fromUrl){
   const fade=[card.querySelector('.gk-ic'),card.querySelector('.gk-tx')||card.querySelector('.gk-t')].filter(Boolean)
     .map(el=>el.animate([{opacity:1,transform:'none',filter:'blur(0px)'},{opacity:0,transform:'scale(1.14)',filter:'blur(3px)'}],{duration:460,easing:'ease-out',fill:'forwards'}));
   setTimeout(()=>{bk.style.opacity='1';tt.style.opacity='1'},520);
-  va.onfinish=()=>{va.cancel();view.style.clipPath='';glow.remove();bd.remove();fade.forEach(f=>f.cancel());bk.style.opacity='1';tt.style.opacity='1'};
+  va.onfinish=()=>{va.cancel();view.style.clipPath='';glow.remove();bd.remove();fade.forEach(f=>f.cancel());bk.style.opacity='1';tt.style.opacity='1';if(lugarEl===view)document.body.classList.add('lugar-cover')};
 }
 /* Rutas: la URL de la ventana superior (mismo origen) refleja la pagina abierta sin recargar */
 const ROUTES={principal:{path:'',title:'Vero Cosmos'},atlas:{path:'/atlas-astrofotografico',title:'Atlas astrofotográfico · Vero Cosmos'},guide:{path:'/guia-astronomica',title:'Guía astronómica · Vero Cosmos'},about:{path:'/quienes-somos',title:'¿Quiénes somos? · Vero Cosmos'},lugar:{path:'/guia-astronomica/lugar-para-observar',title:'Lugar para observar · Vero Cosmos'}};
@@ -2062,9 +2075,9 @@ function vcSky(cv,active){
   addEventListener('resize',size);
   requestAnimationFrame(frame);
 }
-vcSky(document.getElementById("sky"),()=>document.body.classList.contains("principal-page"));
+vcSky(document.getElementById("sky"),()=>document.body.classList.contains("principal-page")&&!document.body.classList.contains("lugar-cover"));
 </script>
-<script src="vc-i18n.js?v=42"></script>
+<script src="vc-i18n.js?v=43"></script>
 <script>vcI18n.mount(document.getElementById("stage"));</script>
 </body>
 </html>
