@@ -112,7 +112,7 @@
     })
 
     /* ---------- escena fija (se rehace al cambiar de tamano) ---------- */
-    var W = 0, H = 0, K = 0, dpr = 1, ctx = cv.getContext('2d'), raf = 0, dead = false, S = null, nextShoot = 2500, shoot = null
+    var W = 0, H = 0, K = 0, dpr = 1, ctx = cv.getContext('2d'), raf = 0, dead = false, S = null, nextShoot = 2500, shoot = null, lastDraw = 0
     function build() {
       var r = cv.getBoundingClientRect(); W = Math.max(1, r.width); H = Math.max(1, r.height); K = Math.min(H, W * 1.25); dpr = Math.min(2, window.devicePixelRatio || 1)
       cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr)
@@ -457,7 +457,8 @@
     function frame(now) {
       if (dead) return
       if (!cv.isConnected) { dead = true; return }
-      if (S && W > 0) { cur += (target - cur) * .1; if (Math.abs(target - cur) < .5) cur = target; draw(now) }
+      /* con la altitud quieta basta con 30 fotogramas por segundo (menos consumo) */
+      if (S && W > 0) { cur += (target - cur) * .1; if (Math.abs(target - cur) < .5) cur = target; if (cur !== target || now - lastDraw > 31) { lastDraw = now; draw(now) } }
       raf = requestAnimationFrame(frame)
     }
     var resize = function () { if (dead) return; build() }

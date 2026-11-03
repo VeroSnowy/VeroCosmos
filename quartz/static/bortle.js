@@ -72,6 +72,7 @@
     x.fillStyle = g; x.fillRect(0, 0, 64, 64); GLOW = c; return c
   }
 
+  var CACHE = null
   function mount(host) {
     if (!document.getElementById('bz-css')) { var st = document.createElement('style'); st.id = 'bz-css'; st.textContent = CSS; document.head.append(st) }
     host.innerHTML = ''
@@ -95,7 +96,7 @@
     /* ---------- estado y controles ---------- */
     var reduce = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
     var target = 5, cur = 5, W = 0, H = 0, ctx = cv.getContext('2d'), raf = 0, dead = false, t0 = performance.now()
-    var mx = .5, shoot = null, plane = null, nextPlane = 9000, nextShoot = 2500, S = null, buildT = 0
+    var mx = .5, shoot = null, plane = null, nextPlane = 9000, nextShoot = 2500, S = null, buildT = 0, lastMx = .5, lastDraw = 0
     function setLevel(n, instant) {
       target = clamp(Math.round(n), 1, 9)
       btns.forEach(function (b) { b.classList.toggle('on', +b.dataset.l === target) })
@@ -608,7 +609,10 @@
       side.style.setProperty('--bd', bd + 'px')
       host.classList.toggle('bz-root-short', side.clientHeight < 440); host.classList.toggle('bz-root-tiny', side.clientHeight < 300)
       /* la escena se reconstruye poco despues (evita rehacerla en cada paso de un redimensionado) */
-      clearTimeout(buildT); buildT = setTimeout(function () { if (!dead) S = build() }, S ? 140 : 30)
+      /* si ya se construyo un paisaje de este mismo tamano (p. ej. al volver a abrir la seccion), se reutiliza al instante */
+      var key = W + 'x' + H + '@' + Math.min(1.5, window.devicePixelRatio || 1)
+      if (CACHE && CACHE.key === key) { clearTimeout(buildT); S = CACHE.sc; return }
+      clearTimeout(buildT); buildT = setTimeout(function () { if (!dead) { S = build(); CACHE = { key: key, sc: S } } }, S ? 140 : 30)
     }
 
     /* =====================================================================================================
@@ -742,7 +746,9 @@
       if (S && W > 0) {
         cur += (target - cur) * .09
         if (Math.abs(target - cur) < .004) cur = target
-        draw(now)
+        /* en reposo (nivel fijo y sin mover el raton) basta con 30 fotogramas por segundo: menos consumo */
+        var idle = cur === target && mx === lastMx; lastMx = mx
+        if (!idle || now - lastDraw > 31) { lastDraw = now; draw(now) }
       } else { ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = '#05060f'; ctx.fillRect(0, 0, cv.width, cv.height) }
       raf = requestAnimationFrame(frame)
     }

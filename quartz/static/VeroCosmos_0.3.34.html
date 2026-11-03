@@ -1670,7 +1670,7 @@ function secBody(name){
   return d;
 }
 /* Secciones con dibujo interactivo: se cargan bajo demanda (bortle.js) */
-const SEC_VIZ={'Contaminación Lumínica':{src:'bortle.js?v=3',api:'vcBortle'},'Entorno':{src:'entorno.js?v=1',api:'vcEntorno'},'Meteorología':{src:'meteo.js?v=1',api:'vcMeteo'}};
+const SEC_VIZ={'Contaminación Lumínica':{src:'bortle.js?v=4',api:'vcBortle'},'Entorno':{src:'entorno.js?v=2',api:'vcEntorno'},'Meteorología':{src:'meteo.js?v=2',api:'vcMeteo'}};
 function secLoadViz(def,cb){
   if(window[def.api]){cb();return}
   let s=document.querySelector('script[data-viz="'+def.api+'"]');
@@ -1700,11 +1700,17 @@ function openSection(btn,name){
   /* lo que se apaga: el resto de botones, la estrella, las lineas y la etiqueta del elegido */
   const others=[...ls.querySelectorAll('.ls-b,.ls-m,.ls-lines')].filter(x=>x!==btn).concat([btn.querySelector('.ls-t')]);
   secEl={side,page,btn,roll,others,c,fades:[],act:null,vz:null};
-  if(vzHost)secLoadViz(vzDef,()=>{if(secEl&&secEl.page===page)secEl.vz=window[vzDef.api].mount(vzHost)});
+  /* el dibujo se descarga ya, pero se monta cuando termina la animacion de apertura: montarlo (Bortle tarda ~0,3 s)
+     durante la animacion la congelaba. Despues aparece con un fundido. */
+  let vzReady=false,vzWant=false;
+  const vzMount=()=>{if(!vzReady||!vzWant||!secEl||secEl.page!==page||secEl.vz)return;secEl.vz=window[vzDef.api].mount(vzHost);if(vzHost.animate)vzHost.animate([{opacity:0},{opacity:1}],{duration:500,easing:'ease-out'})};
+  if(vzHost)secLoadViz(vzDef,()=>{vzReady=true;vzMount()});
+  const vzGo=()=>{vzWant=true;vzMount()};
   /* movimiento reducido: sin desplazamientos, solo un fundido suave */
   if(red){
     others.forEach(x=>{x.style.opacity='0'});c.style.opacity='0';roll.remove();secEl.roll=null;
-    if(side.animate){const F={duration:420,easing:'ease-out',fill:'backwards'};others.concat([c]).forEach(x=>x.animate([{opacity:1},{opacity:0}],{duration:300,easing:'ease-out'}));side.animate([{opacity:0},{opacity:1}],F);page.animate([{opacity:0},{opacity:1}],Object.assign({},F,{delay:120}))}
+    if(side.animate){const F={duration:420,easing:'ease-out',fill:'backwards'};others.concat([c]).forEach(x=>x.animate([{opacity:1},{opacity:0}],{duration:300,easing:'ease-out'}));side.animate([{opacity:0},{opacity:1}],F);page.animate([{opacity:0},{opacity:1}],Object.assign({},F,{delay:120})).onfinish=vzGo}
+    else vzGo();
     return}
   if(bdS)bdS.style.opacity='0';
   secBusy=true;
@@ -1738,7 +1744,7 @@ function openSection(btn,name){
   if(bdS)bdS.animate([{opacity:0},{opacity:1}],{duration:520,delay:D0+140,easing:'ease-out',fill:'both'});
   const T={duration:900,delay:D0+250,easing:E,fill:'backwards'};
   page.animate([{clipPath:'inset(0px '+fp.width+'px 0px 0px)'},{clipPath:'inset(0px 0px 0px 0px)'}],T);
-  roll.animate([{left:x0+'px',opacity:0},{left:x0+'px',opacity:1,offset:.04},{left:x1+'px',opacity:1,offset:.94},{left:x1+'px',opacity:0}],{duration:900,delay:D0+250,easing:E,fill:'both'}).onfinish=()=>{secBusy=false;roll.style.display='none'};
+  roll.animate([{left:x0+'px',opacity:0},{left:x0+'px',opacity:1,offset:.04},{left:x1+'px',opacity:1,offset:.94},{left:x1+'px',opacity:0}],{duration:900,delay:D0+250,easing:E,fill:'both'}).onfinish=()=>{secBusy=false;roll.style.display='none';vzGo()};
 }
 function closeSection(){
   if(!secEl||secBusy)return;
@@ -1825,6 +1831,8 @@ function openLugar(card,fromUrl){
     if(card)card._busy=false;lugarEl=view;document.body.classList.add('lugar-on');document.addEventListener('keydown',lugarKey,true);
     try{bk.focus({preventScroll:true})}catch(e){}
     if(!fromUrl)lugarPushed=topGo('lugar',true);
+    /* precarga de los dibujos de las secciones cuando el navegador esta libre: al pulsar un boton ya no hay que esperar a la red */
+    setTimeout(()=>{const go=()=>{if(lugarEl===view)Object.values(SEC_VIZ).forEach(d=>secLoadViz(d,()=>{}))};window.requestIdleCallback?requestIdleCallback(go,{timeout:4000}):go()},1800);
   };
   const reduce=typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
   if(fromUrl||reduce||!card||!card.animate){
@@ -2070,6 +2078,8 @@ function vcSky(cv,active){
   }
   function frame(t){
     requestAnimationFrame(frame);
+    /* las estrellas del fondo cambian despacio: 30 fotogramas por segundo bastan (menos consumo) */
+    if(t-last<31)return;
     const dt=Math.min(.05,(t-last)/1000||0);last=t;
     if(document.hidden||!active()){ctx.clearRect(0,0,W,H);return}
     if(!W||W!==cv.clientWidth||H!==cv.clientHeight)size();
