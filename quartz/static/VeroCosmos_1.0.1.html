@@ -1654,8 +1654,8 @@ const SEC_TXT={
    1) letra de 14 a 12 px; 2) si no basta, se ensancha el rectangulo (hasta casi la mitad de la pantalla); 3) como ultimo recurso, letra mas pequena.
    En pantallas estrechas el texto va en la pagina de la derecha y solo se ajusta la letra. */
 function secFitAll(view,sb,pb,page){
-  /* con letra pequena (menos de 12 px) tambien se compactan los espacios entre lineas y parrafos */
-  const fz=(el,s)=>{el.style.fontSize=s+'px';el.classList.toggle('sec-cp',s<12)};
+  /* el interlineado y los espacios entre parrafos son siempre los mismos en todas las secciones */
+  const fz=(el,s)=>{el.style.fontSize=s+'px'};
   const lang=()=>setTimeout(fit,30);
   let busy=false;
   function fit(){

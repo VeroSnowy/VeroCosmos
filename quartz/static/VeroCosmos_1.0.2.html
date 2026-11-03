@@ -1654,8 +1654,8 @@ const SEC_TXT={
    1) letra de 14 a 12 px; 2) si no basta, se ensancha el rectangulo (hasta casi la mitad de la pantalla); 3) como ultimo recurso, letra mas pequena.
    En pantallas estrechas el texto va en la pagina de la derecha y solo se ajusta la letra. */
 function secFitAll(view,sb,pb,page){
-  /* con letra pequena (menos de 12 px) tambien se compactan los espacios entre lineas y parrafos */
-  const fz=(el,s)=>{el.style.fontSize=s+'px';el.classList.toggle('sec-cp',s<12)};
+  /* el interlineado y los espacios entre parrafos son siempre los mismos en todas las secciones */
+  const fz=(el,s)=>{el.style.fontSize=s+'px'};
   const lang=()=>setTimeout(fit,30);
   let busy=false;
   function fit(){
@@ -1816,7 +1816,7 @@ function openMiLugar(view){
   if(mlEl||mlBusy||secEl||secBusy||lugarEl!==view)return;mlBusy=true;
   const ls=view.querySelector('.ls'),star=view.querySelector('.ls-m'),others=[...ls.querySelectorAll('.ls-b,.ls-lines')],red=secReduce();
   const host=document.createElement('div');host.className='ml-host';
-  const def={src:'milugar.js?v=1',api:'vcMiLugar'};
+  const def={src:'milugar.js?v=3',api:'vcMiLugar'};
   const show=()=>{view.append(host);secLoadViz(def,()=>{if(mlEl!==host)return;host._vz=window.vcMiLugar.mount(host);if(host.animate)host.animate([{opacity:0},{opacity:1}],{duration:red?300:600,easing:'ease-out'})});mlBusy=false};
   mlEl=host;
   const fades=others.map(x=>x.animate?x.animate([{opacity:1},{opacity:0}],{duration:red?250:500,easing:'ease-out',fill:'forwards'}):null);
@@ -1890,7 +1890,7 @@ function openLugar(card,fromUrl){
     try{bk.focus({preventScroll:true})}catch(e){}
     if(!fromUrl)lugarPushed=topGo('lugar',true);
     /* precarga de los dibujos de las secciones cuando el navegador esta libre: al pulsar un boton ya no hay que esperar a la red */
-    setTimeout(()=>{const go=()=>{if(lugarEl===view)Object.values(SEC_VIZ).concat([{src:'milugar.js?v=1',api:'vcMiLugar'}]).forEach(d=>secLoadViz(d,()=>{}))};window.requestIdleCallback?requestIdleCallback(go,{timeout:4000}):go()},1800);
+    setTimeout(()=>{const go=()=>{if(lugarEl===view)Object.values(SEC_VIZ).concat([{src:'milugar.js?v=3',api:'vcMiLugar'}]).forEach(d=>secLoadViz(d,()=>{}))};window.requestIdleCallback?requestIdleCallback(go,{timeout:4000}):go()},1800);
   };
   const reduce=typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
   if(fromUrl||reduce||!card||!card.animate){
