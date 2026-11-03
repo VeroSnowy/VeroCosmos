@@ -214,6 +214,8 @@ body.guide-page #head h1{display:none}
 #ss-svg #ss-comet text{fill:#d7ecff;pointer-events:none}
 #topo{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
 img#topo{object-fit:cover}
+.ml-host{position:absolute;left:0;right:0;top:56px;bottom:0;z-index:4}
+.ml-trail{position:absolute;z-index:6;width:3px;margin-left:-1.5px;border-radius:2px;pointer-events:none;background:linear-gradient(0deg,rgba(248,216,116,0),rgba(248,216,116,.9));transform-origin:50% 100%}
 #topo .tl{fill:none;stroke:#5b6bb4;stroke-width:1.1;stroke-linecap:round;stroke-linejoin:round;opacity:0;animation:topoIn .8s ease calc(var(--i)*.06s) forwards}
 #topo .ti{stroke:#8ab4ff;stroke-width:1.7}
 @keyframes topoIn{from{opacity:0}to{opacity:.3}}
@@ -235,9 +237,9 @@ img#topo{object-fit:cover}
 .ls-t{position:absolute;top:calc(100% + 9px);left:50%;transform:translateX(-50%);width:max-content;max-width:calc(var(--D)*1.9);text-align:center;font:400 clamp(12px,calc(var(--S)*.024),15px)/1.2 "Iowan Old Style",Georgia,serif;color:#f5f7ff;pointer-events:none}
 .ls-m{position:absolute;left:50%;top:50%;width:calc(var(--S)*.34);height:calc(var(--S)*.34);margin:0;padding:0;border:0;background:none;color:#b9c9ff;cursor:pointer;font:inherit;transform:translate(-50%,-50%);animation:lsIn .7s cubic-bezier(.2,.8,.2,1) .3s both;outline:none}
 .ls-m svg.ls-st{position:absolute;inset:0;width:100%;height:100%;overflow:visible;transition:transform .2s ease}
-.ls-m .ls-sf{fill:url(#lsStar);stroke:#5b6bb4;stroke-width:1.5px;vector-effect:non-scaling-stroke;stroke-linejoin:round;transition:stroke .2s ease}
+.ls-m .ls-sf{fill:url(#lsStar);stroke:#f8d874;stroke-width:1.5px;vector-effect:non-scaling-stroke;stroke-linejoin:round;transition:stroke .2s ease}
 .ls-m:hover svg.ls-st,.ls-m:focus-visible svg.ls-st{transform:translateY(-2px)}
-.ls-m:hover .ls-sf,.ls-m:focus-visible .ls-sf{stroke:#8ab4ff}
+.ls-m:hover .ls-sf,.ls-m:focus-visible .ls-sf{stroke:#ffe7a3;filter:drop-shadow(0 0 6px rgba(248,216,116,.5))}
 .ls-m:active svg.ls-st{transform:translateY(0)}
 .ls-mi{position:absolute;left:50%;top:41%;width:22%;height:22%;transform:translate(-50%,-50%);color:#b9c9ff;pointer-events:none}
 .ls-mi svg{width:100%;height:100%;display:block;overflow:visible}
@@ -265,6 +267,8 @@ img#topo{object-fit:cover}
 body.lugar-on #head,body.lugar-on .vc-lang,body.lugar-on #logo-btn{z-index:100004}
 body.lugar-on #head h1{display:none}
 /* lo que queda debajo no se pinta mientras "Lugar para observar" esta abierto (sin parpadeos) */
+/* el panel de la derecha del atlas se abre por encima de "Lugar para observar" (enlaces de Mi Lugar) */
+body.lugar-on #mini,body.lugar-on #panel{visibility:visible;position:fixed;top:0;right:0;bottom:0;z-index:100006}@media(max-width:700px){body.lugar-on #mini{top:auto;left:0}}
 body.lugar-cover #app{visibility:hidden}body.lugar-cover #app *{animation-play-state:paused!important}body.lugar-cover #head,body.lugar-cover .vc-lang,body.lugar-cover #logo-btn{visibility:visible}
 @media(max-width:480px){#lugar-title{font-size:16px!important}}
 @media(max-width:350px){#lugar-title{display:none!important}}
@@ -509,7 +513,9 @@ for(const s in idx)for(let t of idx[s].links||[]){
   const k=[s,t].sort().join('|');if(seen.has(k))continue;seen.add(k);
   E.push([N[s],N[t]]);N[s].adj.add(t);N[t].adj.add(s);
 }
-const all=Object.values(N).filter(n=>n.adj.size>0);   // las carpetas automáticas sin enlaces no se dibujan
+const all=Object.values(N).filter(n=>n.adj.size>0);
+/* para "Mi Lugar": buscar una entrada del atlas por su clave (m_42, ngc_253, saturno...) y abrir su panel a la derecha */
+window.vcAtlas={find:k=>{k=String(k).toLowerCase();return all.find(n=>{const s=n.s.toLowerCase();return s.includes('/descripciones/'+k+'/')||s.endsWith('/descripciones/'+k)})||null},open:k=>{const n=window.vcAtlas.find(k);if(n){openPanel(n);return true}return false}};   // las carpetas automáticas sin enlaces no se dibujan
 all.forEach((n,i)=>{
   // Cada recarga genera una nube irregular nueva, con forma aproximada de media esfera.
   const a=Math.random()*Math.PI*2;
@@ -1688,7 +1694,7 @@ function secBody(name){
   return d;
 }
 /* Secciones con dibujo interactivo: se cargan bajo demanda (bortle.js) */
-const SEC_VIZ={'Contaminación Lumínica':{src:'bortle.js?v=4',api:'vcBortle'},'Entorno':{src:'entorno.js?v=2',api:'vcEntorno'},'Meteorología':{src:'meteo.js?v=2',api:'vcMeteo'},'Elección del lugar':{src:'eleccion.js?v=1',api:'vcEleccion'},'Preparación':{src:'mochila.js?v=1',api:'vcMochila'}};
+const SEC_VIZ={'Contaminación Lumínica':{src:'bortle.js?v=4',api:'vcBortle'},'Entorno':{src:'entorno.js?v=2',api:'vcEntorno'},'Meteorología':{src:'meteo.js?v=2',api:'vcMeteo'},'Elección del lugar':{src:'eleccion.js?v=1',api:'vcEleccion'},'Preparación':{src:'mochila.js?v=2',api:'vcMochila'}};
 function secLoadViz(def,cb){
   if(window[def.api]){cb();return}
   let s=document.querySelector('script[data-viz="'+def.api+'"]');
@@ -1803,12 +1809,41 @@ function lugarCenter(root){
 /* Lugar para observar: pagina a pantalla completa (por ahora en blanco) que se abre con la misma expansion que el logo.
    Tiene su propia URL (/guia-astronomica/lugar-para-observar): se abre con la animacion al pulsar la tarjeta y directamente si se entra por la URL */
 let lugarEl=null,lugarPushed=false;
+let mlEl=null,mlBusy=false;
+function openMiLugar(view){
+  if(mlEl||mlBusy||secEl||secBusy||lugarEl!==view)return;mlBusy=true;
+  const ls=view.querySelector('.ls'),star=view.querySelector('.ls-m'),others=[...ls.querySelectorAll('.ls-b,.ls-lines')],red=secReduce();
+  const host=document.createElement('div');host.className='ml-host';
+  const def={src:'milugar.js?v=1',api:'vcMiLugar'};
+  const show=()=>{view.append(host);secLoadViz(def,()=>{if(mlEl!==host)return;host._vz=window.vcMiLugar.mount(host);if(host.animate)host.animate([{opacity:0},{opacity:1}],{duration:red?300:600,easing:'ease-out'})});mlBusy=false};
+  mlEl=host;
+  const fades=others.map(x=>x.animate?x.animate([{opacity:1},{opacity:0}],{duration:red?250:500,easing:'ease-out',fill:'forwards'}):null);
+  host._fades=fades;host._star=star;
+  if(red||!star.animate){star.style.opacity='0';show();return}
+  /* giro y despegue: la estrella rota, se encoge y sube dejando una estela amarilla */
+  const r=star.getBoundingClientRect(),vr=view.getBoundingClientRect(),up=r.top+r.height/2-vr.top+40;
+  const E='cubic-bezier(.55,0,.75,.2)';
+  host._fly=star.animate([{transform:'translate(-50%,-50%) rotate(0deg) scale(1)',opacity:1},{transform:'translate(-50%,-50%) rotate(200deg) scale(.92)',opacity:1,offset:.35},{transform:'translate(-50%,calc(-50% - '+up+'px)) rotate(900deg) scale(.18)',opacity:0}],{duration:1300,easing:E,fill:'forwards'});
+  const tr=document.createElement('div');tr.className='ml-trail';tr.style.cssText='left:'+(r.left+r.width/2-vr.left)+'px;top:'+(r.top+r.height/2-vr.top)+'px;height:'+up+'px;transform:translateY(-100%) scaleY(0)';
+  view.append(tr);
+  tr.animate([{transform:'translateY(-100%) scaleY(0)',opacity:0},{transform:'translateY(-100%) scaleY(0)',opacity:0,offset:.35},{transform:'translateY(-100%) scaleY(.6)',opacity:1,offset:.7},{transform:'translateY(-100%) scaleY(0)',opacity:0,transformOrigin:'50% 0'}],{duration:1300,easing:'ease-in',fill:'forwards'}).onfinish=()=>tr.remove();
+  setTimeout(show,1050);
+}
+function closeMiLugar(){
+  const host=mlEl;if(!host)return;mlEl=null;mlBusy=false;
+  if(host._vz)host._vz.destroy();
+  const red=secReduce(),star=host._star;
+  const done=()=>{host.remove();(host._fades||[]).forEach(f=>f&&f.cancel());if(host._fly)host._fly.cancel();if(star){star.style.opacity='';if(star.animate&&!red)star.animate([{opacity:0,transform:'translate(-50%,-50%) scale(.6)'},{opacity:1,transform:'translate(-50%,-50%) scale(1)'}],{duration:500,easing:'ease-out'})}
+    const ls=star&&star.closest('.ls');if(ls&&!red)[...ls.querySelectorAll('.ls-b,.ls-lines')].forEach(x=>x.animate&&x.animate([{opacity:0},{opacity:1}],{duration:450,easing:'ease-out'}))};
+  if(host.animate&&!red){host.animate([{opacity:1},{opacity:0}],{duration:300,easing:'ease-in',fill:'forwards'}).onfinish=done}else done();
+}
 function lugarKey(e){if(e.key==='Escape'&&lugarEl){e.preventDefault();e.stopPropagation();if(pageMenu.classList.contains('open')){closePageMenu();return}closeLugar()}}
 /* ir a otra pagina desde el menu o el logo cierra "Lugar para observar" */
 document.addEventListener('click',ev=>{if(lugarEl&&ev.target.closest&&ev.target.closest('#page-menu a,#logo-btn')){lugarPushed=false;removeLugar()}},true);
 function removeLugar(){
   if(!lugarEl)return;
   if(secEl&&secEl.vz)secEl.vz.destroy();
+  if(mlEl){if(mlEl._vz)mlEl._vz.destroy();mlEl=null;mlBusy=false}
   secEl=null;secBusy=false;
   const el=lugarEl;lugarEl=null;document.body.classList.remove('lugar-on','lugar-cover');document.removeEventListener('keydown',lugarKey,true);if(el._lang)window.removeEventListener('vc-lang',el._lang);
   el.style.transition='opacity .28s ease';el.style.opacity='0';el.style.pointerEvents='none';
@@ -1818,6 +1853,7 @@ function removeLugar(){
 function closeLugar(){
   if(!lugarEl)return;
   if(secEl){closeSection();return}
+  if(mlEl){closeMiLugar();return}
   if(lugarPushed){lugarPushed=false;try{T0.history.back();return}catch(e){}}
   removeLugar();
   routeQuiet=true;try{setPageActive('guide')}finally{routeQuiet=false}
@@ -1845,13 +1881,14 @@ function openLugar(card,fromUrl){
   bk.addEventListener('mouseleave',()=>{bk.style.background='#0e1226ef';bk.style.borderColor='#232846'});
   bk.addEventListener('click',closeLugar);
   /* la seccion se busca por su nombre en espanol (data-sec): el aria-label lo traduce vc-i18n y en/fr se abrian vacias */
+  view.querySelector('.ls-m').addEventListener('click',()=>openMiLugar(view));
   view.querySelectorAll('.ls-b').forEach(b=>b.addEventListener('click',()=>openSection(b,b.dataset.sec)));
   const show=()=>{
     if(card)card._busy=false;lugarEl=view;document.body.classList.add('lugar-on');document.addEventListener('keydown',lugarKey,true);
     try{bk.focus({preventScroll:true})}catch(e){}
     if(!fromUrl)lugarPushed=topGo('lugar',true);
     /* precarga de los dibujos de las secciones cuando el navegador esta libre: al pulsar un boton ya no hay que esperar a la red */
-    setTimeout(()=>{const go=()=>{if(lugarEl===view)Object.values(SEC_VIZ).forEach(d=>secLoadViz(d,()=>{}))};window.requestIdleCallback?requestIdleCallback(go,{timeout:4000}):go()},1800);
+    setTimeout(()=>{const go=()=>{if(lugarEl===view)Object.values(SEC_VIZ).concat([{src:'milugar.js?v=1',api:'vcMiLugar'}]).forEach(d=>secLoadViz(d,()=>{}))};window.requestIdleCallback?requestIdleCallback(go,{timeout:4000}):go()},1800);
   };
   const reduce=typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
   if(fromUrl||reduce||!card||!card.animate){
@@ -2129,7 +2166,7 @@ function vcSky(cv,active){
 }
 vcSky(document.getElementById("sky"),()=>document.body.classList.contains("principal-page")&&!document.body.classList.contains("lugar-cover"));
 </script>
-<script src="vc-i18n.js?v=47"></script>
+<script src="vc-i18n.js?v=48"></script>
 <script>vcI18n.mount(document.getElementById("stage"));</script>
 </body>
 </html>
