@@ -504,7 +504,7 @@
           row(T('Viento'), Math.round(nw.wind) + ' km/h' + (nw.gust != null ? ' (' + T('ráfagas') + ' ' + Math.round(nw.gust) + ')' : '')) + (nw.vis != null ? row(T('Visibilidad'), num(nw.vis / 1000, 0) + ' km') : '') +
           (air && air.aod != null ? row(T('Transparencia'), '<span style="color:' + (air.aod > .3 ? Y : 'inherit') + '">' + esc(T(air.aod < .1 ? 'Excelente' : air.aod < .2 ? 'Buena' : air.aod < .35 ? 'Regular' : 'Mala')) + ' (AOD ' + num(air.aod, 2) + ')</span>') : '') +
           (air && air.dust != null ? row(T('Polvo en suspensión'), Math.round(air.dust) + ' µg/m³' + (air.dust > 50 ? ' · ' + esc(T('calima')) : '')) : '') + (air && air.pm10 != null ? row('PM10 / PM2,5', Math.round(air.pm10) + ' / ' + Math.round(air.pm25 || 0) + ' µg/m³') : '') +
-          (nw.t850 != null && nw.temp != null ? row(T('Inversión térmica'), nw.t850 > nw.temp ? '<span style="color:' + Y + '">' + esc(T('sí: posible mar de nubes')) + '</span>' : esc(T('no'))) : '') +
+          (nw.t850 != null && nw.temp != null && alt != null && alt < 1300 ? row(T('Inversión térmica'), nw.t850 > nw.temp ? '<span style="color:' + Y + '">' + esc(T('sí: posible mar de nubes')) + '</span>' : esc(T('no'))) : '') +
           (nw.blh != null ? row(T('Capa de mezcla'), Math.round(nw.blh) + ' m') : '') + (nw.frz != null ? row(T('Isoterma de 0 °C'), Math.round(nw.frz) + ' m') : '') + (nw.pres != null ? row(T('Presión en superficie'), Math.round(nw.pres) + ' hPa') : '') +
           (d.wx.source === 'met' ? '<div class="ml-note ml-fail">' + esc(T('Pronóstico de MET Norway (met.no): algunos datos no están disponibles.')) + '</div>' : '')
       })(), 'ml-wx')

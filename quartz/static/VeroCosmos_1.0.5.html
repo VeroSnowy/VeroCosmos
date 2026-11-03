@@ -1625,9 +1625,9 @@ const SEC_TXT={
   'Meteorología':[
     {p:'El lugar perfecto, los mejores aparatos y, de repente, una nube en medio de nuestro objetivo. La tan olvidada y odiada meteorología es uno de los grandes pilares para escoger un buen lugar de observación. Tanto las nubes, el viento o la temperatura pueden ser factores clave para sacar la mejor fotografía.'},
     {q:'¿Qué es el seeing (estabilidad atmosférica)?'},
-    {p:'El "seeing", o en español "estabilidad atmosférica", se trata de la turbulencia del aire. Este trata de un efecto de desviación de la luz producido por las distintas corrientes térmicas entre las capas de la atmósfera haciendo que las estrellas titilen o que los planetas se vean borrosos.'},
+    {p:'El "seeing", o en español "estabilidad atmosférica", se trata de la turbulencia del aire. Se trata de un efecto de desviación de la luz producido por las distintas corrientes térmicas entre las capas de la atmósfera haciendo que las estrellas titilen o que los planetas se vean borrosos.'},
     {q:'¿Cómo afecta la transparencia del cielo?'},
-    {p:'La transparencia hace referencia a la humedad del entorno, polvo, calima o cirros finos. En general, mide la claridad con la que un telescopio es capaz de atravesar la atmósfera para ver un objeto. Para galaxias y nebulosas se recomiendan cielos de alta transparencia debido a su lejanía.'},
+    {p:'La transparencia hace referencia a la humedad del entorno, polvo, calima o cirros finos. En general, mide la facilidad con la que la luz de un objeto atraviesa la atmósfera hasta llegar a nuestro telescopio. Para galaxias y nebulosas se recomiendan cielos de alta transparencia debido a su lejanía y a su bajo brillo.'},
     {q:'¿El frío, el viento y el punto de rocío tienen un papel en todo esto?'},
     {p:'Los aparatos de observación (telescopios) tienen lentes muy sensibles que debido a la humedad del ambiente, el viento y el frío pueden generar rocío o incluso congelarse/condensarse. Muchos de estos aparatos incluyen sistema anti-rocío, sin embargo de no tenerlo hay que tener en cuenta el tiempo del lugar escogido en el momento determinado.'}
   ],
@@ -1816,7 +1816,7 @@ function openMiLugar(view){
   if(mlEl||mlBusy||secEl||secBusy||lugarEl!==view)return;mlBusy=true;
   const ls=view.querySelector('.ls'),star=view.querySelector('.ls-m'),others=[...ls.querySelectorAll('.ls-b,.ls-lines')],red=secReduce();
   const host=document.createElement('div');host.className='ml-host';
-  const def={src:'milugar.js?v=4',api:'vcMiLugar'};
+  const def={src:'milugar.js?v=6',api:'vcMiLugar'};
   const show=()=>{view.append(host);secLoadViz(def,()=>{if(mlEl!==host)return;host._vz=window.vcMiLugar.mount(host);if(host.animate)host.animate([{opacity:0},{opacity:1}],{duration:red?300:600,easing:'ease-out'})});mlBusy=false};
   mlEl=host;
   const fades=others.map(x=>x.animate?x.animate([{opacity:1},{opacity:0}],{duration:red?250:500,easing:'ease-out',fill:'forwards'}):null);
@@ -1890,7 +1890,7 @@ function openLugar(card,fromUrl){
     try{bk.focus({preventScroll:true})}catch(e){}
     if(!fromUrl)lugarPushed=topGo('lugar',true);
     /* precarga de los dibujos de las secciones cuando el navegador esta libre: al pulsar un boton ya no hay que esperar a la red */
-    setTimeout(()=>{const go=()=>{if(lugarEl===view)Object.values(SEC_VIZ).concat([{src:'milugar.js?v=4',api:'vcMiLugar'}]).forEach(d=>secLoadViz(d,()=>{}))};window.requestIdleCallback?requestIdleCallback(go,{timeout:4000}):go()},1800);
+    setTimeout(()=>{const go=()=>{if(lugarEl===view)Object.values(SEC_VIZ).concat([{src:'milugar.js?v=6',api:'vcMiLugar'}]).forEach(d=>secLoadViz(d,()=>{}))};window.requestIdleCallback?requestIdleCallback(go,{timeout:4000}):go()},1800);
   };
   const reduce=typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
   if(fromUrl||reduce||!card||!card.animate){
@@ -2168,7 +2168,7 @@ function vcSky(cv,active){
 }
 vcSky(document.getElementById("sky"),()=>document.body.classList.contains("principal-page")&&!document.body.classList.contains("lugar-cover"));
 </script>
-<script src="vc-i18n.js?v=49"></script>
+<script src="vc-i18n.js?v=51"></script>
 <script>vcI18n.mount(document.getElementById("stage"));</script>
 </body>
 </html>
