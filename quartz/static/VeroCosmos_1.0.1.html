@@ -1816,7 +1816,7 @@ function openMiLugar(view){
   if(mlEl||mlBusy||secEl||secBusy||lugarEl!==view)return;mlBusy=true;
   const ls=view.querySelector('.ls'),star=view.querySelector('.ls-m'),others=[...ls.querySelectorAll('.ls-b,.ls-lines')],red=secReduce();
   const host=document.createElement('div');host.className='ml-host';
-  const def={src:'milugar.js?v=1',api:'vcMiLugar'};
+  const def={src:'milugar.js?v=2',api:'vcMiLugar'};
   const show=()=>{view.append(host);secLoadViz(def,()=>{if(mlEl!==host)return;host._vz=window.vcMiLugar.mount(host);if(host.animate)host.animate([{opacity:0},{opacity:1}],{duration:red?300:600,easing:'ease-out'})});mlBusy=false};
   mlEl=host;
   const fades=others.map(x=>x.animate?x.animate([{opacity:1},{opacity:0}],{duration:red?250:500,easing:'ease-out',fill:'forwards'}):null);
@@ -1890,7 +1890,7 @@ function openLugar(card,fromUrl){
     try{bk.focus({preventScroll:true})}catch(e){}
     if(!fromUrl)lugarPushed=topGo('lugar',true);
     /* precarga de los dibujos de las secciones cuando el navegador esta libre: al pulsar un boton ya no hay que esperar a la red */
-    setTimeout(()=>{const go=()=>{if(lugarEl===view)Object.values(SEC_VIZ).concat([{src:'milugar.js?v=1',api:'vcMiLugar'}]).forEach(d=>secLoadViz(d,()=>{}))};window.requestIdleCallback?requestIdleCallback(go,{timeout:4000}):go()},1800);
+    setTimeout(()=>{const go=()=>{if(lugarEl===view)Object.values(SEC_VIZ).concat([{src:'milugar.js?v=2',api:'vcMiLugar'}]).forEach(d=>secLoadViz(d,()=>{}))};window.requestIdleCallback?requestIdleCallback(go,{timeout:4000}):go()},1800);
   };
   const reduce=typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
   if(fromUrl||reduce||!card||!card.animate){
@@ -2168,7 +2168,7 @@ function vcSky(cv,active){
 }
 vcSky(document.getElementById("sky"),()=>document.body.classList.contains("principal-page")&&!document.body.classList.contains("lugar-cover"));
 </script>
-<script src="vc-i18n.js?v=48"></script>
+<script src="vc-i18n.js?v=49"></script>
 <script>vcI18n.mount(document.getElementById("stage"));</script>
 </body>
 </html>

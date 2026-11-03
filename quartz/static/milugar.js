@@ -147,12 +147,13 @@
     for (var k = 0; k < lats.length; k += 100) reqs.push(jget('https://api.open-meteo.com/v1/elevation?latitude=' + lats.slice(k, k + 100).join(',') + '&longitude=' + lons.slice(k, k + 100).join(',')))
     return Promise.all(reqs).then(function (rs) { var e = []; rs.forEach(function (r) { e = e.concat(r.elevation) }); if (e.length !== GN * GN) throw new Error('elev'); var g = []; for (var j2 = 0; j2 < GN; j2++) g.push(e.slice(j2 * GN, j2 * GN + GN)); return g })
   }
-  var WXV = 'temperature_2m,relative_humidity_2m,dew_point_2m,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,wind_speed_10m,wind_gusts_10m,wind_speed_250hPa,visibility,precipitation_probability'
+  var WXV = 'temperature_2m,relative_humidity_2m,dew_point_2m,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,wind_speed_10m,wind_gusts_10m,wind_speed_250hPa,visibility,precipitation_probability,precipitation,soil_moisture_0_to_1cm,snow_depth,boundary_layer_height,temperature_850hPa,freezing_level_height,surface_pressure'
   /* pronostico del dia elegido (Open-Meteo llega a 16 dias); fuera de rango solo se pide la zona horaria */
-  function weather(lat, lon, ymd, ymd2, inRange) {
+  function weather(lat, lon, ymd0, ymd2, inRange) {
     if (!inRange) return jget('https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon + '&daily=sunrise&forecast_days=1&timezone=auto').then(function (j) { return { tzOnly: true, timezone: j.timezone } })
-    return jget('https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon + '&hourly=' + WXV + '&timezone=auto&timeformat=unixtime&start_date=' + ymd + '&end_date=' + ymd2)
+    return jget('https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon + '&hourly=' + WXV + '&timezone=auto&timeformat=unixtime&start_date=' + ymd0 + '&end_date=' + ymd2)
   }
+  function airq(lat, lon, ymd, ymd2) { return jget('https://air-quality-api.open-meteo.com/v1/air-quality?latitude=' + lat + '&longitude=' + lon + '&hourly=aerosol_optical_depth,dust,pm10,pm2_5&timezone=auto&timeformat=unixtime&start_date=' + ymd + '&end_date=' + ymd2) }
   /* caminos de OpenStreetMap (Overpass): servidor principal y uno de respaldo */
   var OVP = ['https://overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter']
   function ovp(q, k) {
@@ -230,7 +231,16 @@
     var jet = avg('wind_speed_250hPa'), wind = avg('wind_speed_10m')
     return { cloud: avg('cloud_cover'), low: avg('cloud_cover_low'), mid: avg('cloud_cover_mid'), high: avg('cloud_cover_high'), rh: avg('relative_humidity_2m'), dew: avg('dew_point_2m'), temp: avg('temperature_2m'),
       minT: Math.min.apply(null, idx.map(function (i2) { return h.temperature_2m[i2] })), wind: wind, gust: mxOf('wind_gusts_10m'), vis: avg('visibility'), rain: mxOf('precipitation_probability'),
+      rain24: (function () { var s = 0; for (var i3 = 0; i3 < h.time.length; i3++) { var t3 = h.time[i3] * 1000; if (t3 > n.dusk - 24 * 3600000 && t3 <= n.dusk && h.precipitation && h.precipitation[i3] != null) s += h.precipitation[i3] } return s })(),
+      soil: avg('soil_moisture_0_to_1cm'), snow: mxOf('snow_depth'), blh: avg('boundary_layer_height'), t850: avg('temperature_850hPa'), frz: avg('freezing_level_height'), pres: avg('surface_pressure'),
       seeing: clamp(.7 + .011 * (jet == null ? 60 : jet) + .02 * (wind || 5), .8, 4), hours: idx.map(function (i2) { return { t: h.time[i2] * 1000, c: h.cloud_cover[i2] } }) }
+  }
+  function nightAir(aq, n) {
+    if (!aq || !aq.hourly) return null
+    var h = aq.hourly, idx = []; for (var i = 0; i < h.time.length; i++) { var t = h.time[i] * 1000; if (t >= n.dusk - 1800000 && t <= n.dawn + 1800000) idx.push(i) }
+    if (!idx.length) return null
+    var avg = function (k) { var s = 0, c = 0; idx.forEach(function (i2) { var v = h[k] && h[k][i2]; if (v != null) { s += v; c++ } }); return c ? s / c : null }
+    return { aod: avg('aerosol_optical_depth'), dust: avg('dust'), pm10: avg('pm10'), pm25: avg('pm2_5') }
   }
   /* lo mas destacado de la noche: altura maxima en la noche cerrada y su hora */
   function highlights(lat, lon, n, nelm, moon) {
@@ -247,7 +257,7 @@
     })
     out.sort(function (a, b) { return b.score - a.score })
     var cons = CONS.map(function (c) { var b = best(function () { return { ra: c[3] * 15, dec: c[4] } }); return { name: c.slice(0, 3), alt: b.alt } }).filter(function (c) { return c.alt > 35 }).sort(function (a, b) { return b.alt - a.alt }).slice(0, 8)
-    return { objs: out.slice(0, 14), cons: cons }
+    return { objs: out.slice(0, 10), cons: cons }
   }
 
   /* ---------- estilos ---------- */
@@ -281,7 +291,7 @@
     '.ml-bar{display:flex;gap:2px;margin:6px 0 4px}.ml-bar i{flex:1;height:6px;border-radius:2px;background:#1a2350}.ml-bar i.on{background:' + Y + '}' +
     '.ml-hrs{display:flex;align-items:flex-end;gap:2px;height:30px;margin:6px 0 2px}.ml-hrs i{flex:1;border-radius:2px 2px 0 0;min-height:2px}' +
     '.ml-chk{display:flex;align-items:flex-start;gap:8px;font-size:12.5px;line-height:1.35;color:#d6dcf7;padding:3px 0;cursor:pointer}.ml-chk input{accent-color:' + Y + ';margin-top:2px}.ml-chk em{display:block;font-style:normal;font-size:11px;color:#8f98c0}' +
-    '.ml-sky{max-width:1240px;margin:14px auto 0}' +
+    '.ml-sky{margin:6px 0 0}' +
     '.ml-objs{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;margin-top:4px}' +
     '.ml-o{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid #232a4f;border-radius:10px;background:#0b1027;text-align:left;color:inherit;font:inherit;width:100%;box-sizing:border-box}' +
     'button.ml-o{cursor:pointer;transition:border-color .2s,background .2s}button.ml-o:hover,button.ml-o:focus-visible{border-color:' + Y + ';background:#111a3d;outline:none}' +
@@ -290,8 +300,18 @@
     '.ml-cons{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.ml-cons span{font-size:12px;padding:3px 10px;border:1px solid #343d63;border-radius:999px;color:#cfd6f5}.ml-cons span b{font-weight:400;color:#8f98c0;margin-left:4px}' +
     '.ml-load{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#8f98c0;font-size:13px;pointer-events:none}' +
     '.ml-spin{width:26px;height:26px;margin-right:10px;color:' + Y + ';animation:mlSpin 1.6s linear infinite}@keyframes mlSpin{to{transform:rotate(360deg)}}' +
+    '.ml.fit{overflow:hidden}.ml.fit .ml-res{padding-bottom:6px;transform-origin:50% 0}.ml:not(.mob):not(.nar) .ml-grid{grid-template-columns:minmax(0,1fr) minmax(320px,1.15fr) minmax(0,1fr);grid-template-areas:"l m r" "p s s";row-gap:10px}.ml:not(.mob):not(.nar) .ml-col.l{grid-area:l}.ml:not(.mob):not(.nar) .ml-mapw{grid-area:m}.ml:not(.mob):not(.nar) .ml-col.r{grid-area:r}.ml:not(.mob):not(.nar) .ml-pr{grid-area:p;align-self:stretch}.ml:not(.mob):not(.nar) .ml-sky{grid-area:s;align-self:stretch}.ml-sky{margin:0;position:relative;z-index:2}.ml-sky .ml-objs{grid-template-columns:repeat(5,minmax(0,1fr))}.ml-sky .ml-o{padding:5px 8px;gap:8px}.ml-sky .ml-oi{width:22px;height:22px}.ml-sky .ml-on{font-size:12.5px}.ml:not(.mob) .ml-grid .ml-card.ml-wx{grid-template-columns:repeat(3,minmax(0,1fr))}.ml:not(.mob):not(.nar) .ml-sky .ml-bt{display:none}.ml:not(.mob):not(.nar) .ml-sky>.ml-note:last-child{display:none}.ml:not(.mob):not(.nar) .ml-wx .ml-note{display:none}.ml:not(.mob):not(.nar) .ml-sky .ml-ty{display:none}.ml:not(.mob):not(.nar) .ml-sky .ml-o{min-height:0}.ml:not(.mob):not(.nar) .ml-pr,.ml:not(.mob):not(.nar) .ml-sky{align-self:start}.ml:not(.mob):not(.nar) .ml-grid .ml-card .ml-note{font-size:11px;line-height:1.35}.ml.nar .ml-grid{display:flex;flex-direction:column;max-width:560px;gap:10px}.ml.nar .ml-col{display:contents}.ml.nar .ml-mapw{order:-2;width:min(calc(100% - 24px),var(--mw,380px));margin:12px auto 4px}.ml.nar .ml-sky .ml-objs{grid-template-columns:1fr 1fr}.ml.has-res .ml-top{flex-direction:row;flex-wrap:wrap;justify-content:center;gap:6px 12px;width:min(860px,calc(100% - 28px))}.ml.has-res .ml-q{flex:1 1 300px;width:auto;padding:3px 3px 3px 14px}.ml.has-res .ml-q input{font-size:17px;padding:4px 0}.ml.has-res .ml-q button{width:34px;height:34px}.ml.has-res .ml-msg:empty{display:none}.ml-head{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px 12px}.ml-head .ml-name{max-width:46%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ml-head .ml-co{margin:0}.ml-head .ml-ver{margin:0}.ml-vw{border:1px solid #343d63;border-radius:999px;background:#0b1025;color:#b9c9ff;font:400 12px ' + SERIF + ';padding:4px 12px;cursor:pointer;transition:border-color .2s,color .2s}.ml-vw:hover,.ml-vw:focus-visible{border-color:' + Y + ';color:' + Y + ';outline:none}.ml-card{padding:10px 12px 11px}.ml-row{font-size:12.5px;line-height:1.5}.ml:not(.mob) .ml-grid .ml-card{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:12px;row-gap:3px;align-content:start}.ml:not(.mob) .ml-grid .ml-card>*{grid-column:1/-1}.ml:not(.mob) .ml-grid .ml-card>.ml-row:not(.ml-axis){grid-column:auto;display:block;line-height:1.25;padding:1px 0}.ml:not(.mob) .ml-grid .ml-card>.ml-row:not(.ml-axis) span{display:block;text-align:left}.ml:not(.mob) .ml-grid .ml-card>.ml-row:not(.ml-axis) span:first-child{font-size:10.5px;color:#8f98c0}.ml:not(.mob) .ml-grid .ml-card>.ml-row:not(.ml-axis) span:last-child{font-size:13px}.ml:not(.mob) .ml-grid .ml-card>.ml-chk{grid-column:auto}' +
+    '.ml-tabs{display:none}.ml-tabs button{width:38px;height:38px;border-radius:50%;border:1px solid #343d63;background:#0b1025;color:#b9c9ff;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;transition:border-color .2s,color .2s,box-shadow .2s}.ml-tabs button svg{width:18px;height:18px}.ml-tabs button.on{border-color:' + Y + ';color:' + Y + ';box-shadow:0 0 10px rgba(248,216,116,.35)}' +
+    '.ml.mob .ml-grid{display:flex;flex-direction:column;max-width:560px;gap:10px}.ml.mob .ml-col{display:contents}.ml.mob .ml-mapw{order:-2;width:min(calc(100% - 24px),var(--mw,380px));margin:12px auto 4px}.ml.mob .ml-tabs{order:-1;display:flex;justify-content:center;gap:6px;flex-wrap:wrap}.ml.mob .ml-card[data-t]:not(.on){display:none}.ml.mob .ml-head{margin-bottom:0}.ml.mob .ml-name{font-size:12.5px}.ml.mob .ml-sky{margin:0}.ml.mob .ml-sky .ml-o:nth-child(n+7){display:flex}.ml.mob .ml-objs{grid-template-columns:1fr}' +
     '@media(max-width:900px){.ml-grid{grid-template-columns:1fr;max-width:560px}.ml-mapw{order:-1;margin:16px auto;width:min(calc(100% - 24px),420px)}.ml-sky{max-width:560px}}' +
     '@media(max-width:520px){.ml-q{padding:4px 4px 4px 14px}.ml-q button{width:36px;height:36px}.ml-res{padding:0 10px 20px}.ml-objs{grid-template-columns:1fr}.ml-big{font-size:20px}}' +
+    '/* vista completa: columnas laterales anchas, datos en tres columnas, sin notas y con letra grande */' +
+    '.ml:not(.mob):not(.nar) .ml-grid{grid-template-columns:minmax(0,1.3fr) minmax(280px,.85fr) minmax(0,1.3fr)}.ml:not(.mob):not(.nar) .ml-grid .ml-card{grid-template-columns:repeat(3,minmax(0,1fr));padding:12px 14px}.ml:not(.mob):not(.nar) .ml-grid .ml-card .ml-note{display:none}' +
+    '.ml:not(.mob):not(.nar) .ml-ct{font-size:15px;margin-bottom:8px}.ml:not(.mob):not(.nar) .ml-ct svg{width:20px;height:20px}.ml:not(.mob):not(.nar) .ml-big{font-size:26px}.ml:not(.mob):not(.nar) .ml-big small{font-size:13px}' +
+    '.ml:not(.mob):not(.nar) .ml-grid .ml-card>.ml-row:not(.ml-axis) span:first-child{font-size:12px}.ml:not(.mob):not(.nar) .ml-grid .ml-card>.ml-row:not(.ml-axis) span:last-child{font-size:15px}.ml:not(.mob):not(.nar) .ml-row{font-size:14px}.ml:not(.mob):not(.nar) .ml-chk{font-size:14px}.ml:not(.mob):not(.nar) .ml-chk em{font-size:12px}' +
+    '.ml:not(.mob):not(.nar) .ml-sky .ml-on{font-size:14px}.ml:not(.mob):not(.nar) .ml-sky .ml-om{font-size:12.5px}.ml:not(.mob):not(.nar) .ml-sky .ml-oi{width:26px;height:26px}.ml:not(.mob):not(.nar) .ml-cons span{font-size:13px}.ml:not(.mob):not(.nar) .ml-hrs{height:24px}.ml:not(.mob):not(.nar) .ml-name{font-size:15px}.ml:not(.mob):not(.nar) .ml-co{font-size:12.5px}' +
+    '/* mapa grande en el centro con Preparacion debajo; laterales a todo lo alto; el cielo a lo ancho */' +
+    '.ml:not(.mob):not(.nar) .ml-grid{grid-template-columns:minmax(0,1.1fr) minmax(330px,1fr) minmax(0,1.1fr);grid-template-areas:"l m r" "l p r" "s s s"}.ml:not(.mob):not(.nar) .ml-col.l,.ml:not(.mob):not(.nar) .ml-col.r{align-self:center}.ml:not(.mob):not(.nar) .ml-mapw{align-self:end}.ml:not(.mob):not(.nar) .ml-pr{align-self:start;margin:0 calc(var(--ov) * .5)}.ml:not(.mob):not(.nar) .ml-grid .ml-card.ml-pr{grid-template-columns:repeat(2,minmax(0,1fr))}' +
     '@media(prefers-reduced-motion:reduce){.ml-top,.ml-res{transition:none}.ml-spin{animation:none}}'
   var IC = {
     search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>',
@@ -324,7 +344,7 @@
       '<label class="ml-dt"><span class="ml-dl"></span><input type="date" value="' + ymdOf(today) + '"></label><div class="ml-msg" aria-live="polite"></div></div><div class="ml-res"></div>'
     host.append(root)
     var top = root.querySelector('.ml-top'), form = root.querySelector('form'), input = form.querySelector('input'), dateI = root.querySelector('.ml-dt input'), dl = root.querySelector('.ml-dl'), msg = root.querySelector('.ml-msg'), res = root.querySelector('.ml-res'), locB = root.querySelector('.ml-loc'), goB = root.querySelector('.ml-go')
-    var dead = false, run = 0, last = null, mapCanvas = null, mapData = null, ro = null, loc = null, ox = 0, oy = 0, rafM = 0
+    var dead = false, run = 0, last = null, mapCanvas = null, mapData = null, ro = null, loc = null, ox = 0, oy = 0, rafM = 0, tab = 0, scale = 1, view = null
     function texts() {
       input.placeholder = T('¿Dónde vamos hoy?'); input.setAttribute('aria-label', T('¿Dónde vamos hoy?'))
       locB.setAttribute('aria-label', T('Usar mi ubicación')); locB.title = T('Usar mi ubicación'); goB.setAttribute('aria-label', T('Buscar'))
@@ -346,13 +366,14 @@
       var lat = loc.lat, lon = loc.lon, p = (dateI.value || ymdOf(today)).split('-').map(Number)
       var noon = Date.UTC(p[0], p[1] - 1, p[2], 12) - lon / 15 * 3600000, n = nightOf(lat, lon, noon), mo = moonInfo(lat, lon, n)
       var d0 = Date.UTC(p[0], p[1] - 1, p[2]), days = (d0 - Date.UTC(today.getFullYear(), today.getMonth(), today.getDate())) / 86400000
-      var ymd = new Date(d0).toISOString().slice(0, 10), ymd2 = new Date(d0 + 86400000).toISOString().slice(0, 10), inRange = days >= -60 && days <= 14
-      var data = { lat: lat, lon: lon, name: loc.name, ymd: ymd, night: n, moon: mo, grid: null, wx: null, glow: null, lights: null, ways: null, inRange: inRange, sky: null }
+      var ymd = new Date(d0).toISOString().slice(0, 10), ymd0 = new Date(d0 - 86400000).toISOString().slice(0, 10), ymd2 = new Date(d0 + 86400000).toISOString().slice(0, 10), inRange = days >= -60 && days <= 14, aqRange = days >= -60 && days <= 4
+      var data = { lat: lat, lon: lon, name: loc.name, ymd: ymd, night: n, moon: mo, grid: null, wx: null, glow: null, lights: null, ways: null, aq: null, inRange: inRange, aqRange: aqRange, sky: null }
       last = data; render(data)
       var upd = function () { if (id === run && !dead) render(data) }
       if (!loc.name) reverse(lat, lon).then(function (nm) { if (nm) { loc.name = nm; data.name = nm; upd() } })
       elevGrid(lat, lon).then(function (g) { data.grid = g }).catch(function () { data.grid = false }).then(upd)
-      weather(lat, lon, ymd, ymd2, inRange).then(function (w) { data.wx = w }).catch(function () { data.wx = false }).then(upd)
+      if (aqRange) airq(lat, lon, ymd, ymd2).then(function (q) { data.aq = q }).catch(function () { data.aq = false }).then(upd); else data.aq = false
+      weather(lat, lon, ymd0, ymd2, inRange).then(function (w) { data.wx = w }).catch(function () { data.wx = false }).then(upd)
       skyGlow(lat, lon).then(function (g) { data.glow = g }).catch(function () { data.glow = false }).then(upd)
       localLights(lat, lon).then(function (l) { data.lights = l }).catch(function () { data.lights = false }).then(upd)
       roads(lat, lon).then(function (w) { data.ways = w }).catch(function () { data.ways = false }).then(upd)
@@ -374,12 +395,13 @@
     var loadingBody = function () { return '<div class="ml-row"><span>' + esc(T('Calculando…')) + '</span></div>' }
     var fail = function () { return '<div class="ml-note">' + esc(T('Sin datos ahora mismo. Inténtalo de nuevo más tarde.')) + '</div>' }
     function render(d) {
-      var nw = nightWeather(d.wx, d.night), lp = d.glow || null
+      var nw = nightWeather(d.wx, d.night), lp = d.glow || null, air = nightAir(d.aq, d.night)
       var hz = d.grid ? horizon(d.grid) : null, c = (GN - 1) / 2, alt = d.grid ? d.grid[c][c] : null
       if (!d.sky && (lp || d.glow === false)) d.sky = highlights(d.lat, d.lon, d.night, lp ? lp.nelm : 6, d.moon)
       var score = null
       if (lp) {
         var moonF = d.moon.illum * (d.moon.up / Math.max(1, d.night.dawn - d.night.dusk)), cl = nw ? nw.cloud / 100 : .3
+        if (air && air.aod != null) cl = Math.min(1, cl + clamp((air.aod - .15) / .5) * .3)
         score = 10 * (.34 * (1 - cl) + .26 * (1 - (lp.bortle - 1) / 8) + .2 * (1 - moonF) + .1 * (nw ? 1 - clamp(nw.wind / 40) : .7) + .1 * (nw ? 1 - clamp((nw.rh - 60) / 40) : .7))
       }
       var dateTxt = new Date(d.ymd + 'T12:00:00Z').toLocaleDateString({ es: 'es-ES', en: 'en-GB', fr: 'fr-FR' }[LANG()], { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
@@ -400,18 +422,23 @@
       var cEL = card(IC.pin, 'Elección del lugar', (function () {
         var s = d.grid ? slope(d.grid) : null, w = d.ways ? nearestWay(d.ways, d.lat, d.lon) : null
         return (d.grid === null ? row(T('Pendiente del entorno'), '…') : s ? row(T('Pendiente del entorno'), num(s.pct, 0) + ' %') + (s.pct > 3 ? row(T('Ladera orientada al'), dirName(s.aspect)) : '') : '') +
+          (nw ? row(T('Estado del suelo'), (function () { var wet = (nw.rain24 || 0) > 5 || (nw.soil != null && nw.soil > .32); return '<span style="color:' + (wet || nw.snow > .02 ? Y : 'inherit') + '">' + esc(T(nw.snow > .02 ? 'nieve' : wet ? 'blando o embarrado' : 'firme y seco')) + '</span>' })()) + row(T('Lluvia en las últimas 24 h'), num(nw.rain24 || 0, 1) + ' mm') + (nw.snow > .005 ? row(T('Nieve'), Math.round(nw.snow * 100) + ' cm') : '') : '') +
           row(T('Camino más cercano'), d.ways === null ? esc(T('Calculando…')) : w ? (w.d < 1 ? Math.round(w.d * 1000) + ' m' : num(w.d, 1) + ' km') + ' · ' + esc(T(w.type)) : d.ways ? '> 4 km' : '—') +
           '<div class="ml-note">' + esc(T(s && s.pct > 15 ? 'Terreno con pendiente: busca una zona llana y firme para el trípode.' : 'Terreno relativamente llano.')) + ' ' + esc(T('Comprueba que el acceso es libre y legal y evita zonas aisladas o conflictivas.')) + '</div>'
       })())
       var cWX = card(IC.cloud, 'Meteorología', d.wx === null ? loadingBody() : !d.inRange ? '<div class="ml-note">' + esc(T('El pronóstico solo llega a 16 días vista: vuelve a consultarlo más cerca de la fecha.')) + '</div>' : !nw ? fail() : (function () {
         var bars = nw.hours.map(function (h) { return '<i style="height:' + Math.max(2, h.c / 100 * 30) + 'px;background:' + (h.c > 60 ? '#5b6bb4' : h.c > 25 ? '#8ab4ff' : Y) + '"></i>' }).join('')
         var dewRisk = nw.temp - nw.dew < 2.5
-        return '<div class="ml-big">' + Math.round(nw.cloud) + ' %<small>' + esc(T('nubes')) + '</small></div><div class="ml-hrs">' + bars + '</div><div class="ml-row"><span>' + fmtTime(d.night.dusk, d) + '</span><span>' + fmtTime(d.night.dawn, d) + '</span></div>' +
+        return '<div class="ml-big">' + Math.round(nw.cloud) + ' %<small>' + esc(T('nubes')) + '</small></div><div class="ml-hrs">' + bars + '</div><div class="ml-row ml-axis"><span>' + fmtTime(d.night.dusk, d) + '</span><span>' + fmtTime(d.night.dawn, d) + '</span></div>' +
           row(T('Nubes bajas / medias / altas'), Math.round(nw.low) + ' / ' + Math.round(nw.mid) + ' / ' + Math.round(nw.high) + ' %') + (nw.rain != null ? row(T('Probabilidad de lluvia'), Math.round(nw.rain) + ' %') : '') +
           row(T('Seeing estimado'), num(nw.seeing, 1) + '″') + row(T('Humedad relativa'), Math.round(nw.rh) + ' %') +
           row(T('Punto de rocío'), '<span style="color:' + (dewRisk ? Y : 'inherit') + '">' + num(nw.dew, 1) + ' °C</span>') + row(T('Temperatura'), num(nw.temp, 0) + ' °C (' + T('mín.') + ' ' + num(nw.minT, 0) + ' °C)') +
-          row(T('Viento'), Math.round(nw.wind) + ' km/h' + (nw.gust != null ? ' (' + T('ráfagas') + ' ' + Math.round(nw.gust) + ')' : '')) + (nw.vis != null ? row(T('Visibilidad'), num(nw.vis / 1000, 0) + ' km') : '')
-      })())
+          row(T('Viento'), Math.round(nw.wind) + ' km/h' + (nw.gust != null ? ' (' + T('ráfagas') + ' ' + Math.round(nw.gust) + ')' : '')) + (nw.vis != null ? row(T('Visibilidad'), num(nw.vis / 1000, 0) + ' km') : '') +
+          (air && air.aod != null ? row(T('Transparencia'), '<span style="color:' + (air.aod > .3 ? Y : 'inherit') + '">' + esc(T(air.aod < .1 ? 'Excelente' : air.aod < .2 ? 'Buena' : air.aod < .35 ? 'Regular' : 'Mala')) + ' (AOD ' + num(air.aod, 2) + ')</span>') : '') +
+          (air && air.dust != null ? row(T('Polvo en suspensión'), Math.round(air.dust) + ' µg/m³' + (air.dust > 50 ? ' · ' + esc(T('calima')) : '')) : '') + (air && air.pm10 != null ? row('PM10 / PM2,5', Math.round(air.pm10) + ' / ' + Math.round(air.pm25 || 0) + ' µg/m³') : '') +
+          (nw.t850 != null && nw.temp != null ? row(T('Inversión térmica'), nw.t850 > nw.temp ? '<span style="color:' + Y + '">' + esc(T('sí: posible mar de nubes')) + '</span>' : esc(T('no'))) : '') +
+          (nw.blh != null ? row(T('Capa de mezcla'), Math.round(nw.blh) + ' m') : '') + (nw.frz != null ? row(T('Isoterma de 0 °C'), Math.round(nw.frz) + ' m') : '') + (nw.pres != null ? row(T('Presión en superficie'), Math.round(nw.pres) + ' hPa') : '')
+      })(), 'ml-wx')
       var mo = d.moon, n = d.night, cMO = card(IC.moon, 'Luna y Sol',
         '<div class="ml-big">' + esc(T(mo.phase)) + '<small>' + Math.round(mo.illum * 100) + ' % · ' + num(mo.age, 1) + ' ' + esc(T('días')) + '</small></div>' +
         row(T('Puesta de Sol'), fmtTime(n.sunset, d)) + row(T('Noche cerrada'), n.astro ? fmtTime(n.dusk, d) + ' – ' + fmtTime(n.dawn, d) : esc(T('sin noche astronómica'))) + row(T('Salida del Sol'), fmtTime(n.sunrise, d)) +
@@ -420,12 +447,14 @@
         '<div class="ml-note">' + esc(T(mo.illum > .6 && mo.up > 2 * 3600000 ? 'La Luna iluminará buena parte de la noche: aprovecha las horas sin Luna para el cielo profundo.' : 'Buena noche para objetos de cielo profundo en las horas sin Luna.')) + '</div>')
       var items = [['Ropa de abrigo', nw ? T('mínima de') + ' ' + num(nw.minT, 0) + ' °C' : ''], ['Linterna de pilas', ''], ['Baterías portátiles', nw && nw.minT < 5 ? T('el frío reduce su autonomía') : ''], ['Agua y comida', ''], ['Carta celeste y plan', T('noche') + ' ' + fmtTime(n.dusk, d) + '–' + fmtTime(n.dawn, d)]]
       if (nw && nw.temp - nw.dew < 3) items.splice(1, 0, ['Sistema anti-rocío', T('riesgo de rocío esta noche')])
-      var cPR = card(IC.pack, 'Preparación', items.map(function (it, i) { return '<label class="ml-chk"><input type="checkbox" data-i="' + i + '"><span>' + esc(T(it[0])) + (it[1] ? '<em>' + esc(it[1]) + '</em>' : '') + '</span></label>' }).join(''))
+      if (nw && ((nw.rain24 || 0) > 5 || (nw.soil != null && nw.soil > .32) || nw.snow > .02)) items.push(['Calzado y base firme para el trípode', T('el suelo estará blando')])
+      if (air && air.dust > 50) items.push(['Tapas para la óptica', T('polvo en suspensión (calima)')])
+      var cPR = card(IC.pack, 'Preparación', items.map(function (it, i) { return '<label class="ml-chk"><input type="checkbox" data-i="' + i + '"><span>' + esc(T(it[0])) + (it[1] ? '<em>' + esc(it[1]) + '</em>' : '') + '</span></label>' }).join(''), 'ml-pr')
       var atlas = window.vcAtlas, li = LI()
       var cSKY = !d.sky ? '' : card(IC.sky, 'Lo más destacado esa noche',
         '<div class="ml-objs">' + d.sky.objs.map(function (o) {
           var has = atlas && atlas.find(o.key), tp = TYPES[o.type] ? TYPES[o.type][li] : ''
-          var meta = tp + (o.type !== 'mo' ? ' · mag ' + num(o.mag, 1) : '') + '<br>' + esc(T('mejor hacia las')) + ' ' + fmtTime(o.t, d) + ' · ' + num(o.alt, 0) + '° ' + dirName(o.az) + (o.faint && d.moon.illum > .5 ? '<br>' + esc(T('mejor en las horas sin Luna')) : '')
+          var meta = '<span class="ml-bt">' + esc(T('mejor hacia las')) + ' </span>' + fmtTime(o.t, d) + ' · ' + num(o.alt, 0) + '° ' + dirName(o.az) + '<span class="ml-ty"><br>' + tp + (o.type !== 'mo' ? ' · mag ' + num(o.mag, 1) : '') + (o.faint && d.moon.illum > .5 ? '<br>' + esc(T('mejor en las horas sin Luna')) : '') + '</span>'
           var inner = '<span class="ml-oi">' + (IC['o_' + o.type] || IC.o_g) + '</span><span><span class="ml-on">' + esc(o.name[li]) + '</span><br><span class="ml-om">' + meta + '</span></span>' + (has ? '<span class="ml-ol" aria-hidden="true">›</span>' : '')
           return has ? '<button type="button" class="ml-o" data-k="' + esc(o.key) + '">' + inner + '</button>' : '<div class="ml-o">' + inner + '</div>'
         }).join('') + '</div>' +
@@ -433,25 +462,51 @@
         '<div class="ml-note">' + esc(T('Altura máxima durante la noche cerrada. Pulsa un objeto con › para abrir su ficha del atlas.')) + '</div>', 'ml-sky')
       var mapBox = '<div class="ml-mapw"><div class="ml-map"><canvas aria-label="' + esc(T('Arrastra para mover el mapa')) + '"></canvas>' + (d.grid === null ? '<div class="ml-load"><span class="ml-spin">' + IC.star + '</span>' + esc(T('Dibujando el relieve…')) + '</div>' : d.grid === false ? '<div class="ml-load">' + esc(T('No se pudo cargar el relieve.')) + '</div>' : '') + '</div></div>'
       var checked = [].map.call(res.querySelectorAll('.ml-chk input'), function (x) { return x.checked }), sc = root.scrollTop
-      res.innerHTML = head + '<div class="ml-grid"><div class="ml-col l">' + cLP + cEN + cEL + '</div>' + mapBox + '<div class="ml-col r">' + cWX + cMO + cPR + '</div></div>' + cSKY
+      var TABS = [[IC.bulb, 'Contaminación Lumínica'], [IC.mount, 'Entorno'], [IC.pin, 'Elección del lugar'], [IC.cloud, 'Meteorología'], [IC.moon, 'Luna y Sol'], [IC.pack, 'Preparación'], [IC.sky, 'Lo más destacado esa noche']]
+      var tabs = '<div class="ml-tabs" role="tablist">' + TABS.map(function (t2, i) { return '<button type="button" role="tab" data-t="' + i + '" aria-label="' + esc(T(t2[1])) + '" title="' + esc(T(t2[1])) + '">' + t2[0] + '</button>' }).join('') + '</div>'
+      res.innerHTML = head.replace(/<\/div>$/, '<button type="button" class="ml-vw"></button></div>') + '<div class="ml-grid"><div class="ml-col l">' + cLP + cEN + cEL + '</div>' + mapBox + tabs + '<div class="ml-col r">' + cWX + cMO + '</div>' + cPR + cSKY + '</div>'
+      res.querySelector('.ml-vw').addEventListener('click', function () { view = root.classList.contains('mob') ? 'full' : 'tabs'; fit() })
+      var order = [0, 1, 2, 3, 4, 5, 6]; res.querySelectorAll('.ml-card').forEach(function (cd, i) { cd.setAttribute('data-t', order[i]) })
+      var setTab = function () { res.querySelectorAll('.ml-card[data-t]').forEach(function (cd) { cd.classList.toggle('on', +cd.getAttribute('data-t') === tab) }); res.querySelectorAll('.ml-tabs button').forEach(function (b) { var on = +b.getAttribute('data-t') === tab; b.classList.toggle('on', on); b.setAttribute('aria-selected', String(on)) }) }
+      res.querySelectorAll('.ml-tabs button').forEach(function (b) { b.addEventListener('click', function () { tab = +b.getAttribute('data-t'); setTab(); fit() }) })
+      setTab()
       res.querySelectorAll('.ml-chk input').forEach(function (x, i) { if (checked[i]) x.checked = true })
       res.querySelectorAll('button.ml-o').forEach(function (b) { b.addEventListener('click', function () { if (window.vcAtlas) window.vcAtlas.open(b.getAttribute('data-k')) }) })
       res.style.top = (top.offsetHeight + 22) + 'px'; root.scrollTop = sc
       mapCanvas = res.querySelector('.ml-map canvas'); mapData = d
       dragMap(mapCanvas)
-      if (ro) ro.disconnect(); try { ro = new ResizeObserver(function () { drawMap(); cutouts() }); ro.observe(mapCanvas); ro.observe(res) } catch (e) { }
-      drawMap(); cutouts()
+      if (ro) ro.disconnect(); try { ro = new ResizeObserver(function () { fit() }); ro.observe(host) } catch (e) { }
+      fit()
+    }
+    /* todo cabe sin desplazarse: en pantallas estrechas o altas se usa la vista por pestanas y, si aun asi no cabe, se reduce la escala */
+    var fitting = false
+    function fit() {
+      if (fitting || !res.firstChild) return; fitting = true
+      try {
+        var HW = host.clientWidth, HH = host.clientHeight, narrow = HW < 760 || HH > HW * 1.15, mob = view ? view === 'tabs' : narrow
+        root.classList.add('fit'); root.classList.toggle('mob', mob); root.classList.toggle('nar', narrow && !mob)
+        if (narrow) res.style.setProperty('--mw', Math.round(Math.min(380, HH * .4, HW - 40)) + 'px')
+        var vb = res.querySelector('.ml-vw'); if (vb) vb.textContent = T(mob ? 'Vista completa' : 'Vista por pestañas')
+        res.style.transform = ''; res.style.width = ''; res.style.left = ''; scale = 1
+        res.style.top = (top.offsetHeight + 16) + 'px'
+        cutouts()
+        var avail = HH - res.offsetTop - 12, full = !mob && !narrow, maxS = full ? Math.min(1.4, HW / 980) : 1
+        var apply = function (s2) { scale = s2; res.style.transform = s2 === 1 ? '' : 'scale(' + s2 + ')'; res.style.width = s2 === 1 ? '' : (100 / s2) + '%'; res.style.left = s2 === 1 ? '' : ((100 - 100 / s2) / 2) + '%'; cutouts() }
+        var s = Math.min(maxS, avail / Math.max(1, res.scrollHeight))
+        if (s !== 1) { apply(s); var s3 = Math.min(maxS, s * avail / Math.max(1, res.scrollHeight * s)); if (Math.abs(s3 - s) > .01) apply(s3) }
+        drawMap()
+      } finally { fitting = false }
     }
     /* recortes circulares en las tarjetas que tocan el mapa (mascara + margen interior para que el texto no se corte) */
     function cutouts() {
       var wrap = res.querySelector('.ml-mapw'), grid = res.querySelector('.ml-grid'); if (!wrap || !grid) return
-      var single = getComputedStyle(grid).gridTemplateColumns.split(' ').length < 3
-      grid.style.setProperty('--ov', single ? '0px' : Math.round(wrap.getBoundingClientRect().width * .14) + 'px')
+      var single = root.classList.contains('mob') || root.classList.contains('nar') || getComputedStyle(grid).gridTemplateColumns.split(' ').length < 3
+      grid.style.setProperty('--ov', '0px') /* sin solapes: cada bloque en su sitio */
       for (var pass = 0; pass < 2; pass++) {
-        var mr = wrap.getBoundingClientRect(), cx = mr.left + mr.width / 2, cy = mr.top + mr.height / 2, R = mr.width / 2 + 11
+        var mr = wrap.getBoundingClientRect(), cx = mr.left + mr.width / 2, cy = mr.top + mr.height / 2, R = mr.width / 2 / scale + 11
         res.querySelectorAll('.ml-grid .ml-card').forEach(function (cd) {
-          var r = cd.getBoundingClientRect(), lx = cx - r.left, ly = cy - r.top, nx = clamp(lx, 0, r.width), ny = clamp(ly, 0, r.height), left = !!cd.closest('.ml-col.l')
-          if (single || Math.hypot(lx - nx, ly - ny) >= R) { cd.style.webkitMaskImage = cd.style.maskImage = ''; cd.style.paddingLeft = cd.style.paddingRight = ''; return }
+          var r0 = cd.getBoundingClientRect(), r = { width: r0.width / scale, height: r0.height / scale }, lx = (cx - r0.left) / scale, ly = (cy - r0.top) / scale, nx = clamp(lx, 0, r.width), ny = clamp(ly, 0, r.height), left = !!cd.closest('.ml-col.l')
+          if (single || !cd.closest('.ml-col') || Math.hypot(lx - nx, ly - ny) >= R) { cd.style.webkitMaskImage = cd.style.maskImage = ''; cd.style.paddingLeft = cd.style.paddingRight = ''; return }
           var m = 'radial-gradient(circle ' + R + 'px at ' + lx + 'px ' + ly + 'px, transparent ' + (R - .5) + 'px, #000 ' + (R + .5) + 'px)'
           cd.style.webkitMaskImage = m; cd.style.maskImage = m
           var mx = 0; for (var yy = 0; yy <= r.height; yy += 4) { var dy = ly - yy; if (Math.abs(dy) < R) { var half = Math.sqrt(R * R - dy * dy); mx = Math.max(mx, left ? r.width - (lx - half) : lx + half) } }
@@ -477,7 +532,7 @@
     /* ---------- mapa topografico circular ---------- */
     function drawMap() {
       var cv = mapCanvas, d = mapData; if (!cv || !d || !cv.isConnected) return
-      var r = cv.getBoundingClientRect(), W = Math.max(10, r.width), H = Math.max(10, r.height), dpr = Math.min(2, window.devicePixelRatio || 1)
+      var W = Math.max(10, cv.clientWidth), H = Math.max(10, cv.clientHeight), dpr = Math.min(2, window.devicePixelRatio || 1) * Math.max(1, 1 / Math.max(.5, scale))
       if (cv.width !== Math.round(W * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr) }
       var g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0)
       g.fillStyle = '#080c1f'; g.fillRect(0, 0, W, H)
