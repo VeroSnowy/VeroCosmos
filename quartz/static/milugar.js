@@ -140,7 +140,35 @@
   function reverse(lat, lon) { return jget('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=12&accept-language=' + LANG() + '&lat=' + lat + '&lon=' + lon).then(function (j) { return j.display_name || null }).catch(function () { return null }) }
   /* rejilla de alturas de 21 x 21 puntos cada 1 km (20 x 20 km): el circulo muestra 10 km y se puede arrastrar */
   var GN = 21, GKM = 1.0, VIEW = 10
-  function elevGrid(lat, lon) {
+  var TZ = 11
+  function tileImg(x, y) {
+    return new Promise(function (ok, ko) {
+      var im = new Image(); im.crossOrigin = 'anonymous'
+      im.onload = function () { try { var c = document.createElement('canvas'); c.width = c.height = 256; var x2 = c.getContext('2d', { willReadFrequently: true }); x2.drawImage(im, 0, 0); ok(x2.getImageData(0, 0, 256, 256).data) } catch (e) { ko(e) } }
+      im.onerror = function () { ko(new Error('tile')) }
+      im.src = 'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/' + TZ + '/' + x + '/' + y + '.png'
+    })
+  }
+  function elevTiles(lat, lon) {
+    var dLat = GKM / 111.2, dLon = GKM / (111.2 * Math.cos(lat * RAD)), c = (GN - 1) / 2, W = Math.pow(2, TZ) * 256, pts = [], need = {}
+    for (var j = 0; j < GN; j++) for (var i = 0; i < GN; i++) {
+      var la = lat + (c - j) * dLat, lo = lon + (i - c) * dLon, s = Math.sin(la * RAD)
+      var px = (lo + 180) / 360 * W, py = (.5 - Math.log((1 + s) / (1 - s)) / (4 * Math.PI)) * W
+      pts.push([px, py]); for (var ty = Math.floor((py - 1) / 256); ty <= Math.floor((py + 1) / 256); ty++) for (var tx = Math.floor((px - 1) / 256); tx <= Math.floor((px + 1) / 256); tx++) need[tx + '/' + ty] = 1
+    }
+    var keys = Object.keys(need), tiles = {}
+    return Promise.all(keys.map(function (k) { var p = k.split('/'); return tileImg(+p[0], +p[1]).then(function (d) { tiles[k] = d }) })).then(function () {
+      var at = function (x, y) { var t = tiles[Math.floor(x / 256) + '/' + Math.floor(y / 256)], o = ((y % 256) * 256 + (x % 256)) * 4; return t[o] * 256 + t[o + 1] + t[o + 2] / 256 - 32768 }
+      var g = [], k2 = 0
+      for (var j2 = 0; j2 < GN; j2++) { var row = []; for (var i2 = 0; i2 < GN; i2++, k2++) {
+        var x = pts[k2][0] - .5, y = pts[k2][1] - .5, x0 = Math.floor(x), y0 = Math.floor(y), fx = x - x0, fy = y - y0
+        row.push(Math.max(0, (at(x0, y0) * (1 - fx) + at(x0 + 1, y0) * fx) * (1 - fy) + (at(x0, y0 + 1) * (1 - fx) + at(x0 + 1, y0 + 1) * fx) * fy))
+      } g.push(row) }
+      return g
+    })
+  }
+  function elevGrid(lat, lon) { return elevTiles(lat, lon).catch(function () { return elevOM(lat, lon) }) }
+  function elevOM(lat, lon) {
     var dLat = GKM / 111.2, dLon = GKM / (111.2 * Math.cos(lat * RAD)), lats = [], lons = [], c = (GN - 1) / 2
     for (var j = 0; j < GN; j++) for (var i = 0; i < GN; i++) { lats.push((lat + (c - j) * dLat).toFixed(5)); lons.push((lon + (i - c) * dLon).toFixed(5)) }
     var reqs = []
@@ -150,11 +178,36 @@
   }
   var WXV = 'temperature_2m,relative_humidity_2m,dew_point_2m,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,wind_speed_10m,wind_gusts_10m,wind_speed_250hPa,visibility,precipitation_probability,precipitation,soil_moisture_0_to_1cm,snow_depth,boundary_layer_height,temperature_850hPa,freezing_level_height,surface_pressure'
   /* pronostico del dia elegido (Open-Meteo llega a 16 dias); fuera de rango solo se pide la zona horaria */
+  var BTZ = (function () { try { return Intl.DateTimeFormat().resolvedOptions().timeZone } catch (e) { return null } })()
+  function cached(key, ms, fn) {
+    try { var c = JSON.parse(localStorage.getItem(key) || 'null'); if (c && Date.now() - c.t < ms) return Promise.resolve(c.v) } catch (e) {}
+    return fn().then(function (v) { try { localStorage.setItem(key, JSON.stringify({ t: Date.now(), v: v })) } catch (e) {} return v })
+  }
+  function metNo(lat, lon) {
+    return jget('https://api.met.no/weatherapi/locationforecast/2.0/complete?lat=' + (+lat).toFixed(4) + '&lon=' + (+lon).toFixed(4)).then(function (j) {
+      var h = { time: [] }, put = function (k, v) { (h[k] = h[k] || []).push(v == null ? null : v) }
+      j.properties.timeseries.forEach(function (s) {
+        var d = s.data.instant.details, n1 = s.data.next_1_hours && s.data.next_1_hours.details, n6 = s.data.next_6_hours && s.data.next_6_hours.details
+        h.time.push(Date.parse(s.time) / 1000)
+        put('temperature_2m', d.air_temperature); put('relative_humidity_2m', d.relative_humidity); put('dew_point_2m', d.dew_point_temperature)
+        put('cloud_cover', d.cloud_area_fraction); put('cloud_cover_low', d.cloud_area_fraction_low); put('cloud_cover_mid', d.cloud_area_fraction_medium); put('cloud_cover_high', d.cloud_area_fraction_high)
+        put('wind_speed_10m', d.wind_speed == null ? null : d.wind_speed * 3.6); put('wind_gusts_10m', d.wind_speed_of_gust == null ? null : d.wind_speed_of_gust * 3.6)
+        put('precipitation', n1 ? n1.precipitation_amount : null); put('precipitation_probability', n1 && n1.probability_of_precipitation != null ? n1.probability_of_precipitation : n6 && n6.probability_of_precipitation != null ? n6.probability_of_precipitation : null)
+        put('surface_pressure', d.air_pressure_at_sea_level)
+      })
+      return { hourly: h, timezone: BTZ, source: 'met' }
+    })
+  }
   function weather(lat, lon, ymd0, ymd2, inRange) {
+    var key = 'mlwx:' + (+lat).toFixed(2) + ',' + (+lon).toFixed(2) + ':' + ymd0 + ':' + ymd2 + ':' + (inRange ? 1 : 0)
+    return cached(key, 3600000, function () { return weatherOM(lat, lon, ymd0, ymd2, inRange) }).catch(function () { return inRange ? metNo(lat, lon) : { tzOnly: true, timezone: BTZ } })
+  }
+  function weatherOM(lat, lon, ymd0, ymd2, inRange) {
     if (!inRange) return jget('https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon + '&daily=sunrise&forecast_days=1&timezone=auto').then(function (j) { return { tzOnly: true, timezone: j.timezone } })
     return jget('https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon + '&hourly=' + WXV + '&timezone=auto&timeformat=unixtime&start_date=' + ymd0 + '&end_date=' + ymd2)
   }
-  function airq(lat, lon, ymd, ymd2) { return jget('https://air-quality-api.open-meteo.com/v1/air-quality?latitude=' + lat + '&longitude=' + lon + '&hourly=aerosol_optical_depth,dust,pm10,pm2_5&timezone=auto&timeformat=unixtime&start_date=' + ymd + '&end_date=' + ymd2) }
+  function airq(lat, lon, ymd, ymd2) { return cached('mlaq:' + (+lat).toFixed(2) + ',' + (+lon).toFixed(2) + ':' + ymd + ':' + ymd2, 3600000, function () { return airqOM(lat, lon, ymd, ymd2) }) }
+  function airqOM(lat, lon, ymd, ymd2) { return jget('https://air-quality-api.open-meteo.com/v1/air-quality?latitude=' + lat + '&longitude=' + lon + '&hourly=aerosol_optical_depth,dust,pm10,pm2_5&timezone=auto&timeformat=unixtime&start_date=' + ymd + '&end_date=' + ymd2) }
   /* caminos de OpenStreetMap (Overpass): servidor principal y uno de respaldo */
   var OVP = ['https://overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter']
   function ovp(q, k) {
@@ -317,13 +370,14 @@
     '.ml.mob.wide .ml-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);grid-template-rows:auto 1fr;max-width:none;gap:14px 24px;align-items:start}.ml.mob.wide .ml-col{display:contents}.ml.mob.wide .ml-mapw{grid-column:1;grid-row:1/span 2;width:min(calc(100% - 24px),var(--mw,380px));margin:12px auto;align-self:center}.ml.mob.wide .ml-tabs{grid-column:2;grid-row:1;justify-content:flex-start}.ml.mob.wide .ml-card.on{grid-column:2;grid-row:2}' +
     '.ml.mob.wide .ml-grid .ml-card.on{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));column-gap:14px;row-gap:4px;align-content:start;padding:14px 16px}.ml.mob.wide .ml-grid .ml-card>*{grid-column:1/-1}.ml.mob.wide .ml-grid .ml-card>.ml-row:not(.ml-axis){grid-column:auto;display:block;line-height:1.25;padding:2px 0}.ml.mob.wide .ml-grid .ml-card>.ml-row:not(.ml-axis) span{display:block;text-align:left}.ml.mob.wide .ml-grid .ml-card>.ml-row:not(.ml-axis) span:first-child{font-size:12px;color:#8f98c0}.ml.mob.wide .ml-grid .ml-card>.ml-row:not(.ml-axis) span:last-child{font-size:15px}.ml.mob.wide .ml-grid .ml-card>.ml-chk{grid-column:auto;font-size:14px}' +
     '.ml.mob.wide .ml-ct{font-size:15px}.ml.mob.wide .ml-big{font-size:26px}.ml.mob.wide .ml-note{font-size:12.5px}.ml.mob.wide .ml-sky .ml-objs{grid-template-columns:repeat(var(--oc,3),minmax(0,1fr))}.ml.mob.wide .ml-sky .ml-on{font-size:14px}.ml.mob.wide .ml-sky .ml-om{font-size:12px}.ml.mob.wide .ml-tabs button{width:42px;height:42px}' +
-    '.ml.ring.fit.has-res:not(.mob) .ml-grid{display:grid;max-width:none;grid-template-columns:minmax(0,1fr) var(--mapc,420px) minmax(0,1fr);grid-template-areas:"lp m wx" "en m wx" "el m mo" "pr m mo" "s s s";gap:clamp(6px,1.3vh,16px) clamp(8px,1.1vw,20px);align-items:stretch}.ml.ring.fit.has-res:not(.mob) .ml-col{display:contents}.ml.ring.fit.has-res:not(.mob) .ml-tabs{display:none}.ml.ring.fit.has-res:not(.mob) .ml-grid .ml-card{margin:0;min-width:0;align-self:stretch}.ml.ring.fit.has-res:not(.mob) .ml-mapw{grid-area:m;align-self:center;justify-self:center;width:var(--mapc,420px);max-width:none;margin:0}.ml.ring.fit.has-res:not(.mob) .ml-card[data-t="0"]{grid-area:lp}.ml.ring.fit.has-res:not(.mob) .ml-card[data-t="1"]{grid-area:en}.ml.ring.fit.has-res:not(.mob) .ml-card[data-t="2"]{grid-area:el}.ml.ring.fit.has-res:not(.mob) .ml-card[data-t="3"]{grid-area:wx}.ml.ring.fit.has-res:not(.mob) .ml-card[data-t="4"]{grid-area:mo}.ml.ring.fit.has-res:not(.mob) .ml-card[data-t="5"]{grid-area:pr}.ml.ring.fit.has-res:not(.mob) .ml-card[data-t="6"]{grid-area:s}' +
+    '.ml.ring.fit.has-res:not(.mob) .ml-grid{display:grid;max-width:none;grid-template-columns:minmax(0,1fr) var(--mapc,420px) minmax(0,1fr);grid-template-areas:"lp m wx" "en m wx" "el m mo" "pr s s";gap:clamp(5px,.8vh,10px) clamp(8px,1vw,18px);align-items:stretch}.ml.ring.fit.has-res:not(.mob) .ml-col{display:contents}.ml.ring.fit.has-res:not(.mob) .ml-tabs{display:none}.ml.ring.fit.has-res:not(.mob) .ml-grid .ml-card{margin:0;min-width:0;align-self:stretch;padding-top:9px;padding-bottom:9px}.ml.ring.fit.has-res:not(.mob) .ml-sky .ml-objs{gap:6px}.ml.ring.fit.has-res:not(.mob) .ml-mapw{grid-area:m;align-self:center;justify-self:center;width:var(--mapc,420px);max-width:none;margin:0}.ml.ring.fit.has-res:not(.mob) .ml-card[data-t="0"]{grid-area:lp}.ml.ring.fit.has-res:not(.mob) .ml-card[data-t="1"]{grid-area:en}.ml.ring.fit.has-res:not(.mob) .ml-card[data-t="2"]{grid-area:el}.ml.ring.fit.has-res:not(.mob) .ml-card[data-t="3"]{grid-area:wx}.ml.ring.fit.has-res:not(.mob) .ml-card[data-t="4"]{grid-area:mo}.ml.ring.fit.has-res:not(.mob) .ml-card[data-t="5"]{grid-area:pr}.ml.ring.fit.has-res:not(.mob) .ml-card[data-t="6"]{grid-area:s}' +
     '.ml.ring.fit.has-res.nar:not(.mob) .ml-grid{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-areas:"lp en" "el pr" "m m" "wx mo" "s s"}.ml.ring.fit.has-res.nar:not(.mob) .ml-mapw{margin:4px 0}' +
-    '.ml.ring.fit.has-res:not(.mob):not(.nar) .ml-card[data-t="0"],.ml.ring.fit.has-res:not(.mob):not(.nar) .ml-card[data-t="1"],.ml.ring.fit.has-res:not(.mob):not(.nar) .ml-card[data-t="2"],.ml.ring.fit.has-res:not(.mob):not(.nar) .ml-card[data-t="5"]{margin-right:calc(-1 * var(--ov2,0px))}.ml.ring.fit.has-res:not(.mob):not(.nar) .ml-card[data-t="3"],.ml.ring.fit.has-res:not(.mob):not(.nar) .ml-card[data-t="4"]{margin-left:calc(-1 * var(--ov2,0px))}' +
+    '.ml.ring.fit.has-res:not(.mob):not(.nar) .ml-card[data-t="0"],.ml.ring.fit.has-res:not(.mob):not(.nar) .ml-card[data-t="1"],.ml.ring.fit.has-res:not(.mob):not(.nar) .ml-card[data-t="2"]{margin-right:calc(-1 * var(--ov2,0px))}.ml.ring.fit.has-res:not(.mob):not(.nar) .ml-card[data-t="3"],.ml.ring.fit.has-res:not(.mob):not(.nar) .ml-card[data-t="4"]{margin-left:calc(-1 * var(--ov2,0px))}' +
     '.ml .ml-card{border:1.5px solid #5b6bb4;border-radius:13px;background:linear-gradient(120deg,#111a35,#0b1025);box-shadow:0 8px 22px #05060f99;transition:border-color .25s,box-shadow .25s}.ml .ml-card:hover{border-color:#8ab4ff;box-shadow:0 8px 22px #05060f99,0 0 18px #5b7bff33}' +
-    '.ml .ml-ct{gap:11px;font:400 17px/1.25 ' + SERIF + ';color:#f5f7ff;padding-bottom:9px;margin-bottom:10px;border-bottom:1px solid #343d63}.ml .ml-ct svg{box-sizing:border-box;flex:none;width:38px;height:38px;padding:5px;border:1px solid #414e7a;border-radius:9px;background:#192443;color:#b9c9ff}' +
+    '.ml .ml-ct{gap:10px;font:400 17px/1.2 ' + SERIF + ';color:#f5f7ff;padding-bottom:6px;margin-bottom:7px;border-bottom:1px solid #343d63}.ml .ml-ct svg{box-sizing:border-box;flex:none;width:32px;height:32px;padding:4px;border:1px solid #414e7a;border-radius:9px;background:#192443;color:#b9c9ff}' +
     '.ml:not(.mob) .ml-grid .ml-card>.ml-row:not(.ml-axis),.ml.mob.wide .ml-grid .ml-card>.ml-row:not(.ml-axis){border-left:1px solid #343d63;padding-left:9px;transition:border-color .2s}.ml:not(.mob) .ml-grid .ml-card>.ml-row:not(.ml-axis):hover,.ml.mob.wide .ml-grid .ml-card>.ml-row:not(.ml-axis):hover{border-left-color:' + Y + '}.ml .ml-big{font-family:' + SERIF + ';letter-spacing:.01em}.ml .ml-bar i{height:5px;border-radius:3px}' +
     '.ml .ml-o{border-color:#343d63;background:#0d1430}.ml .ml-o:hover{border-color:' + Y + ';background:#111a3d}.ml .ml-oi{color:#8ab4ff}' +
+    '.ml.ring.fit.has-res:not(.mob):not(.nar) .ml-head{flex-wrap:nowrap;white-space:nowrap}.ml.ring.fit.has-res:not(.mob):not(.nar) .ml-head .ml-name{max-width:34%}' +
     '.ml .ac{stroke:' + Y + '}.ml .ml-cut{display:none!important}' +
     '.ml.mob:not(.wide) .ml-sky .ml-objs{grid-template-columns:1fr 1fr;gap:6px}.ml.mob:not(.wide) .ml-sky .ml-ty{display:none}.ml.mob:not(.wide) .ml-sky>.ml-note:last-child{display:none}.ml.mob:not(.wide) .ml-sky .ml-o{padding:6px 8px;gap:7px}.ml.mob:not(.wide) .ml-sky .ml-oi{width:20px;height:20px}.ml.mob:not(.wide) .ml-sky .ml-ol{display:none}' +
     '@media(prefers-reduced-motion:reduce){.ml-top,.ml-res{transition:none}.ml-spin{animation:none}}'
@@ -402,7 +456,7 @@
 
     /* ---------- informe ---------- */
     function tzOff(ms, tz) { try { var q = new Intl.DateTimeFormat('en-GB', { timeZone: tz, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).formatToParts(new Date(ms)).reduce(function (o, x) { o[x.type] = x.value; return o }, {}); return (Date.UTC(+q.year, +q.month - 1, +q.day, +q.hour, +q.minute) - Math.floor(ms / 60000) * 60000) / 1000 } catch (e) { return null } }
-    function fmtTime(ms, d) { if (ms == null) return '—'; var off = d.wx && d.wx.timezone ? tzOff(ms, d.wx.timezone) : null; if (off == null) off = Math.round(d.lon / 15) * 3600; var x = new Date(ms + off * 1000); return pad(x.getUTCHours()) + ':' + pad(x.getUTCMinutes()) }
+    function fmtTime(ms, d) { if (ms == null) return '—'; var off = d.wx && d.wx.timezone ? tzOff(ms, d.wx.timezone) : BTZ ? tzOff(ms, BTZ) : null; if (off == null) off = Math.round(d.lon / 15) * 3600; var x = new Date(ms + off * 1000); return pad(x.getUTCHours()) + ':' + pad(x.getUTCMinutes()) }
     function fmtDur(ms) { var h = Math.floor(ms / 3600000), m = Math.round((ms % 3600000) / 60000); return h + ' h ' + pad(m) + ' min' }
     function row(a, b) { return '<div class="ml-row"><span>' + esc(a) + '</span><span>' + b + '</span></div>' }
     function card(icon, title, body, cls) { return '<div class="ml-card' + (cls ? ' ' + cls : '') + '"><div class="ml-ct">' + icon + '<span>' + esc(T(title)) + '</span></div>' + body + '</div>' }
@@ -451,7 +505,8 @@
           (air && air.aod != null ? row(T('Transparencia'), '<span style="color:' + (air.aod > .3 ? Y : 'inherit') + '">' + esc(T(air.aod < .1 ? 'Excelente' : air.aod < .2 ? 'Buena' : air.aod < .35 ? 'Regular' : 'Mala')) + ' (AOD ' + num(air.aod, 2) + ')</span>') : '') +
           (air && air.dust != null ? row(T('Polvo en suspensión'), Math.round(air.dust) + ' µg/m³' + (air.dust > 50 ? ' · ' + esc(T('calima')) : '')) : '') + (air && air.pm10 != null ? row('PM10 / PM2,5', Math.round(air.pm10) + ' / ' + Math.round(air.pm25 || 0) + ' µg/m³') : '') +
           (nw.t850 != null && nw.temp != null ? row(T('Inversión térmica'), nw.t850 > nw.temp ? '<span style="color:' + Y + '">' + esc(T('sí: posible mar de nubes')) + '</span>' : esc(T('no'))) : '') +
-          (nw.blh != null ? row(T('Capa de mezcla'), Math.round(nw.blh) + ' m') : '') + (nw.frz != null ? row(T('Isoterma de 0 °C'), Math.round(nw.frz) + ' m') : '') + (nw.pres != null ? row(T('Presión en superficie'), Math.round(nw.pres) + ' hPa') : '')
+          (nw.blh != null ? row(T('Capa de mezcla'), Math.round(nw.blh) + ' m') : '') + (nw.frz != null ? row(T('Isoterma de 0 °C'), Math.round(nw.frz) + ' m') : '') + (nw.pres != null ? row(T('Presión en superficie'), Math.round(nw.pres) + ' hPa') : '') +
+          (d.wx.source === 'met' ? '<div class="ml-note ml-fail">' + esc(T('Pronóstico de MET Norway (met.no): algunos datos no están disponibles.')) + '</div>' : '')
       })(), 'ml-wx')
       var mo = d.moon, n = d.night, cMO = card(IC.moon, 'Luna y Sol',
         '<div class="ml-big">' + esc(T(mo.phase)) + '<small>' + Math.round(mo.illum * 100) + ' % · ' + num(mo.age, 1) + ' ' + esc(T('días')) + '</small></div>' +
@@ -504,7 +559,9 @@
         res.style.transform = ''; res.style.width = ''; res.style.left = ''; scale = 1
         var grd = res.querySelector('.ml-grid'); if (grd) grd.style.minHeight = ''
         res.querySelectorAll('.ml-card[data-t]').forEach(function (c) { c.style.zoom = '' }); res.querySelectorAll('.ml-cut').forEach(function (o) { o.classList.remove('ml-cut') })
-        res.style.top = (top.offsetHeight + 16) + 'px'
+        /* en la vista completa, la barra de busqueda se reduce en la misma proporcion que la pantalla (deja mas alto a las tarjetas) */
+        top.style.zoom = !mob && !narrow ? Math.max(.7, Math.min(1, innerWidth / 1920, innerHeight / 1080)) : ''
+        res.style.top = (Math.ceil(top.getBoundingClientRect().height) + 16) + 'px'
         cutouts()
         var mf = .6, avail = HH - res.offsetTop - 12, full = !mob && !narrow, big = full || wide, maxS = big ? Math.min(1.5, HW / 900) : 1
         var apply = function (s2) { scale = s2; res.style.transform = s2 === 1 ? '' : 'scale(' + s2 + ')'; res.style.width = s2 === 1 ? '' : (100 / s2) + '%'; res.style.left = s2 === 1 ? '' : ((100 - 100 / s2) / 2) + '%'; cutouts() }
@@ -522,7 +579,7 @@
         root.querySelectorAll('*').forEach(function (e) { if (e.closest('svg,canvas') || !Array.prototype.some.call(e.childNodes, function (c) { return c.nodeType === 3 && c.textContent.trim() }) && !/^(INPUT|BUTTON|SELECT)$/.test(e.tagName)) return; if (parseFloat(getComputedStyle(e).fontSize) < 15) { e.style.fontSize = '15px'; e.setAttribute('data-ff', '') } })
         cutouts(); cols()
         /* letra minima proporcional a la pantalla: 15 px en 1920x1080 (la letra base es de 15 px, asi que la escala no debe bajar de esta proporcion) */
-        var minS = Math.min(innerWidth / 1920, innerHeight / 1080), s
+        var minS = Math.min(innerWidth / 1920, innerHeight / 1080), s, prevS = null
         var tallest = function () {
           if (!mob) return res.scrollHeight
           var cds = res.querySelectorAll('.ml-card[data-t]'), hm = 0
@@ -548,7 +605,8 @@
           for (var it3 = 0; it3 < 6 && root.scrollHeight > root.clientHeight + 1; it3++) { apply(scale * Math.min(.97, root.clientHeight / root.scrollHeight)); cols() }
           if (mob) { tabFit = { k: key, s: scale }; if (grd) grd.style.minHeight = Math.floor(avail / scale - grd.offsetTop) + 'px'; break }
           if (scale >= minS - .005 || mf <= .3) break
-          mf = Math.max(.3, mf - .06); cols()
+          if (prevS != null && scale <= prevS + .003) { mf = Math.min(.6, mf + .06); cols(); apply(prevS); break }
+          prevS = scale; mf = Math.max(.3, mf - .06); cols()
         }
         drawMap()
       } finally { fitting = false }
