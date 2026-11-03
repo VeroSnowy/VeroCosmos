@@ -1427,7 +1427,7 @@ lb.innerHTML='';
 items.forEach((it,i)=>{
   const b=document.createElement('button');b.type='button';b.className='gk g-in';b.title='Pr\u00f3ximamente';
   b.style.setProperty('--d',(.9+i*.12)+'s');
-  b.innerHTML='<span class="gk-ic" aria-hidden="true">'+it[1]+'</span><span class="gk-tx"><span class="gk-t"></span>'+(i===2?'<small class="gk-s">Próximamente</small>':'')+'</span>';
+  b.innerHTML='<span class="gk-ic" aria-hidden="true">'+it[1]+'</span><span class="gk-tx"><span class="gk-t"></span>'+(i!==1?'<small class="gk-s">Próximamente</small>':'')+'</span>';
   b.querySelector('.gk-t').textContent=it[0];lb.append(b);
   if(i===1){b.removeAttribute('title');b.addEventListener('click',()=>openLugar(b))}
 });
@@ -1700,11 +1700,17 @@ function openSection(btn,name){
   /* lo que se apaga: el resto de botones, la estrella, las lineas y la etiqueta del elegido */
   const others=[...ls.querySelectorAll('.ls-b,.ls-m,.ls-lines')].filter(x=>x!==btn).concat([btn.querySelector('.ls-t')]);
   secEl={side,page,btn,roll,others,c,fades:[],act:null,vz:null};
-  if(vzHost)secLoadViz(vzDef,()=>{if(secEl&&secEl.page===page)secEl.vz=window[vzDef.api].mount(vzHost)});
+  /* el dibujo se descarga ya, pero se monta cuando termina la animacion de apertura: montarlo (Bortle tarda ~0,3 s)
+     durante la animacion la congelaba. Despues aparece con un fundido. */
+  let vzReady=false,vzWant=false;
+  const vzMount=()=>{if(!vzReady||!vzWant||!secEl||secEl.page!==page||secEl.vz)return;secEl.vz=window[vzDef.api].mount(vzHost);if(vzHost.animate)vzHost.animate([{opacity:0},{opacity:1}],{duration:500,easing:'ease-out'})};
+  if(vzHost)secLoadViz(vzDef,()=>{vzReady=true;vzMount()});
+  const vzGo=()=>{vzWant=true;vzMount()};
   /* movimiento reducido: sin desplazamientos, solo un fundido suave */
   if(red){
     others.forEach(x=>{x.style.opacity='0'});c.style.opacity='0';roll.remove();secEl.roll=null;
-    if(side.animate){const F={duration:420,easing:'ease-out',fill:'backwards'};others.concat([c]).forEach(x=>x.animate([{opacity:1},{opacity:0}],{duration:300,easing:'ease-out'}));side.animate([{opacity:0},{opacity:1}],F);page.animate([{opacity:0},{opacity:1}],Object.assign({},F,{delay:120}))}
+    if(side.animate){const F={duration:420,easing:'ease-out',fill:'backwards'};others.concat([c]).forEach(x=>x.animate([{opacity:1},{opacity:0}],{duration:300,easing:'ease-out'}));side.animate([{opacity:0},{opacity:1}],F);page.animate([{opacity:0},{opacity:1}],Object.assign({},F,{delay:120})).onfinish=vzGo}
+    else vzGo();
     return}
   if(bdS)bdS.style.opacity='0';
   secBusy=true;
@@ -1738,7 +1744,7 @@ function openSection(btn,name){
   if(bdS)bdS.animate([{opacity:0},{opacity:1}],{duration:520,delay:D0+140,easing:'ease-out',fill:'both'});
   const T={duration:900,delay:D0+250,easing:E,fill:'backwards'};
   page.animate([{clipPath:'inset(0px '+fp.width+'px 0px 0px)'},{clipPath:'inset(0px 0px 0px 0px)'}],T);
-  roll.animate([{left:x0+'px',opacity:0},{left:x0+'px',opacity:1,offset:.04},{left:x1+'px',opacity:1,offset:.94},{left:x1+'px',opacity:0}],{duration:900,delay:D0+250,easing:E,fill:'both'}).onfinish=()=>{secBusy=false;roll.style.display='none'};
+  roll.animate([{left:x0+'px',opacity:0},{left:x0+'px',opacity:1,offset:.04},{left:x1+'px',opacity:1,offset:.94},{left:x1+'px',opacity:0}],{duration:900,delay:D0+250,easing:E,fill:'both'}).onfinish=()=>{secBusy=false;roll.style.display='none';vzGo()};
 }
 function closeSection(){
   if(!secEl||secBusy)return;
