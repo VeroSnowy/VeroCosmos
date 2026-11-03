@@ -135,10 +135,10 @@
     var svg = document.createElementNS(NS, 'svg'); svg.setAttribute('viewBox', '0 0 640 690'); svg.setAttribute('preserveAspectRatio', 'xMidYMid meet'); svg.setAttribute('role', 'group')
     var html = ''
     /* fondo: suelo con curvas de nivel suaves y algunas estrellas */
-    html += '<g class="mo-cs"></g><g class="mo-mv"><g opacity=".55">' + [0, 1, 2, 3].map(function (i) { return '<ellipse cx="320" cy="560" rx="' + (190 + i * 70) + '" ry="' + (34 + i * 14) + '" fill="none" stroke="' + M + '" stroke-opacity="' + (.5 - i * .1) + '"/>' }).join('') + '</g>'
+    html += '<g class="mo-mv"><g opacity=".55">' + [0, 1, 2, 3].map(function (i) { return '<ellipse cx="320" cy="560" rx="' + (190 + i * 70) + '" ry="' + (34 + i * 14) + '" fill="none" stroke="' + M + '" stroke-opacity="' + (.5 - i * .1) + '"/>' }).join('') + '</g>'
     for (var k = 0; k < 40; k++) { var sx = (k * 137.5) % 640, sy = (k * 71.3) % 280; html += '<circle cx="' + sx.toFixed(1) + '" cy="' + sy.toFixed(1) + '" r="' + (k % 7 === 0 ? 1.4 : .8) + '" fill="' + (k % 9 === 0 ? Y : '#dbe7ff') + '" opacity="' + (k % 5 === 0 ? .7 : .35) + '"/>' }
     html += '<ellipse cx="320" cy="552" rx="150" ry="16" fill="#02030a" opacity=".6"/>'
-    html += '<g class="mo-bp">' + backpackSVG() + '</g></g><g class="mo-is"></g>'
+    html += '<g class="mo-bp">' + backpackSVG() + '</g></g><g class="mo-cs"></g><g class="mo-is"></g>'
     html += '<text class="mo-s mo-cnt" x="16" y="24"></text><text class="mo-s mo-hint" x="16" y="42"></text>'
     html += '<g class="mo-b" tabindex="0" role="button"><rect x="520" y="10" width="108" height="26" rx="8" fill="' + D + '" stroke="' + M + '"/><text class="mo-s mo-bt" x="574" y="28" text-anchor="middle"></text></g>'
     svg.innerHTML = html; wrap.append(svg)
@@ -164,6 +164,10 @@
       var s = slot(e), an = anchor(p)
       e.g.style.transform = on ? 'translate(' + s[0] + 'px,' + s[1] + 'px) scale(1)' : 'translate(' + an[0] + 'px,' + an[1] + 'px) scale(.15)'
       e.c.setAttribute('d', 'M' + an[0] + ' ' + an[1] + ' L' + s[0] + ' ' + s[1])
+      if (!e.dot) { e.dot = document.createElementNS(NS, 'circle'); e.dot.setAttribute('r', '3.5'); e.dot.setAttribute('fill', Y); e.dot.setAttribute('class', 'mo-c'); e.c.parentNode.append(e.dot) }
+      e.dot.setAttribute('cx', an[0]); e.dot.setAttribute('cy', an[1]); e.dot.style.opacity = on ? '1' : '0'
+      /* al cerrar, el objeto vuelve hasta su bolsillo y solo entonces desaparece */
+      e.g.style.transition = on ? '' : 'transform .5s cubic-bezier(.5,0,.8,.4), opacity .2s ease .38s'
     }
     /* distribucion apaisada (objetos a los lados) o vertical (filas encima y debajo) segun la forma del hueco */
     function layout() {
@@ -178,9 +182,9 @@
       open[id] = on; if (on) seen[id] = true
       var b = svg.querySelector('.mo-p[data-p="' + id + '"]'); b.classList.toggle('on', on); b.setAttribute('aria-expanded', String(on))
       p.els.forEach(function (e, i) {
-        e.g.style.transitionDelay = on ? (i * .09) + 's' : '0s'
-        e.g.style.opacity = on ? '1' : '0'
         place(p, e, on)
+        if (on) e.g.style.transitionDelay = (i * .09) + 's'
+        e.g.style.opacity = on ? '1' : '0'
         e.c.style.opacity = on ? '1' : '0'
       })
       texts()
