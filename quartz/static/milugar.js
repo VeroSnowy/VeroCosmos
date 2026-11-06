@@ -409,12 +409,23 @@
     host.innerHTML = ''
     var root = document.createElement('div'); root.className = 'ml'
     root.addEventListener('focusin', function () { focusT = Date.now() })
+    /* tocar de nuevo un campo que ya tiene el foco (teclado oculto y vuelto a abrir) no genera focusin */
+    root.addEventListener('pointerdown', function (e) { if (e.target.closest && e.target.closest('input,textarea')) focusT = Date.now() })
     var today = new Date(), ymdOf = function (d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) }
     root.innerHTML = '<div class="ml-top"><form class="ml-q" role="search"><input type="text" autocomplete="off" spellcheck="false"><button type="button" class="ml-loc">' + IC.locate + '</button><button type="submit" class="ml-go">' + IC.search + '</button></form>' +
       '<label class="ml-dt"><span class="ml-dl"></span><input type="date" value="' + ymdOf(today) + '"></label><div class="ml-msg" aria-live="polite"></div></div><div class="ml-res"></div>'
     host.append(root)
     var top = root.querySelector('.ml-top'), form = root.querySelector('form'), input = form.querySelector('input'), dateI = root.querySelector('.ml-dt input'), dl = root.querySelector('.ml-dl'), msg = root.querySelector('.ml-msg'), res = root.querySelector('.ml-res'), locB = root.querySelector('.ml-loc'), goB = root.querySelector('.ml-go')
-    var dead = false, run = 0, last = null, mapCanvas = null, mapData = null, ro = null, loc = null, ox = 0, oy = 0, rafM = 0, tab = 0, scale = 1, view = null, tabFit = null, kb = null, focusT = 0
+    var dead = false, run = 0, last = null, mapCanvas = null, mapData = null, ro = null, loc = null, ox = 0, oy = 0, rafM = 0, tab = 0, scale = 1, view = null, tabFit = null, kb = null, focusT = 0, seen = null, kbLock = false, ro0 = null
+    function isTyping() { var a = document.activeElement; return !!(a && /^(INPUT|TEXTAREA)$/.test(a.tagName) && root.contains(a)) }
+    function track() {
+      var w = host.clientWidth, h = host.clientHeight
+      if (!seen || Math.abs(w - seen.w) > 2 || !isTyping() || h >= seen.h) { seen = { w: w, h: h }; kbLock = false; return }
+      /* un recorte de alto justo despues de tocar un campo es el teclado; si no, es un cambio de ventana */
+      if (!kbLock) { if (Date.now() - focusT < 4000) kbLock = true; else seen = { w: w, h: h } }
+    }
+    track()
+    try { ro0 = new ResizeObserver(track); ro0.observe(host) } catch (e) { }
     function texts() {
       input.placeholder = T('¿Dónde vamos hoy?'); input.setAttribute('aria-label', T('¿Dónde vamos hoy?'))
       locB.setAttribute('aria-label', T('Usar mi ubicación')); locB.title = T('Usar mi ubicación'); goB.setAttribute('aria-label', T('Buscar'))
@@ -555,10 +566,8 @@
       if (fitting || !res.firstChild) return; fitting = true
       try {
         var HW = host.clientWidth, HH0 = host.clientHeight
-        var ae = document.activeElement, typing = !!(ae && /^(INPUT|TEXTAREA)$/.test(ae.tagName) && root.contains(ae))
-        if (!typing || !kb || Math.abs(HW - kb.w) > 2 || HH0 >= kb.h) kb = { w: HW, h: HH0, lock: false }
-        else if (!kb.lock) { if (Date.now() - focusT < 4000) kb.lock = true; else kb = { w: HW, h: HH0, lock: false } }
-        var HH = kb.h, IH = innerHeight + (HH - HH0), narrow = HW < 760 || HH > HW * 1.15, coarse = false
+        track()
+        var HH = seen.h, IH = innerHeight + (HH - HH0), narrow = HW < 760 || HH > HW * 1.15, coarse = false
         try { coarse = matchMedia('(pointer: coarse)').matches } catch (e) { }
         var mob = view ? view === 'tabs' : (narrow || (coarse && HW < 1300))
         root.classList.add('fit', 'ring'); root.classList.toggle('mob', mob); root.classList.toggle('nar', narrow && !mob); var wide = mob && HW > HH * 1.05; root.classList.toggle('wide', wide)
@@ -739,7 +748,7 @@
     texts()
     var onLang = function () { texts() }
     window.addEventListener('vc-lang', onLang)
-    return { destroy: function () { dead = true; run++; if (ro) ro.disconnect(); window.removeEventListener('vc-lang', onLang) } }
+    return { destroy: function () { dead = true; run++; if (ro) ro.disconnect(); if (ro0) ro0.disconnect(); window.removeEventListener('vc-lang', onLang) } }
   }
   window.vcMiLugar = { mount: mount }
 })()
