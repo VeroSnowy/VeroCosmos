@@ -378,6 +378,7 @@
     '.ml:not(.mob) .ml-grid .ml-card>.ml-row:not(.ml-axis),.ml.mob.wide .ml-grid .ml-card>.ml-row:not(.ml-axis){border-left:1px solid #343d63;padding-left:9px;transition:border-color .2s}.ml:not(.mob) .ml-grid .ml-card>.ml-row:not(.ml-axis):hover,.ml.mob.wide .ml-grid .ml-card>.ml-row:not(.ml-axis):hover{border-left-color:' + Y + '}.ml .ml-big{font-family:' + SERIF + ';letter-spacing:.01em}.ml .ml-bar i{height:5px;border-radius:3px}' +
     '.ml .ml-o{border-color:#343d63;background:#0d1430}.ml .ml-o:hover{border-color:' + Y + ';background:#111a3d}.ml .ml-oi{color:#8ab4ff}' +
     '.ml.ring.fit.has-res:not(.mob):not(.nar) .ml-head{flex-wrap:nowrap;white-space:nowrap}.ml.ring.fit.has-res:not(.mob):not(.nar) .ml-head .ml-name{max-width:34%}' +
+    '.ml.mob.tab .ml-grid{max-width:none;align-items:stretch}.ml.mob.tab .ml-top{width:min(720px,calc(100% - 28px))}' +
     '.ml .ac{stroke:' + Y + '}.ml .ml-cut{display:none!important}' +
     '.ml.mob:not(.wide) .ml-sky .ml-objs{grid-template-columns:1fr 1fr;gap:6px}.ml.mob:not(.wide) .ml-sky .ml-ty{display:none}.ml.mob:not(.wide) .ml-sky>.ml-note:last-child{display:none}.ml.mob:not(.wide) .ml-sky .ml-o{padding:6px 8px;gap:7px}.ml.mob:not(.wide) .ml-sky .ml-oi{width:20px;height:20px}.ml.mob:not(.wide) .ml-sky .ml-ol{display:none}' +
     '@media(prefers-reduced-motion:reduce){.ml-top,.ml-res{transition:none}.ml-spin{animation:none}}'
@@ -407,12 +408,13 @@
     if (!document.getElementById('ml-css')) { var st = document.createElement('style'); st.id = 'ml-css'; st.textContent = CSS; document.head.append(st) }
     host.innerHTML = ''
     var root = document.createElement('div'); root.className = 'ml'
+    root.addEventListener('focusin', function () { focusT = Date.now() })
     var today = new Date(), ymdOf = function (d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) }
     root.innerHTML = '<div class="ml-top"><form class="ml-q" role="search"><input type="text" autocomplete="off" spellcheck="false"><button type="button" class="ml-loc">' + IC.locate + '</button><button type="submit" class="ml-go">' + IC.search + '</button></form>' +
       '<label class="ml-dt"><span class="ml-dl"></span><input type="date" value="' + ymdOf(today) + '"></label><div class="ml-msg" aria-live="polite"></div></div><div class="ml-res"></div>'
     host.append(root)
     var top = root.querySelector('.ml-top'), form = root.querySelector('form'), input = form.querySelector('input'), dateI = root.querySelector('.ml-dt input'), dl = root.querySelector('.ml-dl'), msg = root.querySelector('.ml-msg'), res = root.querySelector('.ml-res'), locB = root.querySelector('.ml-loc'), goB = root.querySelector('.ml-go')
-    var dead = false, run = 0, last = null, mapCanvas = null, mapData = null, ro = null, loc = null, ox = 0, oy = 0, rafM = 0, tab = 0, scale = 1, view = null, tabFit = null
+    var dead = false, run = 0, last = null, mapCanvas = null, mapData = null, ro = null, loc = null, ox = 0, oy = 0, rafM = 0, tab = 0, scale = 1, view = null, tabFit = null, kb = null, focusT = 0
     function texts() {
       input.placeholder = T('¿Dónde vamos hoy?'); input.setAttribute('aria-label', T('¿Dónde vamos hoy?'))
       locB.setAttribute('aria-label', T('Usar mi ubicación')); locB.title = T('Usar mi ubicación'); goB.setAttribute('aria-label', T('Buscar'))
@@ -552,25 +554,32 @@
     function fit() {
       if (fitting || !res.firstChild) return; fitting = true
       try {
-        var HW = host.clientWidth, HH = host.clientHeight, narrow = HW < 760 || HH > HW * 1.15, mob = view ? view === 'tabs' : narrow
+        var HW = host.clientWidth, HH0 = host.clientHeight
+        var ae = document.activeElement, typing = !!(ae && /^(INPUT|TEXTAREA)$/.test(ae.tagName) && root.contains(ae))
+        if (!typing || !kb || Math.abs(HW - kb.w) > 2 || HH0 >= kb.h) kb = { w: HW, h: HH0, lock: false }
+        else if (!kb.lock) { if (Date.now() - focusT < 4000) kb.lock = true; else kb = { w: HW, h: HH0, lock: false } }
+        var HH = kb.h, IH = innerHeight + (HH - HH0), narrow = HW < 760 || HH > HW * 1.15, coarse = false
+        try { coarse = matchMedia('(pointer: coarse)').matches } catch (e) { }
+        var mob = view ? view === 'tabs' : (narrow || (coarse && HW < 1300))
         root.classList.add('fit', 'ring'); root.classList.toggle('mob', mob); root.classList.toggle('nar', narrow && !mob); var wide = mob && HW > HH * 1.05; root.classList.toggle('wide', wide)
+        var tablet = mob && !wide && HW >= 600; root.classList.toggle('tab', tablet)
         if (narrow && !wide) res.style.setProperty('--mw', Math.round(Math.min(380, HH * .4, HW - 40)) + 'px')
         var vb = res.querySelector('.ml-vw'); if (vb) vb.textContent = T(mob ? 'Vista completa' : 'Vista por pestañas')
         res.style.transform = ''; res.style.width = ''; res.style.left = ''; scale = 1
         var grd = res.querySelector('.ml-grid'); if (grd) grd.style.minHeight = ''
         res.querySelectorAll('.ml-card[data-t]').forEach(function (c) { c.style.zoom = '' }); res.querySelectorAll('.ml-cut').forEach(function (o) { o.classList.remove('ml-cut') })
         /* en la vista completa, la barra de busqueda se reduce en la misma proporcion que la pantalla (deja mas alto a las tarjetas) */
-        top.style.zoom = !mob && !narrow ? Math.max(.7, Math.min(1, innerWidth / 1920, innerHeight / 1080)) : ''
+        top.style.zoom = !mob && !narrow ? Math.max(.7, Math.min(1, innerWidth / 1920, IH / 1080)) : ''
         res.style.top = (Math.ceil(top.getBoundingClientRect().height) + 16) + 'px'
         cutouts()
-        var mf = .6, avail = HH - res.offsetTop - 12, full = !mob && !narrow, big = full || wide, maxS = big ? Math.min(1.5, HW / 900) : 1
+        var mf = .6, avail = HH - res.offsetTop - 12, full = !mob && !narrow, big = full || wide || tablet, maxS = tablet ? Math.min(2, HW / 500) : wide ? Math.min(1.6, HW / 640) : big ? Math.min(1.5, HW / 900) : 1
         var apply = function (s2) { scale = s2; res.style.transform = s2 === 1 ? '' : 'scale(' + s2 + ')'; res.style.width = s2 === 1 ? '' : (100 / s2) + '%'; res.style.left = s2 === 1 ? '' : ((100 - 100 / s2) / 2) + '%'; cutouts() }
         /* columnas de las fichas segun el ancho real de cada tarjeta */
         var cols = function () {
-          res.querySelectorAll('.ml-grid .ml-card').forEach(function (cd) { if (mob && !wide || cd.classList.contains('ml-sky')) { cd.style.gridTemplateColumns = ''; return } cd.style.gridTemplateColumns = 'repeat(' + Math.max(1, Math.min(5, Math.floor((cd.clientWidth - (parseFloat(cd.style.paddingLeft) || 13) - (parseFloat(cd.style.paddingRight) || 13)) / 150))) + ',minmax(0,1fr))' })
-          var sk = res.querySelector('.ml-sky'); if (sk) sk.style.setProperty('--oc', !mob || wide ? Math.max(2, Math.min(10, Math.floor(sk.clientWidth / 180))) : '')
+          res.querySelectorAll('.ml-grid .ml-card').forEach(function (cd) { if (mob && !wide && !tablet || cd.classList.contains('ml-sky')) { cd.style.gridTemplateColumns = ''; return } cd.style.gridTemplateColumns = 'repeat(' + Math.max(1, Math.min(5, Math.floor((cd.clientWidth - (parseFloat(cd.style.paddingLeft) || 13) - (parseFloat(cd.style.paddingRight) || 13)) / 150))) + ',minmax(0,1fr))' })
+          var sk = res.querySelector('.ml-sky'); if (sk) sk.style.setProperty('--oc', !mob || wide || tablet ? Math.max(2, Math.min(10, Math.floor(sk.clientWidth / 180))) : '')
           /* el mapa no pasa del 58 % del alto disponible (si no, empuja todo hacia abajo) */
-          var mw = res.querySelector('.ml-mapw'); if (mw) { mw.style.maxWidth = wide ? Math.round((HH - res.offsetTop) * .8 / scale) + 'px' : ''; mw.style.margin = wide ? '12px auto' : ''; mw.style.width = wide ? 'calc(100% - 24px)' : '' }
+          var mw = res.querySelector('.ml-mapw'); if (mw) { mw.style.maxWidth = wide ? Math.round(Math.min((HH - res.offsetTop) * .66, HW * .46) / scale) + 'px' : ''; mw.style.margin = wide ? '12px auto' : ''; mw.style.width = wide ? 'calc(100% - 24px)' : '' }
           var mapc = Math.round((full ? Math.min((HH - res.offsetTop) * mf, HW * .34) : Math.min(HW * .6, (HH - res.offsetTop) * .3)) / scale); res.style.setProperty('--ov2', full ? Math.round(mapc * .45) + 'px' : '0px')
           res.style.setProperty('--mapc', Math.round((full ? Math.min((HH - res.offsetTop) * mf, HW * .34) : Math.min(HW * .6, (HH - res.offsetTop) * .3)) / scale) + 'px')
         }
@@ -579,31 +588,51 @@
         root.querySelectorAll('*').forEach(function (e) { if (e.closest('svg,canvas') || !Array.prototype.some.call(e.childNodes, function (c) { return c.nodeType === 3 && c.textContent.trim() }) && !/^(INPUT|BUTTON|SELECT)$/.test(e.tagName)) return; if (parseFloat(getComputedStyle(e).fontSize) < 15) { e.style.fontSize = '15px'; e.setAttribute('data-ff', '') } })
         cutouts(); cols()
         /* letra minima proporcional a la pantalla: 15 px en 1920x1080 (la letra base es de 15 px, asi que la escala no debe bajar de esta proporcion) */
-        var minS = Math.min(innerWidth / 1920, innerHeight / 1080), s, prevS = null
+        var minS = Math.min(innerWidth / 1920, IH / 1080), s, prevS = null
+        var cutSky = function () {
+          var con = res.querySelector('.ml-card.on'); if (!(tablet || wide) || !con || !con.classList.contains('ml-sky')) return
+          var os = con.querySelector('.ml-objs').children, vis = os.length, lim = root.getBoundingClientRect().top + HH - 10
+          for (var i = 0; i < os.length; i++) os[i].classList.remove('ml-cut')
+          while (vis > 4 && con.getBoundingClientRect().bottom > lim) { vis -= 2; for (var k = vis; k < os.length; k++) os[k].classList.add('ml-cut') }
+        }
+        var Fh = 0
+        /* comprobacion real: con cada tarjeta abierta, nada se sale de la pantalla (la misma escala para todas las pestanas) */
+        var worstH = function () {
+          var cds = res.querySelectorAll('.ml-card[data-t]'), hw = 0
+          cds.forEach(function (cd) { cds.forEach(function (c2) { c2.classList.toggle('on', c2 === cd) }); cols(); cutSky(); hw = Math.max(hw, root.scrollHeight) })
+          cds.forEach(function (c2) { c2.classList.toggle('on', +c2.getAttribute('data-t') === tab) }); cols(); cutSky()
+          return hw
+        }
         var tallest = function () {
           if (!mob) return res.scrollHeight
-          var cds = res.querySelectorAll('.ml-card[data-t]'), hm = 0
-          cds.forEach(function (cd) { cds.forEach(function (c2) { c2.classList.toggle('on', c2 === cd) }); cols(); hm = Math.max(hm, res.scrollHeight) })
+          var cds = res.querySelectorAll('.ml-card[data-t]'), hm = 0, mwe = (wide || tablet) ? res.querySelector('.ml-mapw') : null
+          if (mwe) mwe.style.display = 'none'
+          cds.forEach(function (cd) { if ((tablet || wide) && cd.classList.contains('ml-sky')) return; cds.forEach(function (c2) { c2.classList.toggle('on', c2 === cd) }); cols(); hm = Math.max(hm, res.scrollHeight) })
           cds.forEach(function (c2) { c2.classList.toggle('on', +c2.getAttribute('data-t') === tab) }); cols()
-          return hm
+          if (mwe) mwe.style.display = ''
+          Fh = hm
+          return tablet ? hm + 228 : hm
         }
         for (var tries = 0; tries < 6; tries++) {
           var key = HW + 'x' + HH + (wide ? 'w' : '')
-          if (mob && !wide) {
+          if (mob && !wide && !tablet) {
             var con = res.querySelector('.ml-card.on'), base = res.scrollHeight - (con ? con.offsetHeight : 0)
             apply(Math.floor(Math.min(1, (avail - 240) / Math.max(1, base)) * 50) / 50); cols()
-            var free = function () { return (root.getBoundingClientRect().top + root.clientHeight - 10 - con.getBoundingClientRect().top) / scale }
+            var free = function () { return (root.getBoundingClientRect().top + HH - 10 - con.getBoundingClientRect().top) / scale }
             if (con && con.classList.contains('ml-sky')) { var os = con.querySelector('.ml-objs').children, vis = os.length, room0 = free(); while (con.offsetHeight > room0 && vis > 4) { vis -= 2; for (var oi = vis; oi < os.length; oi++) os[oi].classList.add('ml-cut') } }
-            if (con) { var room = free(); if (con.offsetHeight > room) con.style.zoom = Math.max(.25, room / con.offsetHeight); if (root.scrollHeight > root.clientHeight + 1) con.style.zoom = Math.max(.25, con.style.zoom * root.clientHeight / root.scrollHeight - .01) }
+            if (con) { var room = free(); if (con.offsetHeight > room) con.style.zoom = Math.max(.25, room / con.offsetHeight); if (root.scrollHeight > HH + 1) con.style.zoom = Math.max(.25, con.style.zoom * HH / root.scrollHeight - .01) }
             break
           }
-          if (mob && tabFit && tabFit.k === key) { apply(tabFit.s); cols(); if (root.scrollHeight <= root.clientHeight + 1) { if (grd) grd.style.minHeight = Math.floor(avail / scale - grd.offsetTop) + 'px'; break } tabFit = null }
+          if (mob && tabFit && tabFit.k === key) { apply(tabFit.s); if (tabFit.mw) res.style.setProperty('--mw', tabFit.mw); cols(); cutSky(); if (root.scrollHeight <= HH + 1) { if (grd) grd.style.minHeight = Math.floor(avail / scale - grd.offsetTop) + 'px'; break } tabFit = null }
           s = Math.min(maxS, avail / Math.max(1, tallest()))
           for (var it = 0; it < 4 && s !== scale; it++) { apply(s); cols(); s = Math.min(maxS, avail / Math.max(1, tallest())) }
           if (s !== scale) apply(s)
+          if (tablet) { var mm = Math.floor(Math.max(200, Math.min(520, HW / scale - 40, avail / scale - Fh - 28))); res.style.setProperty('--mw', mm + 'px'); cols() }
+          cutSky()
+          if (mob) for (var g = 0; g < 8; g++) { var wh = worstH(); if (wh <= HH + 1) break; apply(scale * Math.min(.97, HH / wh)); cols() }
           /* si aun sobra por abajo (los recortes cambian los altos), se reduce un poco */
-          for (var it3 = 0; it3 < 6 && root.scrollHeight > root.clientHeight + 1; it3++) { apply(scale * Math.min(.97, root.clientHeight / root.scrollHeight)); cols() }
-          if (mob) { tabFit = { k: key, s: scale }; if (grd) grd.style.minHeight = Math.floor(avail / scale - grd.offsetTop) + 'px'; break }
+          for (var it3 = 0; it3 < 6 && root.scrollHeight > HH + 1; it3++) { apply(scale * Math.min(.97, HH / root.scrollHeight)); cols() }
+          if (mob) { tabFit = { k: key, s: scale, mw: tablet ? res.style.getPropertyValue('--mw') : null }; if (grd) grd.style.minHeight = Math.floor(avail / scale - grd.offsetTop) + 'px'; break }
           if (scale >= minS - .005 || mf <= .3) break
           if (prevS != null && scale <= prevS + .003) { mf = Math.min(.6, mf + .06); cols(); apply(prevS); break }
           prevS = scale; mf = Math.max(.3, mf - .06); cols()

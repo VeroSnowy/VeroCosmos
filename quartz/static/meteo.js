@@ -27,7 +27,7 @@
     '.mt-k{position:absolute;left:50%;width:22px;height:22px;margin:-11px 0 0 -11px;box-sizing:border-box;border-radius:50%;border:1.5px solid #f8d874;background:#0b1025;box-shadow:0 0 12px rgba(248,216,116,.5);transition:transform .2s ease;pointer-events:none}' +
     '.mt-k::after{content:"";position:absolute;inset:5px;border-radius:50%;background:#f8d874}' +
     '.mt-tr:hover .mt-k,.mt-tr:focus-visible .mt-k,.mt-tr.drag .mt-k{transform:scale(1.15)}' +
-    '.mt-short .mt-h{display:none}@media(max-width:700px){.mt-h{display:none}}'
+    '.mt-short .mt-h{display:none}@media(max-width:700px){.mt-h{display:none}}@media(min-width:701px) and (max-width:1000px){.mt-s{width:124px}.mt-h{overflow-wrap:normal}}'
   var IC_WIND = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M3 8h10a3 3 0 1 0-3-3"/><path d="M3 12h15a3 3 0 1 1-3 3"/><path d="M3 16h7"/></svg>'
   var IC_DROP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3s6 6.6 6 11a6 6 0 0 1-12 0c0-4.4 6-11 6-11z"/><path d="M9.5 15a2.5 2.5 0 0 0 2.5 2.5" stroke="#f8d874"/></svg>'
 

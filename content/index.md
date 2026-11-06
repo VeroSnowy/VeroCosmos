@@ -4,7 +4,7 @@ description: "Atlas astrofotográfico interactivo en 3D y guía astronómica par
 frame: minimal
 ---
 
-<iframe src="https://verocosmos.com/static/VeroCosmos_1.0.5.html" title="Vero Cosmos — Atlas astrofotográfico" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; height: 100dvh; border: none; display: block; z-index: 9999;" loading="eager"></iframe>
+<iframe src="https://verocosmos.com/static/VeroCosmos_1.0.6.html" title="Vero Cosmos — Atlas astrofotográfico" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; height: 100dvh; border: none; display: block; z-index: 9999;" loading="eager"></iframe>
 
 <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; z-index: 0; background: #05060f; color: #cfd6ff; font-family: system-ui, sans-serif; padding: 24px; box-sizing: border-box;">
 <h1>Vero Cosmos</h1>

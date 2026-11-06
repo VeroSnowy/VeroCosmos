@@ -214,7 +214,7 @@ body.guide-page #head h1{display:none}
 #ss-svg #ss-comet text{fill:#d7ecff;pointer-events:none}
 #topo{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
 img#topo{object-fit:cover}
-.ml-host{position:absolute;left:0;right:0;top:56px;bottom:0;z-index:4}
+.ml-host{position:absolute;left:0;right:0;top:56px;bottom:0;z-index:4}.ml-err{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center;color:#cfd6ff;font:400 17px/1.4 "Iowan Old Style",Georgia,serif}.ml-err p{margin:0}.ml-err button{border:1px solid #5b6bb4;border-radius:999px;background:#0b1025;color:#b9c9ff;font:inherit;font-size:15px;padding:8px 22px;cursor:pointer;transition:border-color .2s,color .2s}.ml-err button:hover,.ml-err button:focus-visible{border-color:#f8d874;color:#f8d874;outline:none}
 .ml-trail{position:absolute;z-index:6;width:3px;margin-left:-1.5px;border-radius:2px;pointer-events:none;background:linear-gradient(0deg,rgba(248,216,116,0),rgba(248,216,116,.9));transform-origin:50% 100%}
 #topo .tl{fill:none;stroke:#5b6bb4;stroke-width:1.1;stroke-linecap:round;stroke-linejoin:round;opacity:0;animation:topoIn .8s ease calc(var(--i)*.06s) forwards}
 #topo .ti{stroke:#8ab4ff;stroke-width:1.7}
@@ -1625,9 +1625,9 @@ const SEC_TXT={
   'Meteorología':[
     {p:'El lugar perfecto, los mejores aparatos y, de repente, una nube en medio de nuestro objetivo. La tan olvidada y odiada meteorología es uno de los grandes pilares para escoger un buen lugar de observación. Tanto las nubes, el viento o la temperatura pueden ser factores clave para sacar la mejor fotografía.'},
     {q:'¿Qué es el seeing (estabilidad atmosférica)?'},
-    {p:'El "seeing", o en español "estabilidad atmosférica", se trata de la turbulencia del aire. Este trata de un efecto de desviación de la luz producido por las distintas corrientes térmicas entre las capas de la atmósfera haciendo que las estrellas titilen o que los planetas se vean borrosos.'},
+    {p:'El "seeing", o en español "estabilidad atmosférica", se trata de la turbulencia del aire. Se trata de un efecto de desviación de la luz producido por las distintas corrientes térmicas entre las capas de la atmósfera haciendo que las estrellas titilen o que los planetas se vean borrosos.'},
     {q:'¿Cómo afecta la transparencia del cielo?'},
-    {p:'La transparencia hace referencia a la humedad del entorno, polvo, calima o cirros finos. En general, mide la claridad con la que un telescopio es capaz de atravesar la atmósfera para ver un objeto. Para galaxias y nebulosas se recomiendan cielos de alta transparencia debido a su lejanía.'},
+    {p:'La transparencia hace referencia a la humedad del entorno, polvo, calima o cirros finos. En general, mide la facilidad con la que la luz de un objeto atraviesa la atmósfera hasta llegar a nuestro telescopio. Para galaxias y nebulosas se recomiendan cielos de alta transparencia debido a su lejanía y a su bajo brillo.'},
     {q:'¿El frío, el viento y el punto de rocío tienen un papel en todo esto?'},
     {p:'Los aparatos de observación (telescopios) tienen lentes muy sensibles que debido a la humedad del ambiente, el viento y el frío pueden generar rocío o incluso congelarse/condensarse. Muchos de estos aparatos incluyen sistema anti-rocío, sin embargo de no tenerlo hay que tener en cuenta el tiempo del lugar escogido en el momento determinado.'}
   ],
@@ -1696,12 +1696,17 @@ function secBody(name){
   return d;
 }
 /* Secciones con dibujo interactivo: se cargan bajo demanda (bortle.js) */
-const SEC_VIZ={'Contaminación Lumínica':{src:'bortle.js?v=4',api:'vcBortle'},'Entorno':{src:'entorno.js?v=2',api:'vcEntorno'},'Meteorología':{src:'meteo.js?v=2',api:'vcMeteo'},'Elección del lugar':{src:'eleccion.js?v=1',api:'vcEleccion'},'Preparación':{src:'mochila.js?v=2',api:'vcMochila'}};
-function secLoadViz(def,cb){
+const SEC_VIZ={'Contaminación Lumínica':{src:'bortle.js?v=4',api:'vcBortle'},'Entorno':{src:'entorno.js?v=2',api:'vcEntorno'},'Meteorología':{src:'meteo.js?v=3',api:'vcMeteo'},'Elección del lugar':{src:'eleccion.js?v=1',api:'vcEleccion'},'Preparación':{src:'mochila.js?v=2',api:'vcMochila'}};
+function secLoadViz(def,cb,fail,n){
+  n=n||0;
   if(window[def.api]){cb();return}
   let s=document.querySelector('script[data-viz="'+def.api+'"]');
-  if(!s){s=document.createElement('script');s.src=def.src;s.dataset.viz=def.api;document.head.append(s)}
-  s.addEventListener('load',cb)
+  if(s&&s._err){s.remove();s=null}
+  if(!s){s=document.createElement('script');s.src=def.src+(n?(def.src.includes('?')?'&':'?')+'r='+n+'.'+Date.now():'');s.dataset.viz=def.api;s.addEventListener('error',()=>{s._err=true});document.head.append(s)}
+  /* si falla o no llega a definir su API, se retira el script y se reintenta (hasta 3 veces); si no hay manera, se avisa */
+  const bad=()=>{s.remove();if(n<2)setTimeout(()=>secLoadViz(def,cb,fail,n+1),600*(n+1));else if(fail)fail()};
+  s.addEventListener('load',()=>{if(window[def.api])cb();else bad()},{once:true});
+  s.addEventListener('error',bad,{once:true})
 }
 function secToggleBtn(page){
   const b=document.createElement('button');b.type='button';b.className='sec-tg';b.setAttribute('aria-label','Texto / dibujo');
@@ -1816,8 +1821,25 @@ function openMiLugar(view){
   if(mlEl||mlBusy||secEl||secBusy||lugarEl!==view)return;mlBusy=true;
   const ls=view.querySelector('.ls'),star=view.querySelector('.ls-m'),others=[...ls.querySelectorAll('.ls-b,.ls-lines')],red=secReduce();
   const host=document.createElement('div');host.className='ml-host';
-  const def={src:'milugar.js?v=5',api:'vcMiLugar'};
-  const show=()=>{view.append(host);secLoadViz(def,()=>{if(mlEl!==host)return;host._vz=window.vcMiLugar.mount(host);if(host.animate)host.animate([{opacity:0},{opacity:1}],{duration:red?300:600,easing:'ease-out'})});mlBusy=false};
+  const def={src:'milugar.js?v=7',api:'vcMiLugar'};
+  const show=()=>{
+    if(mlEl!==host){mlBusy=false;return}
+    view.append(host);
+    const fail=()=>{
+      if(mlEl!==host)return;
+      host.innerHTML='<div class="ml-err"><p>No se pudo cargar Mi Lugar. Revisa tu conexión.</p><button type="button">Reintentar</button></div>';
+      host.querySelector('button').addEventListener('click',go)
+    };
+    const go=()=>{
+      host.textContent='';
+      secLoadViz(def,()=>{
+        if(mlEl!==host)return;
+        try{host._vz=window.vcMiLugar.mount(host);if(host.animate)host.animate([{opacity:0},{opacity:1}],{duration:red?300:600,easing:'ease-out'})}
+        catch(e){try{if(host._vz)host._vz.destroy()}catch(e2){}host._vz=null;fail()}
+      },fail)
+    };
+    try{go()}finally{mlBusy=false}
+  };
   mlEl=host;
   const fades=others.map(x=>x.animate?x.animate([{opacity:1},{opacity:0}],{duration:red?250:500,easing:'ease-out',fill:'forwards'}):null);
   host._fades=fades;host._star=star;
@@ -1890,7 +1912,7 @@ function openLugar(card,fromUrl){
     try{bk.focus({preventScroll:true})}catch(e){}
     if(!fromUrl)lugarPushed=topGo('lugar',true);
     /* precarga de los dibujos de las secciones cuando el navegador esta libre: al pulsar un boton ya no hay que esperar a la red */
-    setTimeout(()=>{const go=()=>{if(lugarEl===view)Object.values(SEC_VIZ).concat([{src:'milugar.js?v=5',api:'vcMiLugar'}]).forEach(d=>secLoadViz(d,()=>{}))};window.requestIdleCallback?requestIdleCallback(go,{timeout:4000}):go()},1800);
+    setTimeout(()=>{const go=()=>{if(lugarEl===view)Object.values(SEC_VIZ).concat([{src:'milugar.js?v=7',api:'vcMiLugar'}]).forEach(d=>secLoadViz(d,()=>{}))};window.requestIdleCallback?requestIdleCallback(go,{timeout:4000}):go()},1800);
   };
   const reduce=typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
   if(fromUrl||reduce||!card||!card.animate){
@@ -2168,7 +2190,7 @@ function vcSky(cv,active){
 }
 vcSky(document.getElementById("sky"),()=>document.body.classList.contains("principal-page")&&!document.body.classList.contains("lugar-cover"));
 </script>
-<script src="vc-i18n.js?v=50"></script>
+<script src="vc-i18n.js?v=52"></script>
 <script>vcI18n.mount(document.getElementById("stage"));</script>
 </body>
 </html>
