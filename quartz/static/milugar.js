@@ -379,6 +379,7 @@
     '.ml .ml-o{border-color:#343d63;background:#0d1430}.ml .ml-o:hover{border-color:' + Y + ';background:#111a3d}.ml .ml-oi{color:#8ab4ff}' +
     '.ml.ring.fit.has-res:not(.mob):not(.nar) .ml-head{flex-wrap:nowrap;white-space:nowrap}.ml.ring.fit.has-res:not(.mob):not(.nar) .ml-head .ml-name{max-width:34%}' +
     '.ml.mob.tab .ml-grid{max-width:none;align-items:stretch}.ml.mob.tab .ml-top{width:min(720px,calc(100% - 28px))}' +
+    '.ml-card.nt>.ml-ct{display:none}' +
     '.ml.nm .ml-mapw{display:none}' +
     '.ml.ph .ml-dtz{display:none}.ml.ph .ml-head{gap:2px 10px}' +
     '.ml .ac{stroke:' + Y + '}.ml .ml-cut{display:none!important}' +
@@ -386,6 +387,8 @@
     '@media(prefers-reduced-motion:reduce){.ml-top,.ml-res{transition:none}.ml-spin{animation:none}}'
   /* mismas fichas que la vista apaisada por pestanas, tambien en vertical (movil y tableta): mas letra con menos espacio */
   CSS += (CSS.match(/\.ml\.mob\.wide [^{}]*\{[^{}]*\}/g) || []).filter(function (r) { return !/^\.ml\.mob\.wide (\.ml-grid\{|\.ml-col\{|\.ml-mapw\{|\.ml-tabs\{|\.ml-tabs button\{|\.ml-card\.on\{)/.test(r) }).map(function (r) { return r.replace('.ml.mob.wide ', '.ml.mob.tab ') }).join('')
+  /* movil: tarjeta mas compacta (menos relleno y menos separacion entre fichas) */
+  CSS += '.ml.mob.tab.ph .ml-grid .ml-card.on{padding:8px 12px 9px;row-gap:1px}.ml.mob.tab.ph .ml-grid .ml-card>.ml-row:not(.ml-axis){padding:0 0 0 9px;line-height:1.2}.ml.mob.tab.ph .ml-ct{margin-bottom:5px;padding-bottom:4px}'
   var IC = {
     search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>',
     locate: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>',
@@ -582,7 +585,7 @@
         var grd = res.querySelector('.ml-grid'); if (grd) grd.style.minHeight = ''
         res.querySelectorAll('.ml-card[data-t]').forEach(function (c) { c.style.zoom = '' }); res.querySelectorAll('.ml-cut').forEach(function (o) { o.classList.remove('ml-cut') })
         /* en la vista completa, la barra de busqueda se reduce en la misma proporcion que la pantalla (deja mas alto a las tarjetas) */
-        top.style.zoom = !mob && !narrow ? Math.max(.7, Math.min(1, innerWidth / 1920, IH / 1080)) : ''
+        top.style.zoom = !mob && !narrow ? Math.max(.7, Math.min(1, innerWidth / 1920, IH / 1080)) : (mob && !(HW > HH * 1.05) && HW < 600 ? .85 : '')
         res.style.top = (Math.ceil(top.getBoundingClientRect().height) + 16) + 'px'
         cutouts()
         var mf = .6, avail = HH - res.offsetTop - 12, full = !mob && !narrow, big = full || wide || tablet, maxS = tablet ? (HW >= 600 ? Math.min(2, HW / 500) : Math.min(1.1, HW / 360)) : wide ? Math.min(1.6, HW / 640) : big ? Math.min(1.5, HW / 900) : 1
@@ -611,10 +614,11 @@
         var Fh = 0, phone = tablet && HW < 600
         var clampS = function (x) { return phone ? Math.max(.94, x) : x }
         var fitCard = function () {
-          res.querySelectorAll('.ml-card[data-t]').forEach(function (c2) { c2.style.maxHeight = ''; c2.style.overflowY = '' })
+          res.querySelectorAll('.ml-card[data-t]').forEach(function (c2) { c2.style.maxHeight = ''; c2.style.overflowY = ''; c2.classList.remove('nt') })
           if (!phone) return
           var con = res.querySelector('.ml-card.on'); if (!con) return
           var room = (root.getBoundingClientRect().top + HH - 10 - con.getBoundingClientRect().top) / scale
+          if (con.offsetHeight > room) { con.classList.add('nt'); room = (root.getBoundingClientRect().top + HH - 10 - con.getBoundingClientRect().top) / scale }
           if (con.offsetHeight > room) { con.style.maxHeight = Math.floor(Math.max(120, room)) + 'px'; con.style.overflowY = 'auto'; con.style.overscrollBehavior = 'contain' }
         }
         /* comprobacion real: con cada tarjeta abierta, nada se sale de la pantalla (la misma escala para todas las pestanas) */
