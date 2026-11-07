@@ -415,6 +415,26 @@
     o_mo: '<svg viewBox="0 0 28 28" fill="none" stroke="' + Y + '" stroke-width="1.5"><path d="M20 17A8 8 0 1 1 11 7a6.5 6.5 0 0 0 9 10z"/></svg>'
   }
 
+  /* sugerencias: ubicacion (solo si ya hay permiso), consulta a Photon y calentamiento previo */
+  var POSC = null, WARMED = false, SGC = {}
+  function posIfGranted() {
+    if (POSC && Date.now() - POSC.t < 600000) return Promise.resolve(POSC.v)
+    var done = function (v) { POSC = { v: v, t: Date.now() }; return v }
+    if (!navigator.geolocation || !navigator.permissions || !navigator.permissions.query) return Promise.resolve(done(null))
+    return navigator.permissions.query({ name: 'geolocation' }).then(function (st) {
+      if (st.state !== 'granted') return done(null)
+      return new Promise(function (ok) { navigator.geolocation.getCurrentPosition(function (p) { ok(done({ lat: p.coords.latitude, lon: p.coords.longitude })) }, function () { ok(done(null)) }, { maximumAge: 600000, timeout: 4000 }) })
+    }).catch(function () { return done(null) })
+  }
+  function photonUrl(q, pos) {
+    var L = LANG()
+    return 'https://photon.komoot.io/api/?q=' + encodeURIComponent(q) + '&limit=8' + (L === 'en' || L === 'fr' ? '&lang=' + L : '') + (pos ? '&lat=' + pos.lat.toFixed(4) + '&lon=' + pos.lon.toFixed(4) + '&location_bias_scale=0.6' : '')
+  }
+  /* al abrir "Lugar para observar": permiso y ubicacion en segundo plano + una consulta minima que abre la conexion y despierta el servicio */
+  function warm() {
+    if (WARMED) return; WARMED = true
+    posIfGranted().then(function (pos) { return jget(photonUrl('ma', pos)) }).catch(function () { })
+  }
   function mount(host) {
     if (!document.getElementById('ml-css')) { var st = document.createElement('style'); st.id = 'ml-css'; st.textContent = CSS; document.head.append(st) }
     host.innerHTML = ''
@@ -475,31 +495,23 @@
     locB.addEventListener('click', function () {
       if (!navigator.geolocation) return
       msg.dataset.k = 'busy'; msg.textContent = T('Buscando tu ubicación…')
-      navigator.geolocation.getCurrentPosition(function (q) { input.value = q.coords.latitude.toFixed(4) + ', ' + q.coords.longitude.toFixed(4); loc = { lat: q.coords.latitude, lon: q.coords.longitude, name: null }; sgPos = { v: { lat: q.coords.latitude, lon: q.coords.longitude }, t: Date.now() }; ox = oy = 0; go() }, function () { msg.dataset.k = 'err'; msg.textContent = T('No se pudo obtener tu ubicación.') }, { timeout: 10000 })
+      navigator.geolocation.getCurrentPosition(function (q) { input.value = q.coords.latitude.toFixed(4) + ', ' + q.coords.longitude.toFixed(4); loc = { lat: q.coords.latitude, lon: q.coords.longitude, name: null }; POSC = { v: { lat: q.coords.latitude, lon: q.coords.longitude }, t: Date.now() }; ox = oy = 0; go() }, function () { msg.dataset.k = 'err'; msg.textContent = T('No se pudo obtener tu ubicación.') }, { timeout: 10000 })
     })
 
     /* ---------- sugerencias de lugares (Photon / OpenStreetMap); con permiso de ubicacion, primero lo cercano ---------- */
     var sg = document.createElement('div'); sg.className = 'ml-sg'; sg.setAttribute('role', 'listbox'); sg.hidden = true; form.append(sg)
     input.setAttribute('role', 'combobox'); input.setAttribute('aria-autocomplete', 'list'); input.setAttribute('aria-expanded', 'false')
-    var sgList = [], sgIdx = -1, sgT = 0, sgSeq = 0, sgPos
+    var sgList = [], sgIdx = -1, sgT = 0, sgSeq = 0
     function touchDev() { try { return matchMedia('(pointer: coarse)').matches || matchMedia('(hover: none)').matches } catch (e) { return false } }
     function blurAll() { try { input.blur(); var ae = document.activeElement; if (ae && ae !== document.body && ae.blur) ae.blur() } catch (e) { } }
-    function posIfGranted() {
-      if (sgPos && Date.now() - sgPos.t < 600000) return Promise.resolve(sgPos.v)
-      var done = function (v) { sgPos = { v: v, t: Date.now() }; return v }
-      if (!navigator.geolocation || !navigator.permissions || !navigator.permissions.query) return Promise.resolve(done(null))
-      return navigator.permissions.query({ name: 'geolocation' }).then(function (st) {
-        if (st.state !== 'granted') return done(null)
-        return new Promise(function (ok) { navigator.geolocation.getCurrentPosition(function (p) { ok(done({ lat: p.coords.latitude, lon: p.coords.longitude })) }, function () { ok(done(null)) }, { maximumAge: 600000, timeout: 4000 }) })
-      }).catch(function () { return done(null) })
-    }
     function sgLabel(p) {
       var name = p.name || (p.street ? p.street + (p.housenumber ? ' ' + p.housenumber : '') : '') || p.city || '', more = []
       ;[p.district, p.city, p.county, p.state, p.country].forEach(function (x) { if (x && x !== name && more.indexOf(x) < 0) more.push(x) })
       return { name: name, more: more.slice(0, 3) }
     }
     function sgFetch(q, pos) {
-      var L = LANG(), url = 'https://photon.komoot.io/api/?q=' + encodeURIComponent(q) + '&limit=8' + (L === 'en' || L === 'fr' ? '&lang=' + L : '') + (pos ? '&lat=' + pos.lat.toFixed(4) + '&lon=' + pos.lon.toFixed(4) + '&location_bias_scale=0.6' : '')
+      var url = photonUrl(q, pos), key = url
+      if (SGC[key]) return Promise.resolve(SGC[key])
       return jget(url).then(function (j) {
         var seen = {}, out = []
         ;(j.features || []).forEach(function (f) {
@@ -510,7 +522,8 @@
           out.push({ name: t.name, more: t.more.join(', '), label: label, lat: lat, lon: lon, km: pos ? kmBetween(pos.lat, pos.lon, lat, lon) : null })
         })
         if (pos) out = out.filter(function (s) { return s.km <= 150 }).concat(out.filter(function (s) { return s.km > 150 }))
-        return out.slice(0, touchDev() ? 5 : 6)
+        out = out.slice(0, touchDev() ? 5 : 6); SGC[key] = out
+        return out
       })
     }
     function sgHide() { sg.hidden = true; sgIdx = -1; sgList = []; input.setAttribute('aria-expanded', 'false') }
@@ -530,7 +543,7 @@
       var q = input.value.trim(); clearTimeout(sgT); var my = ++sgSeq
       if (q.length < 3 || parseCoords(q)) return sgHide()
       sgT = setTimeout(function () {
-        posIfGranted().then(function (pos) { return sgFetch(q, pos) }).then(function (l) { if (my === sgSeq && !dead) sgShow(l) }).catch(function () { if (my === sgSeq) sgHide() })
+        Promise.race([posIfGranted(), new Promise(function (ok) { setTimeout(function () { ok(POSC && POSC.v || null) }, 700) })]).then(function (pos) { return sgFetch(q, pos) }).then(function (l) { if (my === sgSeq && !dead) sgShow(l) }).catch(function () { if (my === sgSeq) sgHide() })
       }, 250)
     })
     input.addEventListener('keydown', function (e) {
@@ -837,5 +850,5 @@
     window.addEventListener('vc-lang', onLang)
     return { destroy: function () { dead = true; run++; if (ro) ro.disconnect(); if (ro0) ro0.disconnect(); window.removeEventListener('vc-lang', onLang) } }
   }
-  window.vcMiLugar = { mount: mount }
+  window.vcMiLugar = { mount: mount, warm: warm }
 })()
