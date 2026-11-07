@@ -316,7 +316,7 @@
 
   /* ---------- estilos ---------- */
   var CSS = '.ml{position:absolute;inset:0;overflow:auto;color:#eef1ff;font-family:' + SERIF + ';-webkit-overflow-scrolling:touch;overscroll-behavior:contain}' +
-    '.ml-top{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);width:min(600px,calc(100% - 28px));display:flex;flex-direction:column;align-items:center;gap:8px;transition:top .7s cubic-bezier(.7,0,.2,1),transform .7s cubic-bezier(.7,0,.2,1);z-index:3}' +
+    '.ml-top{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);width:min(600px,calc(100% - 28px));display:flex;flex-direction:column;align-items:center;gap:8px;transition:top .7s cubic-bezier(.7,0,.2,1),transform .7s cubic-bezier(.7,0,.2,1);z-index:30}' +
     '.ml.has-res .ml-top{top:10px;transform:translate(-50%,0)}' +
     '.ml-q{width:100%;box-sizing:border-box;display:flex;align-items:center;gap:6px;padding:6px 6px 6px 18px;border:1px solid #5b6bb4;border-radius:999px;background:#0b1025e6;box-shadow:0 0 40px rgba(91,107,180,.25);transition:box-shadow .3s,border-color .3s}' +
     '.ml-q:focus-within{border-color:#8ab4ff;box-shadow:0 0 44px rgba(138,180,255,.35)}' +
@@ -382,6 +382,9 @@
     '.ml-card.nt>.ml-ct{display:none}' +
     '.ml.nm .ml-mapw{display:none}' +
     '.ml.ph .ml-dtz{display:none}.ml.ph .ml-head{gap:2px 10px}' +
+    '.ml-q{position:relative}.ml-sg{position:absolute;left:10px;right:10px;top:calc(100% + 8px);z-index:40;background:#0b1025;border:1.5px solid #5b6bb4;border-radius:14px;box-shadow:0 14px 34px #05060fcc;overflow:hidden;max-height:min(60vh,360px);overflow-y:auto;text-align:left}.ml-sg[hidden]{display:none}' +
+    '.ml-sgi{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;box-sizing:border-box;text-align:left;background:none;border:0;border-bottom:1px solid #232a4f;color:#f5f7ff;font:400 16px/1.25 ' + SERIF + ';padding:10px 14px;cursor:pointer}.ml-sgi:hover,.ml-sgi.on,.ml-sgi:focus-visible{background:#111a3d;outline:none}' +
+    '.ml-sgt{min-width:0}.ml-sgn{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ml-sgi small{display:block;margin-top:2px;font-size:13px;color:#8f98c0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ml-sgd{flex:none;font-size:13px;color:' + Y + '}.ml-sgf{padding:5px 14px;font-size:11.5px;color:#6f789f;text-align:right}' +
     '.ml .ac{stroke:' + Y + '}.ml .ml-cut{display:none!important}' +
     '.ml.mob:not(.wide) .ml-sky .ml-objs{grid-template-columns:1fr 1fr;gap:6px}.ml.mob:not(.wide) .ml-sky .ml-ty{display:none}.ml.mob:not(.wide) .ml-sky>.ml-note:last-child{display:none}.ml.mob:not(.wide) .ml-sky .ml-o{padding:6px 8px;gap:7px}.ml.mob:not(.wide) .ml-sky .ml-oi{width:20px;height:20px}.ml.mob:not(.wide) .ml-sky .ml-ol{display:none}' +
     '@media(prefers-reduced-motion:reduce){.ml-top,.ml-res{transition:none}.ml-spin{animation:none}}'
@@ -467,13 +470,79 @@
       localLights(lat, lon).then(function (l) { data.lights = l }).catch(function () { data.lights = false }).then(upd)
       roads(lat, lon).then(function (w) { data.ways = w }).catch(function () { data.ways = false }).then(upd)
     }
-    form.addEventListener('submit', function (e) { e.preventDefault(); var q = input.value.trim(); if (q) search(q) })
+    form.addEventListener('submit', function (e) { e.preventDefault(); var q = input.value.trim(); clearTimeout(sgT); sgSeq++; sgHide(); if (touchDev()) blurAll(); if (q) search(q) })
     dateI.addEventListener('change', function () { if (loc) go() })
     locB.addEventListener('click', function () {
       if (!navigator.geolocation) return
       msg.dataset.k = 'busy'; msg.textContent = T('Buscando tu ubicación…')
-      navigator.geolocation.getCurrentPosition(function (q) { input.value = q.coords.latitude.toFixed(4) + ', ' + q.coords.longitude.toFixed(4); loc = { lat: q.coords.latitude, lon: q.coords.longitude, name: null }; ox = oy = 0; go() }, function () { msg.dataset.k = 'err'; msg.textContent = T('No se pudo obtener tu ubicación.') }, { timeout: 10000 })
+      navigator.geolocation.getCurrentPosition(function (q) { input.value = q.coords.latitude.toFixed(4) + ', ' + q.coords.longitude.toFixed(4); loc = { lat: q.coords.latitude, lon: q.coords.longitude, name: null }; sgPos = { v: { lat: q.coords.latitude, lon: q.coords.longitude }, t: Date.now() }; ox = oy = 0; go() }, function () { msg.dataset.k = 'err'; msg.textContent = T('No se pudo obtener tu ubicación.') }, { timeout: 10000 })
     })
+
+    /* ---------- sugerencias de lugares (Photon / OpenStreetMap); con permiso de ubicacion, primero lo cercano ---------- */
+    var sg = document.createElement('div'); sg.className = 'ml-sg'; sg.setAttribute('role', 'listbox'); sg.hidden = true; form.append(sg)
+    input.setAttribute('role', 'combobox'); input.setAttribute('aria-autocomplete', 'list'); input.setAttribute('aria-expanded', 'false')
+    var sgList = [], sgIdx = -1, sgT = 0, sgSeq = 0, sgPos
+    function touchDev() { try { return matchMedia('(pointer: coarse)').matches || matchMedia('(hover: none)').matches } catch (e) { return false } }
+    function blurAll() { try { input.blur(); var ae = document.activeElement; if (ae && ae !== document.body && ae.blur) ae.blur() } catch (e) { } }
+    function posIfGranted() {
+      if (sgPos && Date.now() - sgPos.t < 600000) return Promise.resolve(sgPos.v)
+      var done = function (v) { sgPos = { v: v, t: Date.now() }; return v }
+      if (!navigator.geolocation || !navigator.permissions || !navigator.permissions.query) return Promise.resolve(done(null))
+      return navigator.permissions.query({ name: 'geolocation' }).then(function (st) {
+        if (st.state !== 'granted') return done(null)
+        return new Promise(function (ok) { navigator.geolocation.getCurrentPosition(function (p) { ok(done({ lat: p.coords.latitude, lon: p.coords.longitude })) }, function () { ok(done(null)) }, { maximumAge: 600000, timeout: 4000 }) })
+      }).catch(function () { return done(null) })
+    }
+    function sgLabel(p) {
+      var name = p.name || (p.street ? p.street + (p.housenumber ? ' ' + p.housenumber : '') : '') || p.city || '', more = []
+      ;[p.district, p.city, p.county, p.state, p.country].forEach(function (x) { if (x && x !== name && more.indexOf(x) < 0) more.push(x) })
+      return { name: name, more: more.slice(0, 3) }
+    }
+    function sgFetch(q, pos) {
+      var L = LANG(), url = 'https://photon.komoot.io/api/?q=' + encodeURIComponent(q) + '&limit=8' + (L === 'en' || L === 'fr' ? '&lang=' + L : '') + (pos ? '&lat=' + pos.lat.toFixed(4) + '&lon=' + pos.lon.toFixed(4) + '&location_bias_scale=0.6' : '')
+      return jget(url).then(function (j) {
+        var seen = {}, out = []
+        ;(j.features || []).forEach(function (f) {
+          if (!f.geometry || !f.geometry.coordinates) return
+          var t = sgLabel(f.properties || {}); if (!t.name) return
+          var lon = f.geometry.coordinates[0], lat = f.geometry.coordinates[1], label = [t.name].concat(t.more).join(', ')
+          if (seen[label]) return; seen[label] = 1
+          out.push({ name: t.name, more: t.more.join(', '), label: label, lat: lat, lon: lon, km: pos ? kmBetween(pos.lat, pos.lon, lat, lon) : null })
+        })
+        if (pos) out = out.filter(function (s) { return s.km <= 150 }).concat(out.filter(function (s) { return s.km > 150 }))
+        return out.slice(0, touchDev() ? 5 : 6)
+      })
+    }
+    function sgHide() { sg.hidden = true; sgIdx = -1; sgList = []; input.setAttribute('aria-expanded', 'false') }
+    function sgMark() { [].forEach.call(sg.querySelectorAll('.ml-sgi'), function (b, i) { b.classList.toggle('on', i === sgIdx); b.setAttribute('aria-selected', i === sgIdx ? 'true' : 'false') }) }
+    function sgShow(list) {
+      sgList = list; sgIdx = -1
+      if (!list.length) return sgHide()
+      sg.innerHTML = list.map(function (s, i) { return '<div role="option" tabindex="-1" class="ml-sgi" data-i="' + i + '"><span class="ml-sgt"><span class="ml-sgn">' + esc(s.name) + '</span>' + (s.more ? '<small>' + esc(s.more) + '</small>' : '') + '</span>' + (s.km != null ? '<span class="ml-sgd">' + (s.km < 10 ? num(s.km, 1) : Math.round(s.km)) + ' km</span>' : '') + '</div>' }).join('') + '<div class="ml-sgf">© OpenStreetMap · Photon</div>'
+      sg.setAttribute('aria-label', T('Sugerencias de lugares')); sg.hidden = false; input.setAttribute('aria-expanded', 'true')
+    }
+    function sgPick(s) {
+      sgSeq++; clearTimeout(sgT); sgHide(); input.value = s.label
+      if (touchDev()) blurAll()
+      var id = ++run; loc = { lat: s.lat, lon: s.lon, name: s.label }; ox = oy = 0; go(id)
+    }
+    input.addEventListener('input', function () {
+      var q = input.value.trim(); clearTimeout(sgT); var my = ++sgSeq
+      if (q.length < 3 || parseCoords(q)) return sgHide()
+      sgT = setTimeout(function () {
+        posIfGranted().then(function (pos) { return sgFetch(q, pos) }).then(function (l) { if (my === sgSeq && !dead) sgShow(l) }).catch(function () { if (my === sgSeq) sgHide() })
+      }, 250)
+    })
+    input.addEventListener('keydown', function (e) {
+      if (sg.hidden || !sgList.length) return
+      if (e.key === 'ArrowDown') { e.preventDefault(); sgIdx = sgIdx < 0 ? 0 : (sgIdx + 1) % sgList.length; sgMark() }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); sgIdx = sgIdx <= 0 ? sgList.length - 1 : sgIdx - 1; sgMark() }
+      else if (e.key === 'Escape') { sgHide() }
+      else if (e.key === 'Enter' && sgIdx >= 0) { e.preventDefault(); sgPick(sgList[sgIdx]) }
+    })
+    input.addEventListener('blur', function () { setTimeout(sgHide, 200) })
+    sg.addEventListener('pointerdown', function (e) { var b = e.target.closest && e.target.closest('.ml-sgi'); if (!b) return; e.preventDefault(); sgPick(sgList[+b.getAttribute('data-i')]) })
+    sg.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('.ml-sgi'); if (b && !sg.hidden && sgList[+b.getAttribute('data-i')]) sgPick(sgList[+b.getAttribute('data-i')]) })
 
     /* ---------- informe ---------- */
     function tzOff(ms, tz) { try { var q = new Intl.DateTimeFormat('en-GB', { timeZone: tz, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).formatToParts(new Date(ms)).reduce(function (o, x) { o[x.type] = x.value; return o }, {}); return (Date.UTC(+q.year, +q.month - 1, +q.day, +q.hour, +q.minute) - Math.floor(ms / 60000) * 60000) / 1000 } catch (e) { return null } }
