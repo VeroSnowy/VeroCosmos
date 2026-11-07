@@ -1821,7 +1821,7 @@ function openMiLugar(view){
   if(mlEl||mlBusy||secEl||secBusy||lugarEl!==view)return;mlBusy=true;
   const ls=view.querySelector('.ls'),star=view.querySelector('.ls-m'),others=[...ls.querySelectorAll('.ls-b,.ls-lines')],red=secReduce();
   const host=document.createElement('div');host.className='ml-host';
-  const def={src:'milugar.js?v=8',api:'vcMiLugar'};
+  const def={src:'milugar.js?v=9',api:'vcMiLugar'};
   const show=()=>{
     if(mlEl!==host){mlBusy=false;return}
     view.append(host);
@@ -1869,7 +1869,7 @@ function removeLugar(){
   if(secEl&&secEl.vz)secEl.vz.destroy();
   if(mlEl){if(mlEl._vz)mlEl._vz.destroy();mlEl=null;mlBusy=false}
   secEl=null;secBusy=false;
-  const el=lugarEl;lugarEl=null;document.body.classList.remove('lugar-on','lugar-cover');document.removeEventListener('keydown',lugarKey,true);if(el._lang)window.removeEventListener('vc-lang',el._lang);
+  const el=lugarEl;lugarEl=null;document.body.classList.remove('lugar-on','lugar-cover');document.removeEventListener('keydown',lugarKey,true);if(el._lang)window.removeEventListener('vc-lang',el._lang);if(el._kt)window.removeEventListener('resize',el._kt);
   el.style.transition='opacity .28s ease';el.style.opacity='0';el.style.pointerEvents='none';
   setTimeout(()=>el.remove(),300);
 }
@@ -1897,6 +1897,15 @@ function openLugar(card,fromUrl){
     im.onload=()=>{if(sv.isConnected)sv.replaceWith(im)};
     im.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(still);
   },2600);
+  /* con el teclado del movil abierto la ventana se acorta: la vista (fondo topografico incluido) conserva su alto de antes y no se reescala */
+  {let fullW=0,fullH=0,kbd=false,focusT=0;
+  const typing=()=>{const a=document.activeElement;return !!(a&&/^(INPUT|TEXTAREA)$/.test(a.tagName)&&view.contains(a))};
+  const kt=()=>{const w=innerWidth,h=innerHeight;
+    if(!fullW||Math.abs(w-fullW)>2||!typing()||h>=fullH){fullW=w;fullH=h;if(kbd){kbd=false;view.style.bottom='0';view.style.height=''}return}
+    if(!kbd){if(Date.now()-focusT<4000){kbd=true;view.style.bottom='auto';view.style.height=fullH+'px'}else fullH=h}};
+  view.addEventListener('focusin',()=>{focusT=Date.now()});
+  view.addEventListener('pointerdown',e=>{if(e.target.closest&&e.target.closest('input,textarea'))focusT=Date.now()});
+  window.addEventListener('resize',kt);view._kt=kt;kt()}
   /* el titulo sigue al idioma elegido */
   const tr=k=>window.vcI18n?vcI18n.t(k):k;
   const setTt=()=>{tt.textContent=tr('Lugar para observar');view.querySelectorAll('[data-ls]').forEach(el=>{el.textContent=tr(el.dataset.ls)})};
@@ -1912,7 +1921,7 @@ function openLugar(card,fromUrl){
     try{bk.focus({preventScroll:true})}catch(e){}
     if(!fromUrl)lugarPushed=topGo('lugar',true);
     /* precarga de los dibujos de las secciones cuando el navegador esta libre: al pulsar un boton ya no hay que esperar a la red */
-    setTimeout(()=>{const go=()=>{if(lugarEl===view)Object.values(SEC_VIZ).concat([{src:'milugar.js?v=8',api:'vcMiLugar'}]).forEach(d=>secLoadViz(d,()=>{}))};window.requestIdleCallback?requestIdleCallback(go,{timeout:4000}):go()},1800);
+    setTimeout(()=>{const go=()=>{if(lugarEl===view)Object.values(SEC_VIZ).concat([{src:'milugar.js?v=9',api:'vcMiLugar'}]).forEach(d=>secLoadViz(d,()=>{}))};window.requestIdleCallback?requestIdleCallback(go,{timeout:4000}):go()},1800);
   };
   const reduce=typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
   if(fromUrl||reduce||!card||!card.animate){

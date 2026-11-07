@@ -379,9 +379,13 @@
     '.ml .ml-o{border-color:#343d63;background:#0d1430}.ml .ml-o:hover{border-color:' + Y + ';background:#111a3d}.ml .ml-oi{color:#8ab4ff}' +
     '.ml.ring.fit.has-res:not(.mob):not(.nar) .ml-head{flex-wrap:nowrap;white-space:nowrap}.ml.ring.fit.has-res:not(.mob):not(.nar) .ml-head .ml-name{max-width:34%}' +
     '.ml.mob.tab .ml-grid{max-width:none;align-items:stretch}.ml.mob.tab .ml-top{width:min(720px,calc(100% - 28px))}' +
+    '.ml.nm .ml-mapw{display:none}' +
+    '.ml.ph .ml-dtz{display:none}.ml.ph .ml-head{gap:2px 10px}' +
     '.ml .ac{stroke:' + Y + '}.ml .ml-cut{display:none!important}' +
     '.ml.mob:not(.wide) .ml-sky .ml-objs{grid-template-columns:1fr 1fr;gap:6px}.ml.mob:not(.wide) .ml-sky .ml-ty{display:none}.ml.mob:not(.wide) .ml-sky>.ml-note:last-child{display:none}.ml.mob:not(.wide) .ml-sky .ml-o{padding:6px 8px;gap:7px}.ml.mob:not(.wide) .ml-sky .ml-oi{width:20px;height:20px}.ml.mob:not(.wide) .ml-sky .ml-ol{display:none}' +
     '@media(prefers-reduced-motion:reduce){.ml-top,.ml-res{transition:none}.ml-spin{animation:none}}'
+  /* mismas fichas que la vista apaisada por pestanas, tambien en vertical (movil y tableta): mas letra con menos espacio */
+  CSS += (CSS.match(/\.ml\.mob\.wide [^{}]*\{[^{}]*\}/g) || []).filter(function (r) { return !/^\.ml\.mob\.wide (\.ml-grid\{|\.ml-col\{|\.ml-mapw\{|\.ml-tabs\{|\.ml-tabs button\{|\.ml-card\.on\{)/.test(r) }).map(function (r) { return r.replace('.ml.mob.wide ', '.ml.mob.tab ') }).join('')
   var IC = {
     search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>',
     locate: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>',
@@ -487,7 +491,7 @@
       }
       var dateTxt = new Date(d.ymd + 'T12:00:00Z').toLocaleDateString({ es: 'es-ES', en: 'en-GB', fr: 'fr-FR' }[LANG()], { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
       var verdict = score == null ? '' : '<div class="ml-ver">' + esc(T('Valoración de la noche')) + ' <b>' + num(score, 1) + '/10</b> · ' + esc(T(score >= 8 ? 'Excelente' : score >= 6 ? 'Buena' : score >= 4 ? 'Regular' : 'Mala')) + '</div>'
-      var head = '<div class="ml-head"><div class="ml-name">' + esc(d.name || T('Ubicación sin nombre')) + '</div><div class="ml-co">' + num(d.lat, 4) + '°, ' + num(d.lon, 4) + '°' + (alt != null ? ' · ' + Math.round(alt) + ' m' : '') + ' · ' + esc(dateTxt) + (d.wx && d.wx.timezone ? ' · ' + esc(d.wx.timezone) : '') + '</div>' + verdict + '</div>'
+      var head = '<div class="ml-head"><div class="ml-name">' + esc(d.name || T('Ubicación sin nombre')) + '</div><div class="ml-co">' + num(d.lat, 4) + '°, ' + num(d.lon, 4) + '°' + (alt != null ? ' · ' + Math.round(alt) + ' m' : '') + '<span class="ml-dtz"> · ' + esc(dateTxt) + (d.wx && d.wx.timezone ? ' · ' + esc(d.wx.timezone) : '') + '</span></div>' + verdict + '</div>'
       var cLP = card(IC.bulb, 'Contaminación Lumínica', d.glow === null ? loadingBody() : !lp ? fail() :
         '<div class="ml-big">Bortle ' + lp.bortle + '<small>' + num(lp.sqm, 2) + ' mag/arcsec²</small></div><div class="ml-bar">' + [1, 2, 3, 4, 5, 6, 7, 8, 9].map(function (i) { return '<i class="' + (i <= lp.bortle ? 'on' : '') + '"></i>' }).join('') + '</div>' +
         row(T('Magnitud límite a simple vista'), num(lp.nelm, 1)) + row(T('Resplandor principal hacia el'), lp.dir != null ? dirName(lp.dir) : esc(T('ninguno destacable'))) +
@@ -571,7 +575,7 @@
         try { coarse = matchMedia('(pointer: coarse)').matches } catch (e) { }
         var mob = view ? view === 'tabs' : (narrow || (coarse && HW < 1300))
         root.classList.add('fit', 'ring'); root.classList.toggle('mob', mob); root.classList.toggle('nar', narrow && !mob); var wide = mob && HW > HH * 1.05; root.classList.toggle('wide', wide)
-        var tablet = mob && !wide && HW >= 600; root.classList.toggle('tab', tablet)
+        var tablet = mob && !wide, MMIN = HW >= 600 ? 200 : 120; root.classList.toggle('tab', tablet); root.classList.toggle('ph', tablet && HW < 600); var nm = tablet && HW < 600 && HH < 760; root.classList.toggle('nm', nm)
         if (narrow && !wide) res.style.setProperty('--mw', Math.round(Math.min(380, HH * .4, HW - 40)) + 'px')
         var vb = res.querySelector('.ml-vw'); if (vb) vb.textContent = T(mob ? 'Vista completa' : 'Vista por pestañas')
         res.style.transform = ''; res.style.width = ''; res.style.left = ''; scale = 1
@@ -581,7 +585,7 @@
         top.style.zoom = !mob && !narrow ? Math.max(.7, Math.min(1, innerWidth / 1920, IH / 1080)) : ''
         res.style.top = (Math.ceil(top.getBoundingClientRect().height) + 16) + 'px'
         cutouts()
-        var mf = .6, avail = HH - res.offsetTop - 12, full = !mob && !narrow, big = full || wide || tablet, maxS = tablet ? Math.min(2, HW / 500) : wide ? Math.min(1.6, HW / 640) : big ? Math.min(1.5, HW / 900) : 1
+        var mf = .6, avail = HH - res.offsetTop - 12, full = !mob && !narrow, big = full || wide || tablet, maxS = tablet ? (HW >= 600 ? Math.min(2, HW / 500) : Math.min(1.1, HW / 360)) : wide ? Math.min(1.6, HW / 640) : big ? Math.min(1.5, HW / 900) : 1
         var apply = function (s2) { scale = s2; res.style.transform = s2 === 1 ? '' : 'scale(' + s2 + ')'; res.style.width = s2 === 1 ? '' : (100 / s2) + '%'; res.style.left = s2 === 1 ? '' : ((100 - 100 / s2) / 2) + '%'; cutouts() }
         /* columnas de las fichas segun el ancho real de cada tarjeta */
         var cols = function () {
@@ -604,7 +608,15 @@
           for (var i = 0; i < os.length; i++) os[i].classList.remove('ml-cut')
           while (vis > 4 && con.getBoundingClientRect().bottom > lim) { vis -= 2; for (var k = vis; k < os.length; k++) os[k].classList.add('ml-cut') }
         }
-        var Fh = 0
+        var Fh = 0, phone = tablet && HW < 600
+        var clampS = function (x) { return phone ? Math.max(.94, x) : x }
+        var fitCard = function () {
+          res.querySelectorAll('.ml-card[data-t]').forEach(function (c2) { c2.style.maxHeight = ''; c2.style.overflowY = '' })
+          if (!phone) return
+          var con = res.querySelector('.ml-card.on'); if (!con) return
+          var room = (root.getBoundingClientRect().top + HH - 10 - con.getBoundingClientRect().top) / scale
+          if (con.offsetHeight > room) { con.style.maxHeight = Math.floor(Math.max(120, room)) + 'px'; con.style.overflowY = 'auto'; con.style.overscrollBehavior = 'contain' }
+        }
         /* comprobacion real: con cada tarjeta abierta, nada se sale de la pantalla (la misma escala para todas las pestanas) */
         var worstH = function () {
           var cds = res.querySelectorAll('.ml-card[data-t]'), hw = 0
@@ -620,7 +632,7 @@
           cds.forEach(function (c2) { c2.classList.toggle('on', +c2.getAttribute('data-t') === tab) }); cols()
           if (mwe) mwe.style.display = ''
           Fh = hm
-          return tablet ? hm + 228 : hm
+          return tablet ? hm + (nm ? 0 : MMIN + 28) : hm
         }
         for (var tries = 0; tries < 6; tries++) {
           var key = HW + 'x' + HH + (wide ? 'w' : '')
@@ -632,15 +644,15 @@
             if (con) { var room = free(); if (con.offsetHeight > room) con.style.zoom = Math.max(.25, room / con.offsetHeight); if (root.scrollHeight > HH + 1) con.style.zoom = Math.max(.25, con.style.zoom * HH / root.scrollHeight - .01) }
             break
           }
-          if (mob && tabFit && tabFit.k === key) { apply(tabFit.s); if (tabFit.mw) res.style.setProperty('--mw', tabFit.mw); cols(); cutSky(); if (root.scrollHeight <= HH + 1) { if (grd) grd.style.minHeight = Math.floor(avail / scale - grd.offsetTop) + 'px'; break } tabFit = null }
-          s = Math.min(maxS, avail / Math.max(1, tallest()))
-          for (var it = 0; it < 4 && s !== scale; it++) { apply(s); cols(); s = Math.min(maxS, avail / Math.max(1, tallest())) }
+          if (mob && tabFit && tabFit.k === key) { apply(tabFit.s); if (tabFit.mw) res.style.setProperty('--mw', tabFit.mw); cols(); cutSky(); fitCard(); if (root.scrollHeight <= HH + 1) { if (grd) grd.style.minHeight = Math.floor(avail / scale - grd.offsetTop) + 'px'; break } tabFit = null }
+          s = clampS(Math.min(maxS, avail / Math.max(1, tallest())))
+          for (var it = 0; it < 4 && s !== scale; it++) { apply(s); cols(); s = clampS(Math.min(maxS, avail / Math.max(1, tallest()))) }
           if (s !== scale) apply(s)
-          if (tablet) { var mm = Math.floor(Math.max(200, Math.min(520, HW / scale - 40, avail / scale - Fh - 28))); res.style.setProperty('--mw', mm + 'px'); cols() }
-          cutSky()
-          if (mob) for (var g = 0; g < 8; g++) { var wh = worstH(); if (wh <= HH + 1) break; apply(scale * Math.min(.97, HH / wh)); cols() }
+          if (tablet && !nm) { var mm = Math.floor(Math.max(MMIN, Math.min(520, HW / scale - 40, avail / scale - Fh - 28))); res.style.setProperty('--mw', mm + 'px'); cols() }
+          cutSky(); fitCard()
+          if (mob && !phone) for (var g = 0; g < 8; g++) { var wh = worstH(); if (wh <= HH + 1) break; apply(scale * Math.min(.97, HH / wh)); cols() }
           /* si aun sobra por abajo (los recortes cambian los altos), se reduce un poco */
-          for (var it3 = 0; it3 < 6 && root.scrollHeight > HH + 1; it3++) { apply(scale * Math.min(.97, HH / root.scrollHeight)); cols() }
+          for (var it3 = 0; it3 < 6 && !phone && root.scrollHeight > HH + 1; it3++) { apply(scale * Math.min(.97, HH / root.scrollHeight)); cols() }
           if (mob) { tabFit = { k: key, s: scale, mw: tablet ? res.style.getPropertyValue('--mw') : null }; if (grd) grd.style.minHeight = Math.floor(avail / scale - grd.offsetTop) + 'px'; break }
           if (scale >= minS - .005 || mf <= .3) break
           if (prevS != null && scale <= prevS + .003) { mf = Math.min(.6, mf + .06); cols(); apply(prevS); break }
