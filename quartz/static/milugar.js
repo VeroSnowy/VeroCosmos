@@ -388,7 +388,8 @@
   /* mismas fichas que la vista apaisada por pestanas, tambien en vertical (movil y tableta): mas letra con menos espacio */
   CSS += (CSS.match(/\.ml\.mob\.wide [^{}]*\{[^{}]*\}/g) || []).filter(function (r) { return !/^\.ml\.mob\.wide (\.ml-grid\{|\.ml-col\{|\.ml-mapw\{|\.ml-tabs\{|\.ml-tabs button\{|\.ml-card\.on\{)/.test(r) }).map(function (r) { return r.replace('.ml.mob.wide ', '.ml.mob.tab ') }).join('')
   /* movil: tarjeta mas compacta (menos relleno y menos separacion entre fichas) */
-  CSS += '.ml.mob.tab.ph .ml-grid .ml-card.on{padding:8px 12px 9px;row-gap:1px}.ml.mob.tab.ph .ml-grid .ml-card>.ml-row:not(.ml-axis){padding:0 0 0 9px;line-height:1.2}.ml.mob.tab.ph .ml-ct{margin-bottom:5px;padding-bottom:4px}'
+  CSS += '.ml.mob.tab.ph .ml-grid .ml-wx>.ml-big{grid-column:1;grid-row:span 2;align-self:center}.ml.mob.tab.ph .ml-grid .ml-wx>.ml-hrs{grid-column:2;margin:0;align-self:end}.ml.mob.tab.ph .ml-grid .ml-wx>.ml-axis{grid-column:2}' +
+    '.ml.mob.tab.ph .ml-grid .ml-card.on{padding:8px 12px 9px;row-gap:1px}.ml.mob.tab.ph .ml-grid .ml-card>.ml-row:not(.ml-axis){padding:0 0 0 9px;line-height:1.2}.ml.mob.tab.ph .ml-ct{margin-bottom:5px;padding-bottom:4px}'
   var IC = {
     search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>',
     locate: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>',
@@ -614,12 +615,13 @@
         var Fh = 0, phone = tablet && HW < 600
         var clampS = function (x) { return phone ? Math.max(.94, x) : x }
         var fitCard = function () {
-          res.querySelectorAll('.ml-card[data-t]').forEach(function (c2) { c2.style.maxHeight = ''; c2.style.overflowY = ''; c2.classList.remove('nt') })
+          res.querySelectorAll('.ml-card[data-t]').forEach(function (c2) { c2.style.maxHeight = ''; c2.style.overflowY = ''; c2.style.zoom = ''; c2.classList.remove('nt') })
           if (!phone) return
           var con = res.querySelector('.ml-card.on'); if (!con) return
           var room = (root.getBoundingClientRect().top + HH - 10 - con.getBoundingClientRect().top) / scale
           if (con.offsetHeight > room) { con.classList.add('nt'); room = (root.getBoundingClientRect().top + HH - 10 - con.getBoundingClientRect().top) / scale }
-          if (con.offsetHeight > room) { con.style.maxHeight = Math.floor(Math.max(120, room)) + 'px'; con.style.overflowY = 'auto'; con.style.overscrollBehavior = 'contain' }
+          if (con.offsetHeight > room) { var zz = Math.max(.86, room / con.offsetHeight); con.style.zoom = zz; room = room / zz }
+          if (con.offsetHeight > room + 1) { con.style.maxHeight = Math.floor(Math.max(120, room)) + 'px'; con.style.overflowY = 'auto'; con.style.overscrollBehavior = 'contain' }
         }
         /* comprobacion real: con cada tarjeta abierta, nada se sale de la pantalla (la misma escala para todas las pestanas) */
         var worstH = function () {
