@@ -102,6 +102,8 @@
     '#vc-vero-intro .vi-no:hover,#vc-vero-intro .vi-no:focus-visible{border-color:#8ab4ff;color:#fff;outline:none}' +
     '#vc-vero-intro .vi-line{opacity:0;animation:viup .5s both}' +
     '#vc-vero-intro .vi-mini{display:none}' +
+    '#vc-vero-intro .vi-bye{animation:vibye .6s cubic-bezier(.2,1.3,.4,1) both}' +
+    '@keyframes vibye{from{opacity:0;transform:translateY(14px) scale(.85) rotate(-6deg)}to{opacity:1;transform:none}}' +
     '#vc-vero-intro .vi-ms{display:flex;flex-direction:column;gap:8px;margin:10px 0 4px}' +
     '#vc-vero-intro .vi-m{display:block;width:100%;text-align:left;padding:10px 14px;border:1.5px solid #343d63;border-radius:12px;background:#0e1430;color:#cfd6ff;font:inherit;cursor:pointer;transition:border-color .18s,background .18s}' +
     '#vc-vero-intro .vi-m b{display:block;font-size:17px;font-weight:600;color:#fff}' +
@@ -420,8 +422,10 @@
     }
     function say(text) {
       inn.classList.remove('pv')
-      card.innerHTML = '<div class="vv-n">Vero</div><p class="vi-h" style="font-size:22px;margin:6px 0 0"></p>'
+      /* en movil Vero va dentro del cartel: vuelve a salir (saludando) en la despedida */
+      card.innerHTML = '<img class="vi-mini vi-bye" alt="" src="' + BASE + 'saluda.webp"><div class="vv-n">Vero</div><p class="vi-h" style="font-size:22px;margin:6px 0 0"></p><div style="clear:both"></div>'
       card.querySelector('.vi-h').textContent = text
+      o.scrollTop = 0
     }
     go.addEventListener('click', function () {
       if (done || !sel) return
