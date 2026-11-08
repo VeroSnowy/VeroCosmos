@@ -76,7 +76,7 @@
     if (ls(KEY) === 'off' || document.getElementById('vc-vero')) return
     var lg = document.querySelector('.vc-lang')
     if (!lg) { if (tries++ < 30) setTimeout(mount, 300); return }
-    var st = document.createElement('style'); st.textContent = CSS; document.head.append(st)
+    if (!document.getElementById('vc-vero-css')) { var st = document.createElement('style'); st.id = 'vc-vero-css'; st.textContent = CSS; document.head.append(st) }
     var w = W = document.createElement('div'); w.id = 'vc-vero'
     w.innerHTML = '<button type="button" class="vv-i" aria-label="Vero: un consejo y el dato del día"><span class="vv-p" hidden></span><img alt="" src="' + BASE + 'icono.webp" decoding="async"></button>' +
       '<div class="vv-b" role="dialog" aria-label="Vero"><button type="button" class="vv-x" aria-label="Cerrar">×</button><div class="vv-n">Vero</div><div class="vv-t"></div><div class="vv-d"><div class="vv-n">Dato del día</div><div class="vv-f"></div></div><button type="button" class="vv-h">Desactivar a Vero</button></div>'
@@ -119,7 +119,7 @@
     w.querySelector('.vv-x').addEventListener('click', function () { b.classList.remove('on') })
     w.querySelector('.vv-h').addEventListener('click', function () {
       ls(KEY, 'off')
-      t.textContent = 'Vero desactivada. Podrás volver a activarla en los ajustes cuando lleguen.'
+      t.textContent = 'Vero desactivada. Podrás volver a activarla en Ajustes, dentro del menú.'
       w.querySelector('.vv-d').hidden = true; w.querySelector('.vv-h').hidden = true
       setTimeout(off, 2600)
     })
@@ -139,7 +139,7 @@
       '<p class="vi-line" style="animation-delay:1.2s">Vivo en este icono, junto al idioma, y solo hablo cuando tú me pulsas.</p>' +
       '<p class="vi-q vi-line" style="animation-delay:1.5s">¿Quieres que me quede activa o prefieres desactivarme?</p>' +
       '<div class="vi-btns vi-line" style="animation-delay:1.7s"><button type="button" class="vi-yes">Déjame activa</button><button type="button" class="vi-no">Desactívame</button></div>' +
-      '<p class="vi-s vi-line" style="animation-delay:1.9s">Podrás cambiar tu decisión cuando quieras en los ajustes, que llegarán más adelante.</p></div></div>'
+      '<p class="vi-s vi-line" style="animation-delay:1.9s">Podrás cambiar tu decisión cuando quieras en Ajustes, dentro del menú.</p></div></div>'
     document.body.append(o)
     var img = o.querySelector('.vi-img'), card = o.querySelector('.vi-card'), yes = o.querySelector('.vi-yes'), no = o.querySelector('.vi-no'), done = false
     function sparks() {
@@ -177,7 +177,7 @@
       setTimeout(function () { close() }, 1800)
     })
     no.addEventListener('click', function () {
-      if (done) return; ls(KEY, 'off'); say('Entendido, no te molestaré más. Podrás volver a activarme en los ajustes cuando lleguen.')
+      if (done) return; ls(KEY, 'off'); say('Entendido, no te molestaré más. Podrás volver a activarme en Ajustes, dentro del menú.')
       setTimeout(function () { close(off) }, 2800)
     })
     /* cerrar sin decidir: la presentacion volvera a salir la proxima vez */
@@ -187,7 +187,7 @@
     setTimeout(function () { try { yes.focus({ preventScroll: true }) } catch (e) { } }, reduced() ? 50 : 1900)
   }
 
-  window.vcVero = { mount: mount }
+  window.vcVero = { mount: function () { tries = 0; mount() }, off: off }
   function start() { (window.requestIdleCallback || function (fn) { setTimeout(fn, 1200) })(mount) }
   if (document.readyState === 'complete') start(); else addEventListener('load', start)
 })()
