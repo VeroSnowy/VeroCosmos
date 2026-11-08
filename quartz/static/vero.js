@@ -63,7 +63,7 @@
     '@keyframes vps{50%{transform:scale(1.35) rotate(20deg);opacity:.7}}' +
     '@media(max-width:520px){#vc-peek{--w:120px;--h:82px}}' +
     '#vc-big{position:fixed;inset:0;z-index:100010;display:flex;align-items:center;justify-content:center;padding:16px;font:400 17px/1.5 "Iowan Old Style","Palatino Linotype",Georgia,serif;color:#e8edff}' +
-    '#vc-big .vb-bd{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,#1a2160ee,#03051096 75%),#030510d9;animation:vifade .35s both}' +
+    '#vc-big .vb-bd{position:fixed;inset:0;background:radial-gradient(ellipse at 50% 40%,#1a2160ee,#03051096 75%),#030510d9;animation:vifade .35s both}' +
     '#vc-big.out .vb-bd,#vc-big.out .vb-in{animation:viout .4s both}' +
     '#vc-big .vb-in{position:relative;display:flex;align-items:center;justify-content:center;gap:clamp(12px,3vw,40px);max-width:900px}' +
     '#vc-big .vb-img{display:block;height:min(66vh,560px);max-width:40vw;width:auto;object-fit:contain;filter:drop-shadow(0 16px 44px #000a) drop-shadow(0 0 30px #5b6bb455)}' +
@@ -84,7 +84,7 @@
     '@media(max-width:480px){#vc-vero .vv-i{width:36px;height:36px}}' +
     /* presentacion */
     '#vc-vero-intro{position:fixed;inset:0;z-index:100010;display:flex;align-items:center;justify-content:center;padding:16px;font:400 17px/1.5 "Iowan Old Style","Palatino Linotype",Georgia,serif;color:#e8edff}' +
-    '#vc-vero-intro .vi-bd{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,#1a2160ee,#03051096 75%),#030510d9;animation:vifade .45s both}' +
+    '#vc-vero-intro .vi-bd{position:fixed;inset:0;background:radial-gradient(ellipse at 50% 40%,#1a2160ee,#03051096 75%),#030510d9;animation:vifade .45s both}' +
     '#vc-vero-intro.out .vi-bd,#vc-vero-intro.out .vi-in{animation:viout .5s both}' +
     '#vc-vero-intro .vi-in{position:relative;display:flex;align-items:center;justify-content:center;gap:clamp(12px,3vw,44px);max-width:960px;max-height:100%}' +
     '#vc-vero-intro .vi-img{display:block;height:min(74vh,640px);max-width:44vw;width:auto;object-fit:contain;filter:drop-shadow(0 16px 44px #000a) drop-shadow(0 0 30px #5b6bb455)}' +
@@ -159,7 +159,7 @@
     '@keyframes vifade{from{opacity:0}to{opacity:1}}' +
     '@keyframes viup{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}' +
     '@keyframes viout{to{opacity:0}}' +
-    '@media(max-width:700px){#vc-vero-intro{align-items:flex-start;overflow:auto}#vc-vero-intro .vi-in{flex-direction:column;gap:6px;margin:auto 0}#vc-vero-intro .vi-img{height:min(30vh,260px);max-width:70vw}#vc-vero-intro .vi-pv,#vc-vero-intro .vi-in.pv .vi-pv{flex:none;width:100%;max-width:440px;transition:opacity .4s}#vc-vero-intro .vi-pv{height:0}#vc-vero-intro .vi-in.pv .vi-pv{height:auto}#vc-vero-intro .vp{width:100%}}' +
+    '@media(max-width:700px){#vc-vero-intro{align-items:flex-start;overflow:auto;overscroll-behavior:contain;padding:12px 12px 24px}#vc-vero-intro .vi-in{flex-direction:column;gap:6px;margin:0 auto;width:100%}#vc-vero-intro .vi-img{height:min(24vh,200px);max-width:70vw}#vc-vero-intro .vi-in.pv .vi-img{display:none}#vc-vero-intro .vi-card{padding:18px 18px}#vc-vero-intro .vi-h{font-size:24px}#vc-vero-intro .vi-pv,#vc-vero-intro .vi-in.pv .vi-pv{flex:none;width:100%;max-width:440px;transition:opacity .4s}#vc-vero-intro .vi-pv{height:0}#vc-vero-intro .vi-in.pv .vi-pv{height:auto}#vc-vero-intro .vp{width:100%}}' +
     '@media(prefers-reduced-motion:reduce){#vc-vero *,#vc-vero-intro *,#vc-big *,#vc-peek,#vc-peek *{animation:none!important;transition:none!important}#vc-vero .vv-i.hi{box-shadow:0 0 16px 5px #f8d874e0}#vc-vero-intro .vi-line{opacity:1}}'
 
   function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v) } catch (e) { return null } }
@@ -407,6 +407,8 @@
       vp.className = 'vp m-' + sel
       MODES.forEach(function (m) { if (m[0] === sel) cap.textContent = m[3] })
       inn.classList.add('pv'); go.disabled = false
+      /* en movil la vista previa queda debajo: se acerca para que se vea */
+      if (window.innerWidth <= 700) setTimeout(function () { try { o.querySelector('.vi-pv').scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'nearest' }) } catch (e) { } }, 420)
     })
     function close(cb) {
       if (done) return; done = true
@@ -431,7 +433,7 @@
     o.querySelector('.vi-bd').addEventListener('click', function () { if (!ls(KEY)) close() })
     var onKey = function (e) { if (e.key === 'Escape' && !done && !ls(KEY)) { document.removeEventListener('keydown', onKey, true); close() } }
     document.addEventListener('keydown', onKey, true)
-    setTimeout(function () { var f = o.querySelector('.vi-m'); try { f.focus({ preventScroll: true }) } catch (e) { } }, reduced() ? 50 : 1700)
+    setTimeout(function () { var f = o.querySelector('.vi-m'); try { f.focus({ preventScroll: true }) } catch (e) { } o.scrollTop = 0 }, reduced() ? 50 : 1700)
   }
 
   window.vcVero = { mount: function () { tries = 0; mount() }, off: off, mode: setMode }

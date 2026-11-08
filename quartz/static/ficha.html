@@ -68,6 +68,7 @@ h1{margin:0;font-size:clamp(18px,2.4vw,28px);line-height:1.2;font-weight:700;whi
 .blk{padding:16px 18px}
 .blk+.blk{border-top:1px solid var(--line)}
 .mx{position:absolute;right:12px;top:12px;z-index:3;width:34px;height:34px;padding:0;display:flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:9px;background:#0e1226ef;color:var(--fg);cursor:pointer;transition:border-color .18s,background .18s}
+.mx.rc{right:54px}
 .mx:hover,.mx:focus-visible{border-color:var(--acc);background:#151a32;outline:none}
 .mx svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .mx .i-min{display:none}.media.max .mx .i-max{display:none}.media.max .mx .i-min{display:block}
@@ -183,7 +184,7 @@ ul.l{margin:0;padding:0;list-style:none}
     <div class="colL">
     <section class="card media" id="media" aria-label="Modelo 3D y foto">
       <div class="tg" id="tg"><span class="pill" id="pill"></span><button type="button" data-m="3d" class="on">Modelo 3D</button><button type="button" data-m="foto">Foto</button></div>
-      <button class="mx" id="mx" type="button" aria-label="Ampliar" title="Ampliar" aria-pressed="false"><svg class="i-max" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg><svg class="i-min" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10h-6V4M4 14h6v6M14 10l7-7M3 21l7-7"/></svg></button>
+      <button class="mx rc" id="rc" type="button" hidden aria-label="Volver a la posición original" title="Volver a la posición original"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button><button class="mx" id="mx" type="button" aria-label="Ampliar" title="Ampliar" aria-pressed="false"><svg class="i-max" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg><svg class="i-min" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10h-6V4M4 14h6v6M14 10l7-7M3 21l7-7"/></svg></button>
       <canvas id="m3"></canvas>
       <img id="ph" alt="">
       <p class="cap" id="cap"></p>
@@ -203,7 +204,7 @@ ul.l{margin:0;padding:0;list-style:none}
   </main>
 </div>
 <script src="vc-i18n.js?v=61"></script>
-<script src="vero.js?v=16" defer></script>
+<script src="vero.js?v=17" defer></script>
 <script>
 const $=id=>document.getElementById(id);
 const slug=decodeURIComponent(location.hash.slice(1));
@@ -357,6 +358,11 @@ function toggleMax(){
   setTimeout(movePill,60);
 }
 $('mx').addEventListener('click',toggleMax);
+/* Luna: vuelve suavemente a la posicion original (la fase que se ve hoy en el cielo) */
+$('rc').addEventListener('click',()=>{
+  const r0=Math.atan2(Math.sin(V.ry),Math.cos(V.ry)),x0=V.rx,t0=performance.now(),D=matchMedia('(prefers-reduced-motion:reduce)').matches?0:650;
+  V.drag=false;const st=()=>{const p=D?1:Math.min(1,(performance.now()-t0)/D),e=1-Math.pow(1-p,3);V.ry=r0*(1-e);V.rx=x0*(1-e);if(p<1)requestAnimationFrame(st)};st();
+});
 $('tg').addEventListener('click',e=>{const b=e.target.closest('button[data-m]');if(b)setMode(b.dataset.m,true)});
 window.addEventListener('resize',movePill);window.addEventListener('vc-lang',()=>setTimeout(movePill,60));
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(movePill);
@@ -540,7 +546,8 @@ function ringLUT(){
   }
   return{lut,N,r0,r1};
 }
-function sphereRender(kind,L){
+/* lock: la luz va fija a la esfera (Luna): al girarla se ve la cara iluminada que no mira hacia nosotros */
+function sphereRender(kind,L,lock){
   const tex=kind==='moon'?moonTex():kind==='saturn'?saturnTex():sunTex(),TW=tex.w,TH=tex.h,TD=tex.d,TSX=tex.sx||null,TSY=tex.sy||null;
   const RING=kind==='saturn',span=RING?2.42:1,ring=RING?ringLUT():null,RELIEF=1.5;
   let SZ=0,off=null,oc=null,img=null,px=null,NX=null,NY=null,quality=1,ema=16;
@@ -558,7 +565,7 @@ function sphereRender(kind,L){
     if(kind==='sun'){c.globalCompositeOperation='lighter';const gr=c.createRadialGradient(cx,cy,Rpx*.92,cx,cy,Rpx*1.75);gr.addColorStop(0,'rgba(255,170,60,.42)');gr.addColorStop(1,'rgba(255,140,40,0)');c.fillStyle=gr;c.fillRect(0,0,w,h);c.globalCompositeOperation='source-over'}
     const nvx=0,nvy=cxx,nvz=sxx,ldn=L[0]*nvx+L[1]*nvy+L[2]*nvz,ringBright=((ldn>0)===(nvz>0))?1:.42;
     /* luz en el sistema del objeto (para el relieve) */
-    const ly1=L[1]*cxx+L[2]*sxx,lz1=-L[1]*sxx+L[2]*cxx,lox=L[0]*cyy-lz1*syy,loy=ly1,loz=L[0]*syy+lz1*cyy;
+    const ly1=L[1]*cxx+L[2]*sxx,lz1=-L[1]*sxx+L[2]*cxx,lox=lock?L[0]:L[0]*cyy-lz1*syy,loy=lock?L[1]:ly1,loz=lock?L[2]:L[0]*syy+lz1*cyy;
     for(let o=0;o<SZ*SZ;o++){
       const x=NX[o],y=NY[o],q=x*x+y*y,rq=Math.sqrt(q),p4=o*4;
       let pr=0,pg=0,pb=0,pa=0,zs=-9;
@@ -581,9 +588,11 @@ function sphereRender(kind,L){
           let Nx=x2-RELIEF*(sxv*ex+syv*nxx),Ny=y1-RELIEF*(syv*nyy),Nz=z2-RELIEF*(sxv*ez+syv*nzz);
           const nl=Math.sqrt(Nx*Nx+Ny*Ny+Nz*Nz)||1,d=(Nx*lox+Ny*loy+Nz*loz)/nl,d0=x2*lox+y1*loy+z2*loz;
           /* terminador suave: la luz se corta segun la inclinacion real de la superficie */
-          {const s=Math.max(0,Math.min(1,(d0+.1)/.18));k=.02+Math.max(0,Math.min(1.15,d*1.15))*s*s*(3-2*s)}
+          {const s=Math.max(0,Math.min(1,(d0+.1)/.18));k=(lock?.17:.02)+Math.max(0,Math.min(lock?1.02:1.15,d*(lock?1.02:1.15)))*s*s*(3-2*s)}
         }else{const d=x*L[0]+y*L[1]+nz*L[2];k=.05+Math.max(0,Math.min(1,d*1.2))*.95}
         pr=r0*k;pg=g0*k;pb=b0*k;
+        /* Luna: la zona en sombra conserva algo de luz cenicienta (reflejo de la Tierra), algo azulada, para que se distinga */
+        if(lock&&TSX){const e=Math.max(0,Math.min(1,(.4-k)/.23));pr*=1-.1*e;pb*=1+.22*e}
       }
       if(RING&&Math.abs(nvz)>.02){
         const zr=-(nvx*x+nvy*y)/nvz,rr=Math.sqrt(q+zr*zr);
@@ -835,7 +844,7 @@ function startModel(){
   if(m==='nebula')run(pointRender(buildNebula(data.palette)));
   else if(m==='globular'){V.rx=-.2;run(pointRender(buildGlobular()))}
   else if(m==='galaxy'){V.rx=-.42;V.ry=.5;V.speed=.002;run(pointRender(buildGalaxy()))}
-  else if(m==='moon'){V.rx=0;V.ry=0;V.auto=false;V.sway=true;const ph=moonPhase(Date.now()),s=ph.waxing?1:-1;run(sphereRender('moon',[s*Math.sin(ph.psi),0,-Math.cos(ph.psi)]))}
+  else if(m==='moon'){V.rx=0;V.ry=0;V.auto=false;V.sway=true;const ph=moonPhase(Date.now()),s=ph.waxing?1:-1;run(sphereRender('moon',[s*Math.sin(ph.psi),0,-Math.cos(ph.psi)],true));$('rc').hidden=false}
   else if(m==='saturn'){V.rx=.45;V.ry=.4;V.speed=.004;run(sphereRender('saturn',norm([.6,.45,.7])))}
   else if(m==='sun'){V.rx=0;V.ry=0;V.speed=.0016;run(sphereRender('sun',[0,0,1]))}
 }
