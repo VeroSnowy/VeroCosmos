@@ -104,7 +104,7 @@
     '#vc-aj .aj-f button{font:inherit;font-size:17px;padding:12px 20px;border-radius:10px;border:1px solid #3a4580;background:transparent;color:#eef1ff;cursor:pointer}' +
     '#vc-aj .aj-f .aj-ok{background:#18214d}' +
     '#vc-aj .aj-f button:hover,#vc-aj .aj-f button:focus-visible{border-color:#8ab4ff;outline:none}' +
-    '#vc-aj .aj-v{margin:6px 0 0;font-size:12px;color:#6f789f;text-align:right}' +
+    '#vc-aj .aj-v{margin:6px 0 0;font-size:12px;color:#6f789f;text-align:right;cursor:default;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}' +
     '#vc-aj .aj-msg{margin:12px 0 0;font-size:14px;color:#f8d874;min-height:1em}' +
     '@keyframes ajf{from{opacity:0}to{opacity:1}}@keyframes aju{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}' +
     '@media(max-width:520px){#vc-aj .aj-c{padding:22px 18px 18px}#vc-aj h2{font-size:28px}#vc-aj .aj-x{top:14px;right:14px}}' +
@@ -145,6 +145,15 @@
     /* version de la web (sirve para saber si el navegador muestra una copia antigua guardada) */
     var ver = ''; try { var mt = /VeroCosmos_([\d.]+)\.html/.exec(location.pathname) || /VeroCosmos_([\d.]+)\.html/.exec(parent.location.pathname); if (mt) ver = mt[1] } catch (e) { }
     o.querySelector('.aj-v').textContent = ver ? 'Vero Cosmos v' + ver : ''
+    /* truco escondido: 5 toques seguidos en la version reinician a Vero (vuelve a brillar y a presentarse), para probarla */
+    var vt = 0, vtT = 0
+    o.querySelector('.aj-v').addEventListener('click', function () {
+      clearTimeout(vtT); vtT = setTimeout(function () { vt = 0 }, 2000)
+      if (++vt < 5) return
+      ;['vc-vero', 'vc-vero-glow', 'vc-vero-seen', 'vc-vero-tipday', 'vc-vero-ign', 'vc-vero-last', 'vc-vero-shown'].forEach(function (k) { ls(k, null) })
+      msg.textContent = 'Vero reiniciada. Recargando…'
+      setTimeout(function () { location.reload() }, 900)
+    })
     function paint() {
       [].forEach.call(o.querySelectorAll('.aj-t'), function (t) { t.setAttribute('aria-checked', String(get[t.dataset.k]())) })
       var vm = veroMode(); [].forEach.call(o.querySelectorAll('[data-vm]'), function (x) { x.setAttribute('aria-checked', String(x.dataset.vm === vm)) })
