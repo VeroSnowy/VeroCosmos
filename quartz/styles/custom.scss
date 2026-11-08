@@ -64,7 +64,8 @@ body:is([data-slug="index"],[data-slug="atlas-astrofotografico"],[data-slug="gui
   width: 100% !important;
   height: 100vh !important;
   height: 100dvh !important;
-  min-height: 600px;
+  /* sin altura minima: en moviles con barras del navegador la zona visible baja de 600 px y el atlas se cortaba arriba y abajo */
+  min-height: 0;
   border: none !important;
 }
 
@@ -100,7 +101,8 @@ body:is([data-slug="index"],[data-slug="atlas-astrofotografico"],[data-slug="gui
   width: 100% !important;
   height: 100vh !important;
   height: 100dvh !important;
-  min-height: 600px;
+  /* sin altura minima: en moviles con barras del navegador la zona visible baja de 600 px y el atlas se cortaba arriba y abajo */
+  min-height: 0;
   border: none !important;
 }
 /* portada sin banner: fondo oscuro y sin pie mientras carga */
