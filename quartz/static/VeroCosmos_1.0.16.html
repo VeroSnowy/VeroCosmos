@@ -1821,13 +1821,13 @@ function openMiLugar(view){
   if(mlEl||mlBusy||secEl||secBusy||lugarEl!==view)return;mlBusy=true;
   const ls=view.querySelector('.ls'),star=view.querySelector('.ls-m'),others=[...ls.querySelectorAll('.ls-b,.ls-lines')],red=secReduce();
   const host=document.createElement('div');host.className='ml-host';
-  const def={src:'milugar.js?v=13',api:'vcMiLugar'};
+  const def={src:'milugar.js?v=14',api:'vcMiLugar'};
   const show=()=>{
     if(mlEl!==host){mlBusy=false;return}
     view.append(host);
     const fail=()=>{
       if(mlEl!==host)return;
-      host.innerHTML='<div class="ml-err"><p>No se pudo cargar Mi Lugar. Revisa tu conexión.</p><button type="button">Reintentar</button></div>';
+      host.innerHTML='<div class="ml-err"><img src="vero/a-triste.webp" alt="" width="84" height="84" style="border-radius:50%;border:1px solid #5b6bb4"><p>No se pudo cargar Mi Lugar. Revisa tu conexión.</p><button type="button">Reintentar</button></div>';
       host.querySelector('button').addEventListener('click',go)
     };
     const go=()=>{
@@ -1923,7 +1923,7 @@ function openLugar(card,fromUrl){
     try{bk.focus({preventScroll:true})}catch(e){}
     if(!fromUrl)lugarPushed=topGo('lugar',true);
     /* precarga de los dibujos de las secciones cuando el navegador esta libre: al pulsar un boton ya no hay que esperar a la red */
-    setTimeout(()=>{const go=()=>{if(lugarEl===view)Object.values(SEC_VIZ).concat([{src:'milugar.js?v=13',api:'vcMiLugar'}]).forEach(d=>secLoadViz(d,()=>{if(d.api==='vcMiLugar'&&window.vcMiLugar&&window.vcMiLugar.warm)window.vcMiLugar.warm()}))};window.requestIdleCallback?requestIdleCallback(go,{timeout:4000}):go()},1800);
+    setTimeout(()=>{const go=()=>{if(lugarEl===view)Object.values(SEC_VIZ).concat([{src:'milugar.js?v=14',api:'vcMiLugar'}]).forEach(d=>secLoadViz(d,()=>{if(d.api==='vcMiLugar'&&window.vcMiLugar&&window.vcMiLugar.warm)window.vcMiLugar.warm()}))};window.requestIdleCallback?requestIdleCallback(go,{timeout:4000}):go()},1800);
   };
   const reduce=typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
   if(fromUrl||reduce||!card||!card.animate){
@@ -2201,7 +2201,8 @@ function vcSky(cv,active){
 }
 vcSky(document.getElementById("sky"),()=>document.body.classList.contains("principal-page")&&!document.body.classList.contains("lugar-cover"));
 </script>
-<script src="vc-i18n.js?v=53"></script>
+<script src="vc-i18n.js?v=54"></script>
 <script>vcI18n.mount(document.getElementById("stage"));</script>
+<script src="vero.js?v=2" defer></script>
 </body>
 </html>

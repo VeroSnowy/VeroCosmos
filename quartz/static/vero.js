@@ -20,23 +20,21 @@
     'La luz que ves hoy de Andrómeda salió hace unos 2,5 millones de años.'
   ]
   var CSS = '' +
-    '#vc-vero{position:fixed;left:50%;bottom:0;transform:translateX(-50%);z-index:18;display:none;flex-direction:column;align-items:center;pointer-events:none;font:400 16px/1.4 "Iowan Old Style","Palatino Linotype",Georgia,serif}' +
-    'body.principal-page:not(.lugar-on) #vc-vero{display:flex}' +
-    '#vc-vero>*{pointer-events:auto}' +
-    '#vc-vero .vv-b{position:relative;width:min(300px,calc(100vw - 28px));margin:0 0 10px;padding:12px 16px 12px;border:1.5px solid #5b6bb4;border-radius:16px;background:#0b1025;color:#e8edff;box-shadow:0 12px 30px #02030acc;display:none}' +
+    '#vc-vero{position:fixed;top:12px;right:64px;z-index:18;display:none;font:400 16px/1.4 "Iowan Old Style","Palatino Linotype",Georgia,serif}' +
+    'body.guide-page:not(.lugar-on) #vc-vero{display:block}' +
+    '#vc-vero .vv-i{position:relative;display:block;width:40px;height:40px;padding:0;border:1px solid #232846;border-radius:10px;background:#0e1226ef;cursor:pointer;overflow:visible;transition:border-color .18s,background .18s}' +
+    '#vc-vero .vv-i:hover,#vc-vero .vv-i:focus-visible{border-color:#5b6bb4;background:#141a3a;outline:none}' +
+    '#vc-vero .vv-i img{display:block;width:100%;height:100%;border-radius:9px;object-fit:cover;pointer-events:none}' +
+    '#vc-vero .vv-p{position:absolute;right:-3px;top:-3px;width:11px;height:11px;border-radius:50%;background:#f8d874;box-shadow:0 0 8px #f8d874}' +
+    '#vc-vero .vv-p[hidden]{display:none}' +
+    '#vc-vero .vv-b{position:fixed;top:60px;right:12px;width:min(310px,calc(100vw - 24px));padding:12px 16px;border:1.5px solid #5b6bb4;border-radius:16px;background:#0b1025;color:#e8edff;box-shadow:0 12px 30px #02030acc;display:none}' +
     '#vc-vero .vv-b.on{display:block;animation:vvin .3s both}' +
-    '#vc-vero .vv-b:after{content:"";position:absolute;left:calc(50% - 7px);bottom:-8px;width:14px;height:14px;background:#0b1025;border:1.5px solid #5b6bb4;border-top:0;border-left:0;transform:rotate(45deg)}' +
+    '#vc-vero .vv-b:before{content:"";position:absolute;top:-8px;right:var(--vv-ax,40px);width:14px;height:14px;background:#0b1025;border:1.5px solid #5b6bb4;border-bottom:0;border-right:0;transform:rotate(45deg)}' +
     '#vc-vero .vv-n{font-size:12.5px;letter-spacing:.12em;text-transform:uppercase;color:#f8d874;margin-bottom:2px}' +
     '#vc-vero .vv-d{margin-top:10px;padding-top:8px;border-top:1px solid #232a4f}' +
     '#vc-vero .vv-x{position:absolute;right:6px;top:2px;width:30px;height:30px;border:0;background:none;color:#8f98c0;font-size:20px;cursor:pointer}' +
     '#vc-vero .vv-h{display:block;margin-top:10px;padding:0;border:0;background:none;color:#8f98c0;font:inherit;font-size:13px;text-decoration:underline;cursor:pointer}' +
-    '#vc-vero .vv-i{position:relative;display:block;width:78px;height:92px;padding:0;border:0;background:none;cursor:pointer;transition:transform .25s}' +
-    '#vc-vero .vv-i:hover,#vc-vero .vv-i:focus-visible{transform:translateY(-5px);outline:none}' +
-    '#vc-vero .vv-i img{position:absolute;left:0;bottom:0;width:100%;height:100%;object-fit:contain;object-position:bottom;filter:drop-shadow(0 4px 10px #000a);pointer-events:none}' +
-    '#vc-vero .vv-p{position:absolute;right:6px;top:4px;width:12px;height:12px;border-radius:50%;background:#f8d874;box-shadow:0 0 8px #f8d874}' +
-    '#vc-vero .vv-p[hidden]{display:none}' +
-    '@keyframes vvin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}' +
-    '@media(max-width:600px){#vc-vero .vv-i{width:62px;height:74px}}' +
+    '@keyframes vvin{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}' +
     '@media(prefers-reduced-motion:reduce){#vc-vero *{animation:none!important;transition:none!important}}'
   function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v) } catch (e) { return null } }
   function dayN() { var d = new Date(); return Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 864e5) }
@@ -45,12 +43,20 @@
     try { if (sessionStorage.getItem('vc-vero-off') === '1') return } catch (e) { }
     var st = document.createElement('style'); st.textContent = CSS; document.head.append(st)
     var w = document.createElement('div'); w.id = 'vc-vero'
-    w.innerHTML = '<div class="vv-b" role="dialog" aria-label="Vero"><button type="button" class="vv-x" aria-label="Cerrar">×</button><div class="vv-n">Vero</div><div class="vv-t"></div><div class="vv-d"><div class="vv-n">Dato del día</div><div class="vv-f"></div></div><button type="button" class="vv-h">Ocultar a Vero por ahora</button></div>' +
-      '<button type="button" class="vv-i" aria-label="Vero: un consejo y el dato del día"><span class="vv-p"></span><img alt="" src="' + BASE + 'chibi.webp" decoding="async"></button>'
+    w.innerHTML = '<button type="button" class="vv-i" aria-label="Vero: un consejo y el dato del día"><span class="vv-p"></span><img alt="" src="' + BASE + 'a-feliz.webp" decoding="async"></button>' +
+      '<div class="vv-b" role="dialog" aria-label="Vero"><button type="button" class="vv-x" aria-label="Cerrar">×</button><div class="vv-n">Vero</div><div class="vv-t"></div><div class="vv-d"><div class="vv-n">Dato del día</div><div class="vv-f"></div></div><button type="button" class="vv-h">Ocultar a Vero por ahora</button></div>'
     document.body.append(w)
     var b = w.querySelector('.vv-b'), t = w.querySelector('.vv-t'), f = w.querySelector('.vv-f'), ic = w.querySelector('.vv-i'), pt = w.querySelector('.vv-p')
     var day = dayN(), seen = ls('vc-vero-seen')
     pt.hidden = String(day) === seen
+    /* el icono se coloca a la izquierda del selector de idioma, que es donde acaban los controles de la cabecera */
+    function place() {
+      var lg = document.querySelector('.vc-lang'), r = lg ? lg.getBoundingClientRect() : null
+      var R = r && r.width ? Math.round(document.documentElement.clientWidth - r.left + 8) : 64
+      w.style.right = R + 'px'; b.style.setProperty('--vv-ax', (R + 1) + 'px')
+    }
+    place(); addEventListener('resize', place)
+    new MutationObserver(place).observe(document.body, { attributes: true, attributeFilter: ['class'] })
     var ti = Math.floor(Math.random() * TIPS.length), clicks = 0, ct = 0
     function open() {
       t.textContent = TIPS[ti++ % TIPS.length]

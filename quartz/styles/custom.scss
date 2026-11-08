@@ -122,39 +122,131 @@ html:has(body:is([data-slug="index"],[data-slug="atlas-astrofotografico"],[data-
   height: 100%;
 }
 
-/* Pagina 404: Vero perdida en el cosmos */
+/* Pagina 404: Vero perdida en el cosmos, a pantalla completa con fondo espacial */
+html:has(body[data-slug="404"]) {
+  background: #05060f;
+}
+body[data-slug="404"] {
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow: hidden;
+  background-color: #05060f !important;
+  background-image:
+    radial-gradient(ellipse 60% 50% at 50% 42%, rgba(70, 60, 170, 0.5), transparent 70%),
+    radial-gradient(ellipse 45% 40% at 14% 85%, rgba(30, 80, 170, 0.4), transparent 70%),
+    radial-gradient(ellipse 40% 36% at 88% 14%, rgba(110, 50, 170, 0.4), transparent 70%),
+    radial-gradient(1px 1px at 20px 30px, #fff, transparent),
+    radial-gradient(1px 1px at 90px 120px, #cfe0ff, transparent),
+    radial-gradient(1.5px 1.5px at 160px 70px, #fff, transparent),
+    radial-gradient(1px 1px at 230px 180px, #ffe9b8, transparent),
+    radial-gradient(1px 1px at 300px 40px, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 60px 200px, #b9c9ff, transparent) !important;
+  background-size: 100% 100%, 100% 100%, 100% 100%, 340px 220px, 340px 220px, 340px 220px, 340px 220px, 340px 220px, 340px 220px !important;
+  background-attachment: fixed !important;
+}
+body[data-slug="404"] :is(#quartz-root, #quartz-body, .center, .center.minimal) {
+  background: transparent !important;
+}
+body[data-slug="404"] #quartz-body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+body[data-slug="404"] .center.minimal {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0 16px;
+}
+body[data-slug="404"] footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 8px;
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin: 0;
+  padding: 0;
+  font-size: 12px;
+  opacity: 0.45;
+  pointer-events: auto;
+}
+body[data-slug="404"] footer p,
+body[data-slug="404"] footer ul {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 12px;
+  list-style: none;
+}
 .vc-404 {
+  position: relative;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0;
   text-align: center;
-  padding: 1.5rem 0 2.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 .vc-404 h1 {
   margin: 0;
-  font-size: clamp(64px, 16vw, 130px);
+  font-size: clamp(64px, 17vh, 190px);
   font-weight: 300;
   line-height: 1;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   color: transparent;
-  -webkit-text-stroke: 1.5px #5b6bb4;
+  -webkit-text-stroke: 1.5px #8ab4ff;
+  text-shadow: 0 0 40px rgba(138, 180, 255, 0.25);
 }
 .vc-404 img {
   display: block;
-  width: min(340px, 80%);
+  width: auto;
   height: auto;
-  margin: -14px auto 6px;
+  max-width: min(680px, 90vw);
+  max-height: 46vh;
+  margin: -2vh auto 1vh;
+  filter: drop-shadow(0 14px 40px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 30px rgba(120, 110, 255, 0.25));
   animation: vc404-drift 7s ease-in-out infinite;
 }
 .vc-404 .vc-404-t {
-  font-size: 1.35rem;
-  color: #b9c9ff;
-  margin: 0.2rem 0 0.4rem;
+  margin: 0.4rem 0 0.2rem;
+  font-size: clamp(22px, 4.2vh, 34px);
+  color: #dfe6ff;
+}
+.vc-404 p {
+  color: #aeb8e6;
+}
+.vc-404 a {
+  display: inline-block;
+  margin-top: 0.8rem;
+  padding: 9px 24px;
+  border: 1.5px solid #8ab4ff;
+  border-radius: 999px;
+  background: rgba(24, 33, 77, 0.8);
+  color: #fff;
+  text-decoration: none;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+.vc-404 a:hover {
+  background: rgba(34, 48, 110, 0.95);
 }
 @keyframes vc404-drift {
   0%,
   100% {
-    transform: translate(-6px, 0) rotate(-2deg);
+    transform: translate(-8px, 0) rotate(-2deg);
   }
   50% {
-    transform: translate(6px, -10px) rotate(2deg);
+    transform: translate(8px, -12px) rotate(2deg);
   }
 }
 @media (prefers-reduced-motion: reduce) {

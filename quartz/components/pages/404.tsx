@@ -11,8 +11,8 @@ const NotFound: QuartzComponent = ({ cfg, ctx }: QuartzComponentProps) => {
       <img
         src={`${baseDir.endsWith("/") ? baseDir : baseDir + "/"}static/vero/perdida.webp`}
         alt=""
-        width="340"
-        height="244"
+        width="893"
+        height="640"
       />
       <p class="vc-404-t">Te has perdido en el cosmos</p>
       <p>{i18n(cfg.locale).pages.error.notFound}</p>
