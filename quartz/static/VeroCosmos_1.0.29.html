@@ -2,12 +2,12 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<script src="ajustes.js?v=5"></script>
+<script src="ajustes.js?v=6"></script>
 <meta name="theme-color" content="#05060f">
 <meta name="viewport" content="width=device-width,initial-scale=1,interactive-widget=resizes-visual">
 <title>Vero Cosmos · Atlas astrofotográfico</title>
 <style>
-@media (prefers-color-scheme:dark){:root{--vc-dark:1}}
+@media (prefers-color-scheme:dark){:root{--vc-dark:1;color-scheme:dark}html,body{background-color:#05060f;color:#eef1ff}}
 :root{color-scheme:dark;scrollbar-color:#3a4270 transparent;--bg:#05060f;--fg:#eef1ff;--mut:#8f98c0;--line:#232846}
 :root{--bar:0px}
 *{box-sizing:border-box}
@@ -411,6 +411,7 @@ body.mini-open #mini{height:100dvh}
 </style>
 <link rel="icon" type="image/png" href="favicon.png">
 <meta name="color-scheme" content="dark">
+<meta name="supported-color-schemes" content="dark">
 </head>
 <body class="principal-page">
 <div id="app">
@@ -2041,7 +2042,7 @@ function fichaFromHash(){
 function openFicha(n,fromUrl,replace){
   if(fi)return;
   fi=document.createElement('iframe');fi.className='ficha-frame';fi.title=n.t;fiNode=n;
-  fi.src='ficha.html?v=15#'+encodeURIComponent(n.s);
+  fi.src='ficha.html?v=16#'+encodeURIComponent(n.s);
   fi.style.cssText='position:fixed;inset:0;width:100%;height:100%;border:0;z-index:100001;background:#05060f;color-scheme:dark';
   document.body.append(fi);
   fi.addEventListener('load',()=>{try{fi.contentWindow.focus()}catch(e){}});
@@ -2209,6 +2210,6 @@ vcSky(document.getElementById("sky"),()=>document.body.classList.contains("princ
 </script>
 <script src="vc-i18n.js?v=61"></script>
 <script>vcI18n.mount(document.getElementById("stage"));</script>
-<script src="vero.js?v=18" defer></script>
+<script src="vero.js?v=19" defer></script>
 </body>
 </html>

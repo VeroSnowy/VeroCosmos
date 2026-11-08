@@ -160,7 +160,7 @@
     '@keyframes vifade{from{opacity:0}to{opacity:1}}' +
     '@keyframes viup{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}' +
     '@keyframes viout{to{opacity:0}}' +
-    '@media(max-width:700px){#vc-vero-intro{align-items:flex-start;overflow:auto;overscroll-behavior:contain;padding:12px 12px 24px}#vc-vero-intro .vi-in{flex-direction:column;gap:6px;margin:0 auto;width:100%}#vc-vero-intro .vi-img{display:none}#vc-vero-intro .vi-mini{display:block;float:right;width:auto;height:150px;margin:-10px -8px 6px 6px;filter:drop-shadow(0 8px 20px #000a) drop-shadow(0 0 16px #5b6bb455)}#vc-vero-intro .vi-card{margin-top:4px}#vc-vero-intro .vi-card{padding:18px 18px}#vc-vero-intro .vi-h{font-size:24px}#vc-vero-intro .vi-pv,#vc-vero-intro .vi-in.pv .vi-pv{flex:none;width:100%;max-width:440px;transition:opacity .4s}#vc-vero-intro .vi-pv{height:0}#vc-vero-intro .vi-in.pv .vi-pv{height:auto}#vc-vero-intro .vp{width:100%}}' +
+    '@media(max-width:700px){#vc-vero-intro{align-items:flex-start;overflow:auto;overscroll-behavior:contain;padding:12px 12px 24px}#vc-vero-intro .vi-in{flex-direction:column;gap:6px;margin:0 auto;width:100%}#vc-vero-intro .vi-img{display:none}#vc-vero-intro .vi-mini{display:block;float:right;width:auto;height:150px;margin:0 -8px 6px 6px;filter:drop-shadow(0 8px 20px #000a) drop-shadow(0 0 16px #5b6bb455)}#vc-vero-intro .vi-card{margin-top:4px}#vc-vero-intro .vi-card{padding:18px 18px}#vc-vero-intro .vi-h{font-size:24px}#vc-vero-intro .vi-pv,#vc-vero-intro .vi-in.pv .vi-pv{flex:none;width:100%;max-width:440px;transition:opacity .4s}#vc-vero-intro .vi-pv{height:0}#vc-vero-intro .vi-in.pv .vi-pv{height:auto}#vc-vero-intro .vp{width:100%}}' +
     '@media(prefers-reduced-motion:reduce){#vc-vero *,#vc-vero-intro *,#vc-big *,#vc-peek,#vc-peek *{animation:none!important;transition:none!important}#vc-vero .vv-i.hi{box-shadow:0 0 16px 5px #f8d874e0}#vc-vero-intro .vi-line{opacity:1}}'
 
   function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v) } catch (e) { return null } }
@@ -309,7 +309,8 @@
       document.addEventListener('keydown', key, true)
       o.querySelector('.vb-ok').addEventListener('click', close)
       o.querySelector('.vb-bd').addEventListener('click', close)
-      setTimeout(function () { try { o.querySelector('.vb-ok').focus({ preventScroll: true }) } catch (e) { } }, reduced() ? 30 : 700)
+      var fine = false; try { fine = matchMedia('(hover: hover) and (pointer: fine)').matches } catch (e) { }
+    if (fine) setTimeout(function () { try { o.querySelector('.vb-ok').focus({ preventScroll: true }) } catch (e) { } }, reduced() ? 30 : 700)
     }
     function guideTip() {
       if (ls(KEY) !== 'on' || ctx() !== 'guia' || ls(TIPDAY) === String(day)) return
@@ -435,7 +436,10 @@
     o.querySelector('.vi-bd').addEventListener('click', function () { if (!ls(KEY)) close() })
     var onKey = function (e) { if (e.key === 'Escape' && !done && !ls(KEY)) { document.removeEventListener('keydown', onKey, true); close() } }
     document.addEventListener('keydown', onKey, true)
-    setTimeout(function () { var f = o.querySelector('.vi-m'); try { f.focus({ preventScroll: true }) } catch (e) { } o.scrollTop = 0 }, reduced() ? 50 : 1700)
+    /* el foco solo con raton y teclado: en moviles tactiles algunos navegadores (Samsung Internet) desplazan la ventana al enfocar y la presentacion se ve cortada por arriba */
+    o.scrollTop = 0; setTimeout(function () { o.scrollTop = 0 }, 60)
+    var fine = false; try { fine = matchMedia('(hover: hover) and (pointer: fine)').matches } catch (e) { }
+    if (fine) setTimeout(function () { var f = o.querySelector('.vi-m'); try { f.focus({ preventScroll: true }) } catch (e) { } o.scrollTop = 0 }, reduced() ? 50 : 1700)
   }
 
   window.vcVero = { mount: function () { tries = 0; mount() }, off: off, mode: setMode }
