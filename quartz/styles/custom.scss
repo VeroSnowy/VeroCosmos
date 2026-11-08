@@ -121,3 +121,44 @@ html:has(body:is([data-slug="index"],[data-slug="atlas-astrofotografico"],[data-
   overscroll-behavior: none;
   height: 100%;
 }
+
+/* Pagina 404: Vero perdida en el cosmos */
+.vc-404 {
+  text-align: center;
+  padding: 1.5rem 0 2.5rem;
+}
+.vc-404 h1 {
+  margin: 0;
+  font-size: clamp(64px, 16vw, 130px);
+  font-weight: 300;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  color: transparent;
+  -webkit-text-stroke: 1.5px #5b6bb4;
+}
+.vc-404 img {
+  display: block;
+  width: min(340px, 80%);
+  height: auto;
+  margin: -14px auto 6px;
+  animation: vc404-drift 7s ease-in-out infinite;
+}
+.vc-404 .vc-404-t {
+  font-size: 1.35rem;
+  color: #b9c9ff;
+  margin: 0.2rem 0 0.4rem;
+}
+@keyframes vc404-drift {
+  0%,
+  100% {
+    transform: translate(-6px, 0) rotate(-2deg);
+  }
+  50% {
+    transform: translate(6px, -10px) rotate(2deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vc-404 img {
+    animation: none;
+  }
+}

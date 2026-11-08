@@ -6,8 +6,15 @@ const NotFound: QuartzComponent = ({ cfg, ctx }: QuartzComponentProps) => {
   const baseDir = ctx.argv.serve ? "/" : url.pathname
 
   return (
-    <article class="popover-hint">
+    <article class="popover-hint vc-404">
       <h1>404</h1>
+      <img
+        src={`${baseDir.endsWith("/") ? baseDir : baseDir + "/"}static/vero/perdida.webp`}
+        alt=""
+        width="340"
+        height="244"
+      />
+      <p class="vc-404-t">Te has perdido en el cosmos</p>
       <p>{i18n(cfg.locale).pages.error.notFound}</p>
       <a href={baseDir}>{i18n(cfg.locale).pages.error.home}</a>
       <script
