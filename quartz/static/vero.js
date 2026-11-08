@@ -5,7 +5,7 @@
 (function () {
   'use strict'
   if (window.vcVero) return
-  var BASE = 'vero/', KEY = 'vc-vero', GLOW = 'vc-vero-glow', SEEN = 'vc-vero-seen', TIPDAY = 'vc-vero-tipday'
+  var BASE = 'vero/', KEY = 'vc-vero', GLOW = 'vc-vero-glow', SEEN = 'vc-vero-seen', TIPDAY = 'vc-vero-tipday', IGN = 'vc-vero-ign', LAST = 'vc-vero-last', SHOWN = 'vc-vero-shown', VISITS = 'vc-vero-visits'
   var TIPS = [
     'Si no sabes por dónde empezar, prueba «Lugar para observar»: calcula lo oscuro que es tu cielo.',
     'Deja que tus ojos se acostumbren a la oscuridad unos 20 minutos antes de observar.',
@@ -22,6 +22,8 @@
   }
   /* poses de Vero que acompanan los consejos del modo completa, segun la seccion */
   var PICS = { inicio: ['saluda', 'chibi'], atlas: ['senala', 'chibi'], guia: ['telescopio', 'piensa'], lugar: ['piensa', 'telescopio'], ficha: ['senala', 'piensa'], quien: ['saluda', 'chibi'] }
+  /* bordes por los que se asoma en el modo completa (b = abajo, l = izquierda, r = derecha) */
+  var SIDES = { inicio: ['b', 'l', 'r'], quien: ['b', 'l', 'r'], atlas: ['l', 'r'], guia: ['l', 'r'], lugar: ['l', 'r'], ficha: ['l', 'r'] }
   var FACTS = [
     'La Nebulosa de Orión (M42) se ve a simple vista como la «estrella» borrosa del centro de la Espada de Orión.',
     'Un día en Venus dura más que su año: gira sobre sí misma en unos 243 días terrestres y orbita al Sol en unos 225.',
@@ -45,14 +47,21 @@
     '#vc-vero .vv-b{position:fixed;top:60px;right:12px;width:min(310px,calc(100vw - 24px));padding:12px 16px;border:1.5px solid #5b6bb4;border-radius:16px;background:#0b1025;color:#e8edff;box-shadow:0 12px 30px #02030acc;display:none}' +
     '#vc-vero .vv-b.on{display:block;animation:vvin .3s both}' +
     /* Vero asomando por el borde (modo completa) y consejo en grande */
-    '#vc-peek{position:fixed;bottom:0;z-index:100006;width:150px;padding:0;border:0;background:none;cursor:pointer;transform:translateY(105%);transition:transform .7s cubic-bezier(.2,1.25,.4,1)}' +
-    '#vc-peek.on{transform:translateY(24%)}' +
-    '#vc-peek.on:hover,#vc-peek.on:focus-visible{transform:translateY(10%);outline:none}' +
-    '#vc-peek img{display:block;width:100%;height:auto;filter:drop-shadow(0 0 8px #f8d874aa) drop-shadow(0 0 20px #8ab4ff66);animation:vpk 2.4s ease-in-out infinite}' +
-    '#vc-peek .pk-s{position:absolute;right:6px;top:-6px;color:#f8d874;font-size:22px;text-shadow:0 0 10px #f8d874;animation:vps 1.6s ease-in-out infinite}' +
+    '#vc-peek{position:fixed;z-index:100006;padding:0;border:0;background:none;cursor:pointer;outline:none;transition:transform .7s cubic-bezier(.2,1.25,.4,1);--w:150px;--h:102px}' +
+    /* por abajo, por la derecha o por la izquierda (en los laterales la imagen va girada hacia ese borde) */
+    '#vc-peek.s-b{bottom:0;width:var(--w);height:var(--h);transform:translateY(105%)}' +
+    '#vc-peek.s-b.on{transform:translateY(24%)}#vc-peek.s-b.on:hover,#vc-peek.s-b.on:focus-visible{transform:translateY(10%)}' +
+    '#vc-peek.s-r,#vc-peek.s-l{width:var(--h);height:var(--w)}' +
+    '#vc-peek.s-r{right:0;transform:translateX(105%)}#vc-peek.s-r.on{transform:translateX(24%)}#vc-peek.s-r.on:hover,#vc-peek.s-r.on:focus-visible{transform:translateX(10%)}' +
+    '#vc-peek.s-l{left:0;transform:translateX(-105%)}#vc-peek.s-l.on{transform:translateX(-24%)}#vc-peek.s-l.on:hover,#vc-peek.s-l.on:focus-visible{transform:translateX(-10%)}' +
+    '#vc-peek.s-r img,#vc-peek.s-l img{position:absolute;left:calc((var(--h) - var(--w)) / 2);top:calc((var(--w) - var(--h)) / 2)}' +
+    '#vc-peek.s-r img{transform:rotate(-90deg)}#vc-peek.s-l img{transform:rotate(90deg)}' +
+    '#vc-peek img{display:block;width:var(--w);height:var(--h);filter:drop-shadow(0 0 8px #f8d874aa) drop-shadow(0 0 20px #8ab4ff66);animation:vpk 2.4s ease-in-out infinite}' +
+    '#vc-peek.s-b .pk-s{right:6px;top:-6px}#vc-peek.s-r .pk-s{left:-6px;top:6px}#vc-peek.s-l .pk-s{right:-6px;top:6px}' +
+    '#vc-peek .pk-s{position:absolute;z-index:1;color:#f8d874;font-size:22px;text-shadow:0 0 10px #f8d874;animation:vps 1.6s ease-in-out infinite}' +
     '@keyframes vpk{50%{filter:drop-shadow(0 0 14px #f8d874dd) drop-shadow(0 0 30px #8ab4ff99)}}' +
     '@keyframes vps{50%{transform:scale(1.35) rotate(20deg);opacity:.7}}' +
-    '@media(max-width:520px){#vc-peek{width:120px}}' +
+    '@media(max-width:520px){#vc-peek{--w:120px;--h:82px}}' +
     '#vc-big{position:fixed;inset:0;z-index:100010;display:flex;align-items:center;justify-content:center;padding:16px;font:400 17px/1.5 "Iowan Old Style","Palatino Linotype",Georgia,serif;color:#e8edff}' +
     '#vc-big .vb-bd{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,#1a2160ee,#03051096 75%),#030510d9;animation:vifade .35s both}' +
     '#vc-big.out .vb-bd,#vc-big.out .vb-in{animation:viout .4s both}' +
@@ -97,7 +106,10 @@
     '#vc-vero-intro .vi-m span{display:block;font-size:14.5px;color:#a9b3d9}' +
     '#vc-vero-intro .vi-m:hover,#vc-vero-intro .vi-m:focus-visible{border-color:#8ab4ff;outline:none}' +
     '#vc-vero-intro .vi-m[aria-checked="true"]{border-color:#f8d874;background:#1a1f45;box-shadow:0 0 0 1px #f8d87455}' +
-    '#vc-vero-intro .vi-go{margin-top:8px;font:inherit;font-size:16px;padding:9px 22px;border-radius:999px;cursor:pointer;color:#1a1500;background:#f8d874;border:1.5px solid #f8d874;font-weight:600}' +
+    '#vc-vero-intro .vi-acts{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px}' +
+    '#vc-vero-intro .vi-later{font:inherit;font-size:16px;padding:9px 20px;border-radius:999px;cursor:pointer;color:#cfd6ff;background:transparent;border:1.5px solid #5b6bb4;transition:border-color .18s,color .18s}' +
+    '#vc-vero-intro .vi-later:hover,#vc-vero-intro .vi-later:focus-visible{border-color:#8ab4ff;color:#fff;outline:none}' +
+    '#vc-vero-intro .vi-go{margin-top:0;font:inherit;font-size:16px;padding:9px 22px;border-radius:999px;cursor:pointer;color:#1a1500;background:#f8d874;border:1.5px solid #f8d874;font-weight:600}' +
     '#vc-vero-intro .vi-go:disabled{opacity:.4;cursor:default}' +
     '#vc-vero-intro .vi-go:not(:disabled):hover,#vc-vero-intro .vi-go:focus-visible{background:#ffe59a;outline:none}' +
     '#vc-vero-intro .vi-in{transition:gap .5s}' +
@@ -154,6 +166,8 @@
   function dayN() { var d = new Date(); return Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 864e5) }
   function reduced() { try { return matchMedia('(prefers-reduced-motion: reduce)').matches } catch (e) { return false } }
   var W = null, tries = 0
+  /* cuenta las visitas a la web (una por sesion del navegador) */
+  try { if (!sessionStorage.getItem('vc-vero-ses')) { sessionStorage.setItem('vc-vero-ses', '1'); ls(VISITS, String((+ls(VISITS) || 0) + 1)) } } catch (e) { }
 
   function mount() {
     if (ls(KEY) === 'off' || document.getElementById('vc-vero')) return
@@ -214,13 +228,37 @@
     }
     var hideT = 0, autoT = 0, every = 0, lastAuto = 0, mute = 0, lastCtx = ctx()
     function busy() { return document.getElementById('vc-vero-intro') || document.getElementById('vc-aj') || document.getElementById('vc-big') || pk || (b.classList.contains('on') && b.dataset.auto !== '1') }
-    function auto() {
+    /* si se la ignora, cada vez espera mas para volver a asomarse: 3, 6, 12, 24, 48 min... (maximo 1 h). Al pulsarla, vuelve a empezar */
+    /* el tiempo cuenta para toda la web (se guarda en el navegador) y desde que acaba la ultima aparicion, no desde que empieza */
+    /* primera visita a la web: como antes, puede volver a salir al cambiar de seccion (45 s como minimo).
+       Desde la segunda visita, el tiempo es el mismo para toda la web (3 min, o mas si se la ignora) */
+    function waitFull(kind) {
+      var n = +ls(IGN) || 0
+      if (!n && (+ls(VISITS) || 1) <= 1) return kind === 'ctx' ? 45000 : 170000
+      return Math.min(170000 * Math.pow(2, n), 3600000)
+    }
+    function endInt() { ls(LAST, String(Date.now())) }
+    /* registro de consejos ya mostrados: primero los que aun no ha dicho; si ya los dijo todos, el que dijo hace mas tiempo */
+    function pickTip(c) {
+      var l = CTX[c] || TIPS, seen = []
+      try { seen = JSON.parse(ls(SHOWN) || '[]') || [] } catch (e) { seen = [] }
+      var fresh = l.filter(function (x) { return seen.indexOf(x) < 0 }), tip
+      if (fresh.length) tip = fresh[Math.floor(Math.random() * fresh.length)]
+      else tip = l.slice().sort(function (a, b) { return seen.indexOf(a) - seen.indexOf(b) })[0]
+      seen = seen.filter(function (x) { return x !== tip }); seen.push(tip)
+      ls(SHOWN, JSON.stringify(seen.slice(-60)))
+      return tip
+    }
+    function auto(kind) {
       var m = ls(KEY); if (!m || m === 'off' || !W || busy() || Date.now() < mute) return
-      var c = ctx(), l = CTX[c] || TIPS, tip = l[Math.floor(Math.random() * l.length)]
+      var c = ctx()
       lastAuto = Date.now()
-      if (m === 'full') { peek(c, tip); return }
-      t.textContent = tip; dd.hidden = true; b.dataset.auto = '1'; b.classList.add('on'); place()
-      clearTimeout(hideT); hideT = setTimeout(function () { if (b.dataset.auto === '1') b.classList.remove('on') }, 12000)
+      if (m === 'full') {
+        if (Date.now() - (+ls(LAST) || 0) < waitFull(kind)) return
+        endInt(); peek(c, pickTip(c)); return
+      }
+      t.textContent = pickTip(c); dd.hidden = true; b.dataset.auto = '1'; b.classList.add('on'); place()
+      clearTimeout(hideT); hideT = setTimeout(function () { if (b.dataset.auto === '1') { b.classList.remove('on'); endInt() } }, 12000)
     }
 
     /* modo completa: Vero se asoma por el borde inferior, resplandeciendo; si se pulsa, se abre en grande con el consejo */
@@ -230,18 +268,23 @@
       var ps = PICS[c] || ['saluda'], pose = ps[Math.floor(Math.random() * ps.length)]
       var el = pk = document.createElement('button'); el.type = 'button'; el.id = 'vc-peek'; el.setAttribute('aria-label', 'Vero tiene un consejo para ti')
       el.innerHTML = '<span class="pk-s" aria-hidden="true">✦</span><img alt="" src="' + BASE + 'p-asoma.webp" decoding="async">'
-      var vw = document.documentElement.clientWidth, wpk = vw < 520 ? 120 : 150
-      el.style.left = Math.round(Math.max(12, Math.min(vw - wpk - 12, vw * (.12 + Math.random() * .58)))) + 'px'
+      /* por donde se asoma: abajo solo donde no tapa nada importante; en el resto, por los laterales */
+      var sides = SIDES[c] || ['l', 'r'], side = sides[Math.floor(Math.random() * sides.length)]
+      var vw = document.documentElement.clientWidth, vh = window.innerHeight, wpk = vw < 520 ? 120 : 150
+      el.className = 's-' + side
+      if (side === 'b') el.style.left = Math.round(Math.max(12, Math.min(vw - wpk - 12, vw * (.12 + Math.random() * .58)))) + 'px'
+      else el.style.top = Math.round(Math.max(70, Math.min(vh - wpk - 20, vh * (.22 + Math.random() * .4)))) + 'px'
       document.body.append(el)
       var big = new Image(); big.src = BASE + (pose === 'saluda' ? 'saluda' : 'g-' + pose) + '.webp'
       var im = el.querySelector('img'), shown = false
       var show = function () { if (shown || pk !== el) return; shown = true; requestAnimationFrame(function () { requestAnimationFrame(function () { el.classList.add('on') }) }) }
       if (im.complete && im.naturalWidth) show(); else { im.onload = show; im.onerror = function () { hidePeek() } }
-      clearTimeout(pkT); pkT = setTimeout(hidePeek, 15000)
-      el.addEventListener('click', function () { var r = im.getBoundingClientRect(); clearTimeout(pkT); pk = null; el.remove(); bigOpen(tip, big.src, r) })
+      clearTimeout(pkT); pkT = setTimeout(function () { if (pk === el) ls(IGN, String((+ls(IGN) || 0) + 1)); hidePeek() }, 15000)
+      el.addEventListener('click', function () { var r = im.getBoundingClientRect(); clearTimeout(pkT); ls(IGN, '0'); pk = null; el.remove(); bigOpen(tip, big.src, r) })
     }
     function hidePeek() {
       clearTimeout(pkT); if (!pk) return
+      endInt()
       var el = pk; pk = null; el.classList.remove('on'); setTimeout(function () { el.remove() }, reduced() ? 0 : 700)
     }
     function bigOpen(tip, src, from) {
@@ -258,7 +301,7 @@
       if (img.complete && img.naturalWidth) pop(); else img.onload = pop
       var closed = false
       function close() {
-        if (closed) return; closed = true; document.removeEventListener('keydown', key, true)
+        if (closed) return; closed = true; document.removeEventListener('keydown', key, true); endInt()
         o.classList.add('out'); setTimeout(function () { o.remove() }, reduced() ? 0 : 400)
       }
       function key(e) { if (e.key === 'Escape') { e.stopPropagation(); close() } }
@@ -274,8 +317,8 @@
     function schedule() {
       clearTimeout(autoT); clearInterval(every)
       if (ls(KEY) === 'full') {
-        autoT = setTimeout(auto, 7000)
-        every = setInterval(function () { if (Date.now() - lastAuto > 170000) auto() }, 30000)
+        autoT = setTimeout(function () { auto('ctx') }, 7000)
+        every = setInterval(function () { auto('periodic') }, 30000)
       } else guideTip()
     }
     schedule()
@@ -283,7 +326,7 @@
       var c = ctx(); if (c === lastCtx) return; lastCtx = c
       if (b.dataset.auto === '1') b.classList.remove('on')
       hidePeek()
-      if (ls(KEY) === 'full') { clearTimeout(autoT); autoT = setTimeout(auto, 2500) } else guideTip()
+      if (ls(KEY) === 'full') { clearTimeout(autoT); autoT = setTimeout(function () { auto('ctx') }, 2500) } else guideTip()
     }).observe(document.body, { attributes: true, attributeFilter: ['class'] })
     b.addEventListener('pointerenter', function () { delete b.dataset.auto })
     b.addEventListener('focusin', function () { delete b.dataset.auto })
@@ -295,7 +338,7 @@
       if (clicks >= 5) { clicks = 0; place(); t.textContent = '¡Eh, que me despeinas!'; f.textContent = FACTS[(day + 3) % FACTS.length]; b.classList.add('on'); return }
       if (b.classList.contains('on')) b.classList.remove('on'); else open()
     })
-    w.querySelector('.vv-x').addEventListener('click', function () { if (b.dataset.auto) mute = Date.now() + 120000; b.classList.remove('on') })
+    w.querySelector('.vv-x').addEventListener('click', function () { if (b.dataset.auto) { mute = Date.now() + 120000; endInt() } b.classList.remove('on') })
     w.querySelector('.vv-h').addEventListener('click', function () {
       ls(KEY, 'off')
       t.textContent = 'Vero desactivada. Podrás volver a activarla en Ajustes, dentro del menú.'
@@ -317,7 +360,7 @@
   var MODES = [
     ['off', 'Desactivada', 'No aparezco en ningún sitio.', 'La web tal cual, sin mí. Podrás activarme cuando quieras desde Ajustes.'],
     ['on', 'Discreta', 'En mi icono y en las fichas; casi no molesto.', 'Mi icono junto al idioma, datos curiosos en las fichas y, de vez en cuando, un consejo en la guía.'],
-    ['full', 'Completa', 'Te acompaño a menudo con consejos.', 'Aparezco a menudo con consejos por toda la web, y aquí llegará todo lo nuevo que prepare.']
+    ['full', 'Completa', '¡Me asomaré de vez en cuando! Púlsame si quieres un consejo.', 'Aparezco a menudo con consejos por toda la web, y aquí llegará todo lo nuevo que prepare.']
   ]
   function intro(ic) {
     if (document.getElementById('vc-vero-intro')) return
@@ -327,7 +370,7 @@
       '<p class="vi-line" style="animation-delay:.8s">Me flipa el cielo, así que te acompaño por la web con consejos para empezar a observar y un dato curioso cada día.</p>' +
       '<p class="vi-q vi-line" style="animation-delay:1.1s">Vivo en este icono, junto al idioma, y tú decides cuánto te acompaño:</p>' +
       '<div class="vi-ms vi-line" role="radiogroup" aria-label="Modo de Vero" style="animation-delay:1.3s">' + MODES.map(function (m) { return '<button type="button" class="vi-m" role="radio" aria-checked="false" data-m="' + m[0] + '"><b>' + m[1] + '</b><span>' + m[2] + '</span></button>' }).join('') + '</div>' +
-      '<button type="button" class="vi-go vi-line" style="animation-delay:1.5s" disabled>Elegir este modo</button>' +
+      '<div class="vi-acts vi-line" style="animation-delay:1.5s"><button type="button" class="vi-go" disabled>Elegir este modo</button><button type="button" class="vi-later">Ahora no</button></div>' +
       '<p class="vi-s vi-line" style="animation-delay:1.7s">Podrás cambiar tu decisión cuando quieras en Ajustes, dentro del menú.</p></div>' +
       '<div class="vi-pv" aria-hidden="true"><div class="vp"><div class="vp-scr"><div class="vp-bar"><i></i><i class="vp-sp"></i><i class="vp-ic"></i><i class="vp-fl"></i><i></i></div>' +
       '<div class="vp-body"><div class="vp-l w1"></div><div class="vp-l w2"></div><div class="vp-card"><div class="vp-l w3"></div><div class="vp-l w2"></div><div class="vp-tc"><i></i><div class="vp-l w4"></div></div></div></div>' +
@@ -382,6 +425,8 @@
       say(m === 'full' ? '¡Genial! Prepárate, que tengo mucho que contarte.' : '¡Genial! Estaré por aquí, sin molestar.'); sparks()
       setTimeout(function () { close(function () { setMode(m) }) }, 1800)
     })
+    /* «Ahora no»: se cierra sin decidir; se puede elegir luego en Ajustes o volviendo a pulsar el icono */
+    o.querySelector('.vi-later').addEventListener('click', function () { close() })
     /* cerrar sin decidir: la presentacion volvera a salir la proxima vez */
     o.querySelector('.vi-bd').addEventListener('click', function () { if (!ls(KEY)) close() })
     var onKey = function (e) { if (e.key === 'Escape' && !done && !ls(KEY)) { document.removeEventListener('keydown', onKey, true); close() } }
