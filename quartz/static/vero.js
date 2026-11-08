@@ -1,4 +1,4 @@
-/* Vero: mascota de Vero Cosmos. Icono junto al selector de idioma en toda la web.
+/* Vero Andromedasis (Vero): personaje de Vero Cosmos. Icono junto al selector de idioma en toda la web.
    Primera visita: el icono brilla en amarillo y da botes. Primera pulsacion: se presenta y pregunta si se queda activa.
    Despues: un consejo y el "dato del dia". La decision se guarda en localStorage ("vc-vero" = on | off). */
 (function () {
@@ -136,9 +136,8 @@
     if (document.getElementById('vc-vero-intro')) return
     var o = document.createElement('div'); o.id = 'vc-vero-intro'; o.setAttribute('role', 'dialog'); o.setAttribute('aria-modal', 'true'); o.setAttribute('aria-label', 'Vero')
     o.innerHTML = '<div class="vi-bd"></div><div class="vi-in"><img class="vi-img" alt="" src="' + BASE + 'saluda.webp" decoding="async"><div class="vi-card">' +
-      '<div class="vv-n">Vero</div><h2 class="vi-h vi-line" style="animation-delay:.5s">¡Hola! Soy Vero</h2>' +
-      '<p class="vi-line" style="animation-delay:.7s">Soy la mascota de Vero Cosmos.</p>' +
-      '<p class="vi-line" style="animation-delay:.95s">Te acompañaré por la web con consejos para empezar a observar y con un dato curioso del cielo cada día.</p>' +
+      '<div class="vv-n">Vero</div><h2 class="vi-h vi-line" style="animation-delay:.5s">¡Hola! Soy Vero Andromedasis</h2>' +
+      '<p class="vi-line" style="animation-delay:.8s">Me flipa el cielo, así que te acompaño por la web con consejos para empezar a observar y un dato curioso cada día.</p>' +
       '<p class="vi-line" style="animation-delay:1.2s">Vivo en este icono, junto al idioma, y solo hablo cuando tú me pulsas.</p>' +
       '<p class="vi-q vi-line" style="animation-delay:1.5s">¿Quieres que me quede activa o prefieres desactivarme?</p>' +
       '<div class="vi-btns vi-line" style="animation-delay:1.7s"><button type="button" class="vi-yes">Déjame activa</button><button type="button" class="vi-no">Desactívame</button></div>' +

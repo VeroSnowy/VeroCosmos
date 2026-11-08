@@ -330,7 +330,6 @@
     '.ml.has-res .ml-res{opacity:1;pointer-events:auto}' +
     '.ml-head{text-align:center;margin:0 auto 8px;max-width:900px}' +
     '.ml-name{font-size:14px;color:#cfd6f5;line-height:1.3}.ml-co{font-size:11.5px;color:#8f98c0;margin-top:2px}' +
-    '.ml-vx{flex:none;width:30px;height:30px;margin:-4px -2px -4px -8px;border-radius:50%;border:1px solid #5b6bb4;background:#0b1025 center/cover no-repeat}' +
     '.ml-ver{display:inline-flex;align-items:center;gap:8px;margin-top:6px;padding:4px 12px;border:1px solid #343d63;border-radius:999px;font-size:13px;color:#eef1ff;background:#0e1430}.ml-ver b{font-weight:400;color:' + Y + ';font-size:16px}' +
     '.ml-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,1.2fr) minmax(0,1fr);gap:12px;max-width:1240px;margin:0 auto;align-items:center;--ov:0px}' +
     '.ml-col{display:flex;flex-direction:column;gap:12px}' +
@@ -577,8 +576,7 @@
         score = 10 * (.34 * (1 - cl) + .26 * (1 - (lp.bortle - 1) / 8) + .2 * (1 - moonF) + .1 * (nw ? 1 - clamp(nw.wind / 40) : .7) + .1 * (nw ? 1 - clamp((nw.rh - 60) / 40) : .7))
       }
       var dateTxt = new Date(d.ymd + 'T12:00:00Z').toLocaleDateString({ es: 'es-ES', en: 'en-GB', fr: 'fr-FR' }[LANG()], { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
-      var face = score == null ? '' : score >= 8 ? 'feliz' : score >= 6 ? 'guino' : score >= 4 ? 'pensando' : score >= 2 ? 'triste' : 'enfadada'
-      var verdict = score == null ? '' : '<div class="ml-ver"><span class="ml-vx" aria-hidden="true" style="background-image:url(vero/a-' + face + '.webp)"></span>' + esc(T('Valoración de la noche')) + ' <b>' + num(score, 1) + '/10</b> · ' + esc(T(score >= 8 ? 'Excelente' : score >= 6 ? 'Buena' : score >= 4 ? 'Regular' : 'Mala')) + '</div>'
+      var verdict = score == null ? '' : '<div class="ml-ver">' + esc(T('Valoración de la noche')) + ' <b>' + num(score, 1) + '/10</b> · ' + esc(T(score >= 8 ? 'Excelente' : score >= 6 ? 'Buena' : score >= 4 ? 'Regular' : 'Mala')) + '</div>'
       var head = '<div class="ml-head"><div class="ml-name">' + esc(d.name || T('Ubicación sin nombre')) + '</div><div class="ml-co">' + num(d.lat, 4) + '°, ' + num(d.lon, 4) + '°' + (alt != null ? ' · ' + Math.round(alt) + ' m' : '') + '<span class="ml-dtz"> · ' + esc(dateTxt) + (d.wx && d.wx.timezone ? ' · ' + esc(d.wx.timezone) : '') + '</span></div>' + verdict + '</div>'
       var cLP = card(IC.bulb, 'Contaminación Lumínica', d.glow === null ? loadingBody() : !lp ? fail() :
         '<div class="ml-big">Bortle ' + lp.bortle + '<small>' + num(lp.sqm, 2) + ' mag/arcsec²</small></div><div class="ml-bar">' + [1, 2, 3, 4, 5, 6, 7, 8, 9].map(function (i) { return '<i class="' + (i <= lp.bortle ? 'on' : '') + '"></i>' }).join('') + '</div>' +

@@ -1,5 +1,5 @@
 /* Ajustes de Vero Cosmos: se guardan solo en este navegador (localStorage).
-   - vc-vero: on | off      (mascota Vero; sin valor = aun no ha decidido)
+   - vc-vero: on | off      (Vero Andromedasis; sin valor = aun no ha decidido)
    - vc-anim: off           (sin animaciones: se aplica como "reducir movimiento" del sistema)
    - vc-geo:  off           (no usar la ubicacion: se borra la guardada y se bloquea el GPS)
    - vc-3d:   off           (las fichas se abren con la foto)
@@ -70,7 +70,7 @@
 
   /* ---------- ventana de Ajustes ---------- */
   var ROWS = [
-    ['vero', 'Mascota Vero', 'Muestra a Vero y sus consejos por la web.'],
+    ['vero', 'Vero Andromedasis', 'Muestra a Vero y sus consejos por la web.'],
     ['anim', 'Animaciones y estrellas', 'Cielo que titila, estrellas fugaces, giros y transiciones. Apágalo si prefieres una web quieta o tu dispositivo va lento.'],
     ['geo', 'Ubicación', 'Permite usar tu ubicación en Lugar para observar y en las fichas. Al desactivarla se borra la ubicación guardada.'],
     ['3d', 'Modelos 3D', 'Las fichas se abren con el modelo 3D. Si lo desactivas, verás primero la foto.']
