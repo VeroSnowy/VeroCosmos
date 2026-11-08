@@ -2,15 +2,16 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<script src="ajustes.js?v=4"></script>
+<script src="ajustes.js?v=5"></script>
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="color-scheme" content="only light">
+<meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#05060f">
 <title>&iquest;Qui&eacute;nes somos? &middot; Vero Cosmos</title>
 <script>try{if(window.parent!==window)document.documentElement.classList.add("emb")}catch(e){}</script>
 <link rel="icon" type="image/png" href="favicon.png">
 <style>
-:root{color-scheme:only light;--p0:0}
+@media (prefers-color-scheme:dark){:root{--vc-dark:1}}
+:root{color-scheme:dark;--p0:0}
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:#05060f;color:#eef1ff;font:15px/1.4 system-ui,sans-serif;overflow:hidden}
 html.emb,html.emb body{background:transparent}
@@ -116,7 +117,7 @@ const reveal=$('reveal'),logo=$('logo'),txt=$('txt'),txtin=$('txtin'),pu=documen
 const fromLogo=location.hash==='#desde-logo';
 const emb=document.documentElement.classList.contains('emb');
 /* pantalla de origen bajo el cierre: solo si la pagina se abre sola (dentro del atlas ya esta debajo) */
-if(!emb){const pv=document.createElement('iframe');pv.id='prev';pv.src='VeroCosmos_1.0.26.html';pv.setAttribute('aria-hidden','true');pv.tabIndex=-1;pv.style.cssText='position:fixed;inset:0;width:100%;height:100%;border:0;visibility:hidden;pointer-events:none';$('base').after(pv)}
+if(!emb){const pv=document.createElement('iframe');pv.id='prev';pv.src='VeroCosmos_1.0.27.html';pv.setAttribute('aria-hidden','true');pv.tabIndex=-1;pv.style.cssText='position:fixed;inset:0;width:100%;height:100%;border:0;visibility:hidden;pointer-events:none';$('base').after(pv)}
 const reduce=typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
 /* misma formula que usa el boton del logo de la app, para que la transicion encaje */
 function rect(W,H){
@@ -268,6 +269,6 @@ vcSky(document.getElementById("sky"),()=>true);
 </script>
 <script src="vc-i18n.js?v=61"></script>
 <script>vcI18n.mount(document.body);</script>
-<script src="vero.js?v=17" defer></script>
+<script src="vero.js?v=18" defer></script>
 </body>
 </html>

@@ -72,7 +72,7 @@
     '#vc-big .vb-t{margin:0 0 16px;font-size:21px;line-height:1.4;color:#fff}' +
     '#vc-big .vb-ok{font:inherit;font-size:16px;padding:9px 22px;border-radius:999px;cursor:pointer;color:#1a1500;background:#f8d874;border:1.5px solid #f8d874;font-weight:600}' +
     '#vc-big .vb-ok:hover,#vc-big .vb-ok:focus-visible{background:#ffe59a;outline:none}' +
-    '@media(max-width:700px){#vc-big .vb-in{flex-direction:column;gap:8px}#vc-big .vb-img{height:min(34vh,300px);max-width:70vw}}' +
+    '@media(max-width:700px){#vc-big{align-items:flex-start;overflow:auto;padding:16px 12px 24px}#vc-big .vb-in{flex-direction:column;gap:8px;margin:0 auto;width:100%}#vc-big .vb-img{height:min(34vh,300px);max-width:70vw}}' +
     '#vc-vero .vv-b:before{content:"";position:absolute;top:-8px;right:var(--vv-ax,40px);width:14px;height:14px;background:#0b1025;border:1.5px solid #5b6bb4;border-bottom:0;border-right:0;transform:rotate(45deg)}' +
     '#vc-vero .vv-n,#vc-vero-intro .vv-n{font-size:12.5px;letter-spacing:.12em;text-transform:uppercase;color:#f8d874;margin-bottom:2px}' +
     '#vc-vero .vv-d{margin-top:10px;padding-top:8px;border-top:1px solid #232a4f}' +
@@ -100,6 +100,7 @@
     '#vc-vero-intro .vi-no{color:#cfd6ff;background:transparent;border:1.5px solid #5b6bb4}' +
     '#vc-vero-intro .vi-no:hover,#vc-vero-intro .vi-no:focus-visible{border-color:#8ab4ff;color:#fff;outline:none}' +
     '#vc-vero-intro .vi-line{opacity:0;animation:viup .5s both}' +
+    '#vc-vero-intro .vi-mini{display:none}' +
     '#vc-vero-intro .vi-ms{display:flex;flex-direction:column;gap:8px;margin:10px 0 4px}' +
     '#vc-vero-intro .vi-m{display:block;width:100%;text-align:left;padding:10px 14px;border:1.5px solid #343d63;border-radius:12px;background:#0e1430;color:#cfd6ff;font:inherit;cursor:pointer;transition:border-color .18s,background .18s}' +
     '#vc-vero-intro .vi-m b{display:block;font-size:17px;font-weight:600;color:#fff}' +
@@ -159,7 +160,7 @@
     '@keyframes vifade{from{opacity:0}to{opacity:1}}' +
     '@keyframes viup{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}' +
     '@keyframes viout{to{opacity:0}}' +
-    '@media(max-width:700px){#vc-vero-intro{align-items:flex-start;overflow:auto;overscroll-behavior:contain;padding:12px 12px 24px}#vc-vero-intro .vi-in{flex-direction:column;gap:6px;margin:0 auto;width:100%}#vc-vero-intro .vi-img{height:min(24vh,200px);max-width:70vw}#vc-vero-intro .vi-in.pv .vi-img{display:none}#vc-vero-intro .vi-card{padding:18px 18px}#vc-vero-intro .vi-h{font-size:24px}#vc-vero-intro .vi-pv,#vc-vero-intro .vi-in.pv .vi-pv{flex:none;width:100%;max-width:440px;transition:opacity .4s}#vc-vero-intro .vi-pv{height:0}#vc-vero-intro .vi-in.pv .vi-pv{height:auto}#vc-vero-intro .vp{width:100%}}' +
+    '@media(max-width:700px){#vc-vero-intro{align-items:flex-start;overflow:auto;overscroll-behavior:contain;padding:12px 12px 24px}#vc-vero-intro .vi-in{flex-direction:column;gap:6px;margin:0 auto;width:100%}#vc-vero-intro .vi-img{display:none}#vc-vero-intro .vi-mini{display:block;float:right;width:auto;height:150px;margin:-10px -8px 6px 6px;filter:drop-shadow(0 8px 20px #000a) drop-shadow(0 0 16px #5b6bb455)}#vc-vero-intro .vi-card{margin-top:4px}#vc-vero-intro .vi-card{padding:18px 18px}#vc-vero-intro .vi-h{font-size:24px}#vc-vero-intro .vi-pv,#vc-vero-intro .vi-in.pv .vi-pv{flex:none;width:100%;max-width:440px;transition:opacity .4s}#vc-vero-intro .vi-pv{height:0}#vc-vero-intro .vi-in.pv .vi-pv{height:auto}#vc-vero-intro .vp{width:100%}}' +
     '@media(prefers-reduced-motion:reduce){#vc-vero *,#vc-vero-intro *,#vc-big *,#vc-peek,#vc-peek *{animation:none!important;transition:none!important}#vc-vero .vv-i.hi{box-shadow:0 0 16px 5px #f8d874e0}#vc-vero-intro .vi-line{opacity:1}}'
 
   function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v) } catch (e) { return null } }
@@ -366,7 +367,7 @@
     if (document.getElementById('vc-vero-intro')) return
     var o = document.createElement('div'); o.id = 'vc-vero-intro'; o.setAttribute('role', 'dialog'); o.setAttribute('aria-modal', 'true'); o.setAttribute('aria-label', 'Vero')
     o.innerHTML = '<div class="vi-bd"></div><div class="vi-in"><img class="vi-img" alt="" src="' + BASE + 'saluda.webp" decoding="async"><div class="vi-card">' +
-      '<div class="vv-n">Vero</div><h2 class="vi-h vi-line" style="animation-delay:.5s">¡Hola! Soy Vero Andromedasis</h2>' +
+      '<img class="vi-mini" alt="" src="' + BASE + 'saluda.webp" decoding="async"><div class="vv-n">Vero</div><h2 class="vi-h vi-line" style="animation-delay:.5s">¡Hola! Soy Vero Andromedasis</h2>' +
       '<p class="vi-line" style="animation-delay:.8s">Me flipa el cielo, así que te acompaño por la web con consejos para empezar a observar y un dato curioso cada día.</p>' +
       '<p class="vi-q vi-line" style="animation-delay:1.1s">Vivo en este icono, junto al idioma, y tú decides cuánto te acompaño:</p>' +
       '<div class="vi-ms vi-line" role="radiogroup" aria-label="Modo de Vero" style="animation-delay:1.3s">' + MODES.map(function (m) { return '<button type="button" class="vi-m" role="radio" aria-checked="false" data-m="' + m[0] + '"><b>' + m[1] + '</b><span>' + m[2] + '</span></button>' }).join('') + '</div>' +
@@ -376,7 +377,8 @@
       '<div class="vp-body"><div class="vp-l w1"></div><div class="vp-l w2"></div><div class="vp-card"><div class="vp-l w3"></div><div class="vp-l w2"></div><div class="vp-tc"><i></i><div class="vp-l w4"></div></div></div></div>' +
       '<div class="vp-bb b1"><i class="vp-pic" style="background-image:url(' + BASE + 'p-saluda.webp)"></i></div><div class="vp-bb b2"><i class="vp-pic" style="background-image:url(' + BASE + 'p-telescopio.webp)"></i></div><div class="vp-bb b3"><i class="vp-pic" style="background-image:url(' + BASE + 'p-senala.webp)"></i></div><div class="vp-new">Próximamente, más cosas</div><i class="vp-pk"></i></div><p class="vp-cap"></p></div></div></div>'
     document.body.append(o)
-    var img = o.querySelector('.vi-img'), card = o.querySelector('.vi-card'), inn = o.querySelector('.vi-in'), go = o.querySelector('.vi-go'), vp = o.querySelector('.vp'), cap = o.querySelector('.vp-cap'), done = false, sel = null
+    /* en movil Vero va dentro del cartel (la imagen grande se oculta) para que nunca quede cortada */
+    var img = o.querySelector(window.innerWidth <= 700 ? '.vi-mini' : '.vi-img'), card = o.querySelector('.vi-card'), inn = o.querySelector('.vi-in'), go = o.querySelector('.vi-go'), vp = o.querySelector('.vp'), cap = o.querySelector('.vp-cap'), done = false, sel = null
     function sparks() {
       if (reduced()) return
       var ir = ic.getBoundingClientRect(), cx = ir.left + ir.width / 2, cy = ir.top + ir.height / 2

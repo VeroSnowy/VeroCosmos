@@ -104,6 +104,7 @@
     '#vc-aj .aj-f button{font:inherit;font-size:17px;padding:12px 20px;border-radius:10px;border:1px solid #3a4580;background:transparent;color:#eef1ff;cursor:pointer}' +
     '#vc-aj .aj-f .aj-ok{background:#18214d}' +
     '#vc-aj .aj-f button:hover,#vc-aj .aj-f button:focus-visible{border-color:#8ab4ff;outline:none}' +
+    '#vc-aj .aj-v{margin:6px 0 0;font-size:12px;color:#6f789f;text-align:right}' +
     '#vc-aj .aj-msg{margin:12px 0 0;font-size:14px;color:#f8d874;min-height:1em}' +
     '@keyframes ajf{from{opacity:0}to{opacity:1}}@keyframes aju{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}' +
     '@media(max-width:520px){#vc-aj .aj-c{padding:22px 18px 18px}#vc-aj h2{font-size:28px}#vc-aj .aj-x{top:14px;right:14px}}' +
@@ -138,9 +139,12 @@
         if (r[0] === 'vero') return '<div class="aj-r aj-w"><div><div class="aj-n" id="aj-n-vero">' + r[1] + '</div><div class="aj-d">' + r[2] + '</div></div><div class="aj-seg" role="radiogroup" aria-labelledby="aj-n-vero">' +
           [['off', 'Desactivada'], ['on', 'Discreta'], ['full', 'Completa']].map(function (x) { return '<button type="button" role="radio" data-vm="' + x[0] + '">' + x[1] + '</button>' }).join('') + '</div></div>'
         return '<div class="aj-r"><div><div class="aj-n" id="aj-n-' + r[0] + '">' + r[1] + '</div><div class="aj-d">' + r[2] + '</div></div><button type="button" class="aj-t" role="switch" data-k="' + r[0] + '" aria-labelledby="aj-n-' + r[0] + '"></button></div>' }).join('') +
-      '<div class="aj-f"><button type="button" class="aj-rs">Restablecer</button><button type="button" class="aj-ok">Listo</button></div><p class="aj-msg" aria-live="polite"></p></div>'
+      '<div class="aj-f"><button type="button" class="aj-rs">Restablecer</button><button type="button" class="aj-ok">Listo</button></div><p class="aj-msg" aria-live="polite"></p><p class="aj-v" data-no-i18n></p></div>'
     document.body.append(o)
     var msg = o.querySelector('.aj-msg')
+    /* version de la web (sirve para saber si el navegador muestra una copia antigua guardada) */
+    var ver = ''; try { var mt = /VeroCosmos_([\d.]+)\.html/.exec(location.pathname) || /VeroCosmos_([\d.]+)\.html/.exec(parent.location.pathname); if (mt) ver = mt[1] } catch (e) { }
+    o.querySelector('.aj-v').textContent = ver ? 'Vero Cosmos v' + ver : ''
     function paint() {
       [].forEach.call(o.querySelectorAll('.aj-t'), function (t) { t.setAttribute('aria-checked', String(get[t.dataset.k]())) })
       var vm = veroMode(); [].forEach.call(o.querySelectorAll('[data-vm]'), function (x) { x.setAttribute('aria-checked', String(x.dataset.vm === vm)) })

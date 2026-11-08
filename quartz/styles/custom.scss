@@ -111,7 +111,7 @@ footer a[href$="quienes-somos.html"]{position:fixed;top:12px;right:16px;z-index:
 footer a[href$="quienes-somos.html"]:hover{border-color:#8ab4ff}
 /* Colores fijos en las paginas del atlas: sin cambios segun el modo claro/oscuro del dispositivo */
 html:has(body:is([data-slug="index"],[data-slug="atlas-astrofotografico"],[data-slug="guia-astronomica"],[data-slug="quienes-somos"],[data-slug="guia-astronomica/lugar-para-observar"])){
-  color-scheme: only light;
+  color-scheme: dark;
   background-color: #05060f;
 }
 
@@ -252,5 +252,15 @@ body[data-slug="404"] footer ul {
 @media (prefers-reduced-motion: reduce) {
   .vc-404 img {
     animation: none;
+  }
+}
+
+/* Samsung Internet y Chrome no oscurecen ni cambian los colores de una web que declara su propio tema oscuro */
+:root {
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --vc-dark: 1;
   }
 }
