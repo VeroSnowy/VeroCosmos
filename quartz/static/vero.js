@@ -20,6 +20,8 @@
     ficha: ['Mira «Mejores días y horas para observarlo»: te dice cuándo se ve mejor desde tu ubicación.', 'Cambia entre el modelo 3D y la foto con los botones de encima de la imagen.'],
     quien: ['Esta web la hace Vero Snowy, estudiante de Física. ¡Gracias por pasarte!']
   }
+  /* poses de Vero que acompanan los consejos del modo completa, segun la seccion */
+  var PICS = { inicio: ['saluda', 'chibi'], atlas: ['senala', 'chibi'], guia: ['telescopio', 'piensa'], lugar: ['piensa', 'telescopio'], ficha: ['senala', 'piensa'], quien: ['saluda', 'chibi'] }
   var FACTS = [
     'La Nebulosa de Orión (M42) se ve a simple vista como la «estrella» borrosa del centro de la Espada de Orión.',
     'Un día en Venus dura más que su año: gira sobre sí misma en unos 243 días terrestres y orbita al Sol en unos 225.',
@@ -42,6 +44,26 @@
     '#vc-vero .vv-p[hidden]{display:none}' +
     '#vc-vero .vv-b{position:fixed;top:60px;right:12px;width:min(310px,calc(100vw - 24px));padding:12px 16px;border:1.5px solid #5b6bb4;border-radius:16px;background:#0b1025;color:#e8edff;box-shadow:0 12px 30px #02030acc;display:none}' +
     '#vc-vero .vv-b.on{display:block;animation:vvin .3s both}' +
+    /* Vero asomando por el borde (modo completa) y consejo en grande */
+    '#vc-peek{position:fixed;bottom:0;z-index:100006;width:150px;padding:0;border:0;background:none;cursor:pointer;transform:translateY(105%);transition:transform .7s cubic-bezier(.2,1.25,.4,1)}' +
+    '#vc-peek.on{transform:translateY(24%)}' +
+    '#vc-peek.on:hover,#vc-peek.on:focus-visible{transform:translateY(10%);outline:none}' +
+    '#vc-peek img{display:block;width:100%;height:auto;filter:drop-shadow(0 0 8px #f8d874aa) drop-shadow(0 0 20px #8ab4ff66);animation:vpk 2.4s ease-in-out infinite}' +
+    '#vc-peek .pk-s{position:absolute;right:6px;top:-6px;color:#f8d874;font-size:22px;text-shadow:0 0 10px #f8d874;animation:vps 1.6s ease-in-out infinite}' +
+    '@keyframes vpk{50%{filter:drop-shadow(0 0 14px #f8d874dd) drop-shadow(0 0 30px #8ab4ff99)}}' +
+    '@keyframes vps{50%{transform:scale(1.35) rotate(20deg);opacity:.7}}' +
+    '@media(max-width:520px){#vc-peek{width:120px}}' +
+    '#vc-big{position:fixed;inset:0;z-index:100010;display:flex;align-items:center;justify-content:center;padding:16px;font:400 17px/1.5 "Iowan Old Style","Palatino Linotype",Georgia,serif;color:#e8edff}' +
+    '#vc-big .vb-bd{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,#1a2160ee,#03051096 75%),#030510d9;animation:vifade .35s both}' +
+    '#vc-big.out .vb-bd,#vc-big.out .vb-in{animation:viout .4s both}' +
+    '#vc-big .vb-in{position:relative;display:flex;align-items:center;justify-content:center;gap:clamp(12px,3vw,40px);max-width:900px}' +
+    '#vc-big .vb-img{display:block;height:min(66vh,560px);max-width:40vw;width:auto;object-fit:contain;filter:drop-shadow(0 16px 44px #000a) drop-shadow(0 0 30px #5b6bb455)}' +
+    '#vc-big .vb-card{width:min(400px,100%);padding:22px 24px;border:1.5px solid #5b6bb4;border-radius:20px;background:#0b1025f2;box-shadow:0 18px 50px #000b;animation:viup .5s .25s both}' +
+    '#vc-big .vv-n{font-size:12.5px;letter-spacing:.12em;text-transform:uppercase;color:#f8d874;margin-bottom:4px}' +
+    '#vc-big .vb-t{margin:0 0 16px;font-size:21px;line-height:1.4;color:#fff}' +
+    '#vc-big .vb-ok{font:inherit;font-size:16px;padding:9px 22px;border-radius:999px;cursor:pointer;color:#1a1500;background:#f8d874;border:1.5px solid #f8d874;font-weight:600}' +
+    '#vc-big .vb-ok:hover,#vc-big .vb-ok:focus-visible{background:#ffe59a;outline:none}' +
+    '@media(max-width:700px){#vc-big .vb-in{flex-direction:column;gap:8px}#vc-big .vb-img{height:min(34vh,300px);max-width:70vw}}' +
     '#vc-vero .vv-b:before{content:"";position:absolute;top:-8px;right:var(--vv-ax,40px);width:14px;height:14px;background:#0b1025;border:1.5px solid #5b6bb4;border-bottom:0;border-right:0;transform:rotate(45deg)}' +
     '#vc-vero .vv-n,#vc-vero-intro .vv-n{font-size:12.5px;letter-spacing:.12em;text-transform:uppercase;color:#f8d874;margin-bottom:2px}' +
     '#vc-vero .vv-d{margin-top:10px;padding-top:8px;border-top:1px solid #232a4f}' +
@@ -101,6 +123,14 @@
     '#vc-vero-intro .vp-bb:before,#vc-vero-intro .vp-bb:after{content:"";position:absolute;left:10px;height:5px;border-radius:3px;background:#3a4580}' +
     '#vc-vero-intro .vp-bb:before{top:9px;right:12px}#vc-vero-intro .vp-bb:after{top:20px;right:40px;background:#f8d87499}' +
     '#vc-vero-intro .vp-bb.b1{top:40px;right:14px;transform-origin:85% 0}#vc-vero-intro .vp-bb.b2{left:12px;bottom:18px;transform-origin:0 100%}#vc-vero-intro .vp-bb.b3{right:20px;bottom:52px;transform-origin:100% 100%}' +
+    '#vc-vero-intro .vp-pic{display:none;position:absolute;left:3px;bottom:0;width:30px;height:46px;background:center bottom/contain no-repeat;filter:drop-shadow(0 2px 4px #000a)}' +
+    '#vc-vero-intro .vp.m-full .vp-bb{width:136px;height:48px}' +
+    '#vc-vero-intro .vp.m-full .vp-bb:before,#vc-vero-intro .vp.m-full .vp-bb:after{left:38px}' +
+    '#vc-vero-intro .vp.m-full .vp-bb:before{top:14px}#vc-vero-intro .vp.m-full .vp-bb:after{top:26px}' +
+    '#vc-vero-intro .vp.m-full .vp-pic{display:block}' +
+    '#vc-vero-intro .vp-pk{display:none;position:absolute;left:44%;bottom:0;width:62px;height:42px;background:url(' + 'vero/p-asoma.webp) center top/contain no-repeat;filter:drop-shadow(0 0 6px #f8d874aa);transform:translateY(100%)}' +
+    '#vc-vero-intro .vp.m-full .vp-pk{display:block;animation:vppk 3.2s .6s ease-in-out infinite}' +
+    '@keyframes vppk{0%,12%{transform:translateY(100%)}26%,70%{transform:translateY(28%)}84%,100%{transform:translateY(100%)}}' +
     '#vc-vero-intro .vp-new{position:absolute;left:12px;top:44px;padding:2px 9px;border:1px dashed #f8d874;border-radius:999px;font-size:11.5px;color:#f8d874;background:#0b1025;opacity:0}' +
     '#vc-vero-intro .vp-cap{margin:10px 2px 0;font-size:14.5px;line-height:1.45;color:#cfd6ff;min-height:4.4em}' +
     '#vc-vero-intro .vp.m-off .vp-ic{opacity:0}' +
@@ -118,7 +148,7 @@
     '@keyframes viup{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}' +
     '@keyframes viout{to{opacity:0}}' +
     '@media(max-width:700px){#vc-vero-intro{align-items:flex-start;overflow:auto}#vc-vero-intro .vi-in{flex-direction:column;gap:6px;margin:auto 0}#vc-vero-intro .vi-img{height:min(30vh,260px);max-width:70vw}#vc-vero-intro .vi-pv,#vc-vero-intro .vi-in.pv .vi-pv{flex:none;width:100%;max-width:440px;transition:opacity .4s}#vc-vero-intro .vi-pv{height:0}#vc-vero-intro .vi-in.pv .vi-pv{height:auto}#vc-vero-intro .vp{width:100%}}' +
-    '@media(prefers-reduced-motion:reduce){#vc-vero *,#vc-vero-intro *{animation:none!important;transition:none!important}#vc-vero .vv-i.hi{box-shadow:0 0 16px 5px #f8d874e0}#vc-vero-intro .vi-line{opacity:1}}'
+    '@media(prefers-reduced-motion:reduce){#vc-vero *,#vc-vero-intro *,#vc-big *,#vc-peek,#vc-peek *{animation:none!important;transition:none!important}#vc-vero .vv-i.hi{box-shadow:0 0 16px 5px #f8d874e0}#vc-vero-intro .vi-line{opacity:1}}'
 
   function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v) } catch (e) { return null } }
   function dayN() { var d = new Date(); return Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 864e5) }
@@ -145,7 +175,11 @@
     function place() {
       if (!flex) { var r = lg.getBoundingClientRect(); w.style.right = (r.width ? Math.round(document.documentElement.clientWidth - r.left + 8) : 64) + 'px' }
       var ir = ic.getBoundingClientRect()
-      b.style.setProperty('--vv-ax', Math.max(14, Math.round(document.documentElement.clientWidth - ir.right + ir.width / 2 - 12 - 7)) + 'px')
+      /* el bocadillo se abre debajo del icono (sin salirse de la ventana) y la flecha apunta a el */
+      var cw = document.documentElement.clientWidth, bw = b.offsetWidth || Math.min(310, cw - 24), cx = ir.left + ir.width / 2
+      var R = Math.max(12, Math.min(cw - bw - 12, Math.round(cw - cx - 40)))
+      b.style.right = R + 'px'; b.style.top = Math.round(ir.bottom + 10) + 'px'
+      b.style.setProperty('--vv-ax', Math.max(14, Math.min(bw - 28, Math.round(cw - cx - R - 7))) + 'px')
     }
     place(); addEventListener('resize', place)
     /* el selector se mueve sin cambiar la ventana (p. ej. al abrirse el panel lateral del atlas): se sigue su contenedor */
@@ -179,13 +213,59 @@
       return 'atlas'
     }
     var hideT = 0, autoT = 0, every = 0, lastAuto = 0, mute = 0, lastCtx = ctx()
-    function busy() { return document.getElementById('vc-vero-intro') || document.getElementById('vc-aj') || (b.classList.contains('on') && b.dataset.auto !== '1') }
+    function busy() { return document.getElementById('vc-vero-intro') || document.getElementById('vc-aj') || document.getElementById('vc-big') || pk || (b.classList.contains('on') && b.dataset.auto !== '1') }
     function auto() {
       var m = ls(KEY); if (!m || m === 'off' || !W || busy() || Date.now() < mute) return
-      var l = CTX[ctx()] || TIPS
-      place(); t.textContent = l[Math.floor(Math.random() * l.length)]
-      dd.hidden = true; b.dataset.auto = '1'; b.classList.add('on'); lastAuto = Date.now()
+      var c = ctx(), l = CTX[c] || TIPS, tip = l[Math.floor(Math.random() * l.length)]
+      lastAuto = Date.now()
+      if (m === 'full') { peek(c, tip); return }
+      t.textContent = tip; dd.hidden = true; b.dataset.auto = '1'; b.classList.add('on'); place()
       clearTimeout(hideT); hideT = setTimeout(function () { if (b.dataset.auto === '1') b.classList.remove('on') }, 12000)
+    }
+
+    /* modo completa: Vero se asoma por el borde inferior, resplandeciendo; si se pulsa, se abre en grande con el consejo */
+    var pk = null, pkT = 0
+    function peek(c, tip) {
+      if (pk || document.getElementById('vc-big')) return
+      var ps = PICS[c] || ['saluda'], pose = ps[Math.floor(Math.random() * ps.length)]
+      var el = pk = document.createElement('button'); el.type = 'button'; el.id = 'vc-peek'; el.setAttribute('aria-label', 'Vero tiene un consejo para ti')
+      el.innerHTML = '<span class="pk-s" aria-hidden="true">✦</span><img alt="" src="' + BASE + 'p-asoma.webp" decoding="async">'
+      var vw = document.documentElement.clientWidth, wpk = vw < 520 ? 120 : 150
+      el.style.left = Math.round(Math.max(12, Math.min(vw - wpk - 12, vw * (.12 + Math.random() * .58)))) + 'px'
+      document.body.append(el)
+      var big = new Image(); big.src = BASE + (pose === 'saluda' ? 'saluda' : 'g-' + pose) + '.webp'
+      var im = el.querySelector('img'), shown = false
+      var show = function () { if (shown || pk !== el) return; shown = true; requestAnimationFrame(function () { requestAnimationFrame(function () { el.classList.add('on') }) }) }
+      if (im.complete && im.naturalWidth) show(); else { im.onload = show; im.onerror = function () { hidePeek() } }
+      clearTimeout(pkT); pkT = setTimeout(hidePeek, 15000)
+      el.addEventListener('click', function () { var r = im.getBoundingClientRect(); clearTimeout(pkT); pk = null; el.remove(); bigOpen(tip, big.src, r) })
+    }
+    function hidePeek() {
+      clearTimeout(pkT); if (!pk) return
+      var el = pk; pk = null; el.classList.remove('on'); setTimeout(function () { el.remove() }, reduced() ? 0 : 700)
+    }
+    function bigOpen(tip, src, from) {
+      var o = document.createElement('div'); o.id = 'vc-big'; o.setAttribute('role', 'dialog'); o.setAttribute('aria-modal', 'true'); o.setAttribute('aria-label', 'Vero')
+      o.innerHTML = '<div class="vb-bd"></div><div class="vb-in"><img class="vb-img" alt="" src="' + src + '"><div class="vb-card"><div class="vv-n">Vero</div><p class="vb-t"></p><button type="button" class="vb-ok">¡Gracias, Vero!</button></div></div>'
+      o.querySelector('.vb-t').textContent = tip
+      document.body.append(o)
+      var img = o.querySelector('.vb-img')
+      var pop = function () {
+        if (reduced() || !img.animate || !from) return
+        var r = img.getBoundingClientRect(), fx = from.left + from.width / 2 - (r.left + r.width / 2), fy = from.top + from.height / 2 - (r.top + r.height / 2)
+        img.animate([{ transform: 'translate(' + fx + 'px,' + fy + 'px) scale(.2)', opacity: .2 }, { transform: 'translate(' + fx * .08 + 'px,' + fy * .08 + 'px) scale(1.05)', opacity: 1, offset: .7 }, { transform: 'none', opacity: 1 }], { duration: 750, easing: 'cubic-bezier(.22,.9,.3,1)' })
+      }
+      if (img.complete && img.naturalWidth) pop(); else img.onload = pop
+      var closed = false
+      function close() {
+        if (closed) return; closed = true; document.removeEventListener('keydown', key, true)
+        o.classList.add('out'); setTimeout(function () { o.remove() }, reduced() ? 0 : 400)
+      }
+      function key(e) { if (e.key === 'Escape') { e.stopPropagation(); close() } }
+      document.addEventListener('keydown', key, true)
+      o.querySelector('.vb-ok').addEventListener('click', close)
+      o.querySelector('.vb-bd').addEventListener('click', close)
+      setTimeout(function () { try { o.querySelector('.vb-ok').focus({ preventScroll: true }) } catch (e) { } }, reduced() ? 30 : 700)
     }
     function guideTip() {
       if (ls(KEY) !== 'on' || ctx() !== 'guia' || ls(TIPDAY) === String(day)) return
@@ -202,6 +282,7 @@
     new MutationObserver(function () {
       var c = ctx(); if (c === lastCtx) return; lastCtx = c
       if (b.dataset.auto === '1') b.classList.remove('on')
+      hidePeek()
       if (ls(KEY) === 'full') { clearTimeout(autoT); autoT = setTimeout(auto, 2500) } else guideTip()
     }).observe(document.body, { attributes: true, attributeFilter: ['class'] })
     b.addEventListener('pointerenter', function () { delete b.dataset.auto })
@@ -250,7 +331,7 @@
       '<p class="vi-s vi-line" style="animation-delay:1.7s">Podrás cambiar tu decisión cuando quieras en Ajustes, dentro del menú.</p></div>' +
       '<div class="vi-pv" aria-hidden="true"><div class="vp"><div class="vp-scr"><div class="vp-bar"><i></i><i class="vp-sp"></i><i class="vp-ic"></i><i class="vp-fl"></i><i></i></div>' +
       '<div class="vp-body"><div class="vp-l w1"></div><div class="vp-l w2"></div><div class="vp-card"><div class="vp-l w3"></div><div class="vp-l w2"></div><div class="vp-tc"><i></i><div class="vp-l w4"></div></div></div></div>' +
-      '<div class="vp-bb b1"></div><div class="vp-bb b2"></div><div class="vp-bb b3"></div><div class="vp-new">Próximamente, más cosas</div></div><p class="vp-cap"></p></div></div></div>'
+      '<div class="vp-bb b1"><i class="vp-pic" style="background-image:url(' + BASE + 'p-saluda.webp)"></i></div><div class="vp-bb b2"><i class="vp-pic" style="background-image:url(' + BASE + 'p-telescopio.webp)"></i></div><div class="vp-bb b3"><i class="vp-pic" style="background-image:url(' + BASE + 'p-senala.webp)"></i></div><div class="vp-new">Próximamente, más cosas</div><i class="vp-pk"></i></div><p class="vp-cap"></p></div></div></div>'
     document.body.append(o)
     var img = o.querySelector('.vi-img'), card = o.querySelector('.vi-card'), inn = o.querySelector('.vi-in'), go = o.querySelector('.vi-go'), vp = o.querySelector('.vp'), cap = o.querySelector('.vp-cap'), done = false, sel = null
     function sparks() {
