@@ -242,7 +242,12 @@
     ]
    ]
   },
-  "palette": "orion"
+  "palette": "orion",
+  "vero": [
+   "Con el telescopio la verás gris verdosa, pero en las fotos sale rosa: de noche tus ojos apenas distinguen el rojo del hidrógeno.",
+   "Mide unos 24 años luz de lado a lado: ni la luz es capaz de cruzarla en menos de dos décadas.",
+   "La luz que te llega hoy salió de allí hace unos 1.300 años, en plena Alta Edad Media."
+  ]
  },
  "catálogos/messier/descripciones/m_2/m2---cúmulo-globular": {
   "name": "M2 · Cúmulo Globular",
@@ -447,7 +452,12 @@
      ]
     ]
    ]
-  }
+  },
+  "vero": [
+   "En su centro las estrellas están tan apiñadas que, desde un planeta de allí, el cielo nocturno estaría lleno de estrellas más brillantes que Sirio, la más brillante de nuestro cielo.",
+   "Su luz salió hace unos 37.500 años, más o menos cuando se pintaban las primeras cuevas decoradas de Europa.",
+   "Sus estrellas casi no tienen elementos pesados: nacieron cuando el universo apenas había fabricado metales."
+  ]
  },
  "catálogos/ngc/descripciones/ngc_2024/ngc-2024---nebulosa-de-la-flama": {
   "name": "NGC 2024 · Nebulosa de la Flama",
@@ -683,7 +693,12 @@
      ]
     ]
    ]
-  }
+  },
+  "vero": [
+   "Las estrellas de su centro son más jóvenes que las de los bordes, justo al revés de lo que se esperaba, y aún no se sabe del todo por qué.",
+   "Muchas de sus estrellas tienen menos de un millón de años: en tiempo cósmico, son recién nacidas.",
+   "Es vecina de la Nebulosa Cabeza de Caballo: las dos forman parte de la misma nube gigante de gas y polvo de Orión."
+  ]
  },
  "catálogos/ngc/descripciones/ngc_253/ngc-253---galaxia-moneda-de-plata": {
   "name": "NGC 253 · Galaxia Moneda de Plata",
@@ -811,7 +826,12 @@
      ]
     ]
    ]
-  }
+  },
+  "vero": [
+   "Forma tantas estrellas que las supernovas de su núcleo soplan un viento de gas caliente que sale disparado fuera de la galaxia.",
+   "Se calcula que allí estalla una supernova cada pocos años; en la Vía Láctea, solo un par de veces por siglo.",
+   "Su luz salió hace casi 13 millones de años, mucho antes de que existieran los primeros antepasados de los humanos."
+  ]
  },
  "catálogos/sistsolar/descripciones/luna": {
   "name": "Luna",
@@ -874,6 +894,11 @@
     "n": "Júpiter",
     "d": "Planeta que suele verse cerca de la Luna."
    }
+  ],
+  "vero": [
+   "Las huellas de los astronautas del Apolo siguen allí: en la Luna no hay viento ni lluvia que las borre.",
+   "Aunque la veas tan blanca, es bastante oscura: refleja más o menos como el asfalto gastado y brilla porque la rodea el negro del cielo.",
+   "Tiembla: tiene «lunamotos», y algunos duran más de diez minutos."
   ]
  },
  "catálogos/sistsolar/descripciones/saturno": {
@@ -938,6 +963,11 @@
     "n": "Titán",
     "d": "La mayor luna de Saturno."
    }
+  ],
+  "vero": [
+   "En su polo norte hay un remolino de nubes con forma de hexágono, más ancho que dos Tierras juntas.",
+   "Tiene más de 270 lunas conocidas, más que ningún otro planeta.",
+   "Encélado, una de sus lunas, lanza al espacio chorros de agua salada desde un océano oculto bajo el hielo."
   ]
  },
  "catálogos/sistsolar/descripciones/sol": {
@@ -997,6 +1027,11 @@
     "n": "Próxima Centauri",
     "d": "La estrella más cercana al Sol."
    }
+  ],
+  "vero": [
+   "La luz que te llega hoy pudo tardar decenas de miles de años en salir desde su núcleo hasta la superficie; después, solo 8 minutos en llegar hasta ti.",
+   "Dentro del Sol cabrían más de un millón de Tierras.",
+   "Su superficie está a unos 5.500 °C, pero la corona, por encima, supera el millón de grados, y todavía no se sabe del todo por qué."
   ]
  }
 }

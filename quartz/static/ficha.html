@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<script src="ajustes.js?v=2"></script>
+<script src="ajustes.js?v=3"></script>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="only light">
 <meta name="theme-color" content="#05060f">
@@ -94,6 +94,12 @@ body.maxed .wrap{overflow:hidden}
 ul.l{margin:0;padding:0;list-style:none}
 #trivia li{position:relative;padding:2px 0 8px 22px;color:#d6dcf7}
 #trivia li::before{content:"";position:absolute;left:3px;top:.62em;width:7px;height:7px;border-radius:50%;background:var(--acc);box-shadow:0 0 8px var(--acc)}
+#vtc li{position:relative;padding:2px 0 8px 22px;color:#d6dcf7}
+#vtc li::before{content:"";position:absolute;left:3px;top:.62em;width:7px;height:7px;border-radius:50%;background:var(--acc);box-shadow:0 0 8px var(--acc)}
+#vblk .vh{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+#vblk .vh img{flex:none;width:44px;height:44px;border-radius:50%;border:1.5px solid #5b6bb4;background:#0b1025;object-fit:cover}
+#vblk .vh h2{margin:0}
+#vblk[hidden]{display:none}
 #others li{padding:7px 0;border-bottom:1px solid #232846}
 #others li:last-child{border:0}
 #others b{display:block;font-weight:600}
@@ -188,6 +194,7 @@ ul.l{margin:0;padding:0;list-style:none}
       <div class="blk"><h2>Descripción</h2><div id="desc"></div><dl id="facts"></dl></div>
       <div class="blk"><h2>Categorías</h2><div id="cats" class="chips"></div></div>
       <div class="blk"><h2>Trivia</h2><ul class="l" id="trivia"></ul></div>
+      <div class="blk" id="vblk" hidden><div class="vh"><img src="vero/a-feliz.webp" alt="" width="44" height="44" loading="lazy"><h2>Vero te cuenta</h2></div><ul class="l" id="vtc"></ul></div>
     </section>
     <section class="card sk"><h2>Ubicación celeste</h2><div id="sky"></div><p class="note" id="skytxt"></p></section>
     <section class="card hm"><h2>Mejores días y horas para observarlo</h2><div id="heat"></div><div class="lg" id="lg"></div><p class="note" id="besttxt"></p>
@@ -195,7 +202,7 @@ ul.l{margin:0;padding:0;list-style:none}
         <div class="locpop" id="locpop" hidden><button type="button" id="geo">Usar mi ubicación</button><label>Busca tu municipio<input type="search" id="locq" placeholder="Busca tu municipio…" autocomplete="off" autocapitalize="none" spellcheck="false" aria-label="Busca tu municipio"></label><div id="locres" class="locres" role="listbox"></div><p class="note" id="locmsg"></p></div></div></section>
   </main>
 </div>
-<script src="vc-i18n.js?v=57"></script>
+<script src="vc-i18n.js?v=58"></script>
 <script src="vero.js?v=7" defer></script>
 <script>
 const $=id=>document.getElementById(id);
@@ -299,6 +306,9 @@ function fill(info){
   $('facts').innerHTML='';(data.facts||[]).forEach(([k,v])=>{const d=document.createElement('div'),a=document.createElement('dt'),b=document.createElement('dd');a.textContent=k;b.textContent=dyn(v);d.append(a,b);$('facts').append(d)});
   $('cats').innerHTML='';(data.cats||[]).forEach(t=>{const s=document.createElement('span');s.textContent=t;$('cats').append(s)});
   $('trivia').innerHTML='';(data.trivia||[]).forEach(t=>{const l=document.createElement('li');l.textContent=t;$('trivia').append(l)});
+  /* Vero te cuenta: datos curiosos extra, solo con Vero activada */
+  $('vtc').innerHTML='';(data.vero||[]).forEach(t=>{const l=document.createElement('li');l.textContent=t;$('vtc').append(l)});
+  const vShow=()=>{$('vblk').hidden=!(data.vero&&data.vero.length)||!(!window.vcAjustes||vcAjustes.get('vero'))};vShow();window.addEventListener('vc-ajustes',vShow);
   $('others').innerHTML='';(data.others||[]).forEach(o=>{
     const l=document.createElement('li'),b=document.createElement('b'),s=document.createElement('small');b.textContent=o.n;s.textContent=o.d;
     if(o.s){const btn=document.createElement('button');btn.type='button';btn.append(b,s);btn.onclick=()=>post({vc:'open',s:o.s});l.append(btn)}else l.append(b,s);
@@ -842,7 +852,7 @@ window.addEventListener('vc-lang',()=>{
 /* ---------- arranque ---------- */
 (async function(){
   let all={};
-  try{all=await(await fetch('fichas.json?v=3')).json()}catch(e){}
+  try{all=await(await fetch('fichas.json?v=4')).json()}catch(e){}
   data=all[slug];
   if(!data){post({vc:'close'});return}
   const info=await pageInfo();

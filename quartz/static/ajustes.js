@@ -115,6 +115,7 @@
     } else if (id === 'geo') {
       if (on) ls('vc-geo', null); else { ls('vc-geo', 'off'); ls('vc-loc', null) }
     } else ls(KEYS[id], on ? null : 'off')
+    try { window.dispatchEvent(new CustomEvent('vc-ajustes', { detail: { k: id, on: on } })) } catch (e) { }
   }
 
   function open() {
