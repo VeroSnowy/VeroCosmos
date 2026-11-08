@@ -1,5 +1,5 @@
 /* Ajustes de Vero Cosmos: se guardan solo en este navegador (localStorage).
-   - vc-vero: on | off      (Vero Andromedasis; sin valor = aun no ha decidido)
+   - vc-vero: off | on | full (Vero Andromedasis: desactivada, discreta o completa; sin valor = aun no ha decidido)
    - vc-anim: off           (sin animaciones: se aplica como "reducir movimiento" del sistema)
    - vc-geo:  off           (no usar la ubicacion: se borra la guardada y se bloquea el GPS)
    - vc-3d:   off           (las fichas se abren con la foto)
@@ -70,7 +70,7 @@
 
   /* ---------- ventana de Ajustes ---------- */
   var ROWS = [
-    ['vero', 'Vero Andromedasis', 'Muestra a Vero y sus consejos por la web.'],
+    ['vero', 'Vero Andromedasis', 'Elige cuánto te acompaña Vero: nada, de vez en cuando o a menudo.'],
     ['anim', 'Animaciones y estrellas', 'Cielo que titila, estrellas fugaces, giros y transiciones. Apágalo si prefieres una web quieta o tu dispositivo va lento.'],
     ['geo', 'Ubicación', 'Permite usar tu ubicación en Lugar para observar y en las fichas. Al desactivarla se borra la ubicación guardada.'],
     ['3d', 'Modelos 3D', 'Las fichas se abren con el modelo 3D. Si lo desactivas, verás primero la foto.']
@@ -93,6 +93,13 @@
     '#vc-aj .aj-t[aria-checked="true"]{background:#2f62d9}' +
     '#vc-aj .aj-t[aria-checked="true"]:after{transform:translateX(24px);background:#fff}' +
     '#vc-aj .aj-t:focus-visible{outline:2px solid #8ab4ff;outline-offset:3px}' +
+    '#vc-aj .aj-r.aj-w{flex-wrap:wrap}' +
+    '#vc-aj .aj-seg{flex:none;display:flex;padding:3px;gap:3px;border:1px solid #343d63;border-radius:12px;background:#0b1025}' +
+    '#vc-aj .aj-seg button{font:inherit;font-size:15px;padding:8px 13px;border:0;border-radius:9px;background:none;color:#a9b3d9;cursor:pointer;transition:background .18s,color .18s}' +
+    '#vc-aj .aj-seg button:hover{color:#fff}' +
+    '#vc-aj .aj-seg button[aria-checked="true"]{background:#2f62d9;color:#fff}' +
+    '#vc-aj .aj-seg button:focus-visible{outline:2px solid #8ab4ff;outline-offset:2px}' +
+    '@media(max-width:620px){#vc-aj .aj-seg{width:100%}#vc-aj .aj-seg button{flex:1}}' +
     '#vc-aj .aj-f{display:flex;justify-content:space-between;align-items:center;gap:12px;padding-top:20px;border-top:1px solid #232a4f}' +
     '#vc-aj .aj-f button{font:inherit;font-size:17px;padding:12px 20px;border-radius:10px;border:1px solid #3a4580;background:transparent;color:#eef1ff;cursor:pointer}' +
     '#vc-aj .aj-f .aj-ok{background:#18214d}' +
@@ -108,10 +115,12 @@
   var styled = false
   function style() { if (styled) return; styled = true; var s = document.createElement('style'); s.textContent = CSS; document.head.append(s) }
 
+  function veroMode() { var v = ls('vc-vero'); return v === 'off' || v === 'full' ? v : 'on' }
   function set(id, on) {
     if (id === 'vero') {
-      ls('vc-vero', on ? 'on' : 'off')
-      if (window.vcVero) { if (on) window.vcVero.mount(); else window.vcVero.off() }
+      /* on puede ser true/false (Restablecer) o el modo: off | on | full */
+      var m = on === true ? 'on' : on === false ? 'off' : on
+      if (window.vcVero && window.vcVero.mode) window.vcVero.mode(m); else ls('vc-vero', m)
     } else if (id === 'geo') {
       if (on) ls('vc-geo', null); else { ls('vc-geo', 'off'); ls('vc-loc', null) }
     } else ls(KEYS[id], on ? null : 'off')
@@ -125,14 +134,22 @@
     var o = document.createElement('div'); o.id = 'vc-aj'; o.setAttribute('role', 'dialog'); o.setAttribute('aria-modal', 'true'); o.setAttribute('aria-labelledby', 'vc-aj-h')
     o.innerHTML = '<div class="aj-bd"></div><div class="aj-c"><button type="button" class="aj-x" aria-label="Cerrar"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>' +
       '<h2 id="vc-aj-h">Ajustes</h2><p class="aj-s">Se guardan solo en este navegador. No necesitas cuenta.</p>' +
-      ROWS.map(function (r) { return '<div class="aj-r"><div><div class="aj-n" id="aj-n-' + r[0] + '">' + r[1] + '</div><div class="aj-d">' + r[2] + '</div></div><button type="button" class="aj-t" role="switch" data-k="' + r[0] + '" aria-labelledby="aj-n-' + r[0] + '"></button></div>' }).join('') +
+      ROWS.map(function (r) {
+        if (r[0] === 'vero') return '<div class="aj-r aj-w"><div><div class="aj-n" id="aj-n-vero">' + r[1] + '</div><div class="aj-d">' + r[2] + '</div></div><div class="aj-seg" role="radiogroup" aria-labelledby="aj-n-vero">' +
+          [['off', 'Desactivada'], ['on', 'Discreta'], ['full', 'Completa']].map(function (x) { return '<button type="button" role="radio" data-vm="' + x[0] + '">' + x[1] + '</button>' }).join('') + '</div></div>'
+        return '<div class="aj-r"><div><div class="aj-n" id="aj-n-' + r[0] + '">' + r[1] + '</div><div class="aj-d">' + r[2] + '</div></div><button type="button" class="aj-t" role="switch" data-k="' + r[0] + '" aria-labelledby="aj-n-' + r[0] + '"></button></div>' }).join('') +
       '<div class="aj-f"><button type="button" class="aj-rs">Restablecer</button><button type="button" class="aj-ok">Listo</button></div><p class="aj-msg" aria-live="polite"></p></div>'
     document.body.append(o)
     var msg = o.querySelector('.aj-msg')
-    function paint() { [].forEach.call(o.querySelectorAll('.aj-t'), function (t) { t.setAttribute('aria-checked', String(get[t.dataset.k]())) }) }
+    function paint() {
+      [].forEach.call(o.querySelectorAll('.aj-t'), function (t) { t.setAttribute('aria-checked', String(get[t.dataset.k]())) })
+      var vm = veroMode(); [].forEach.call(o.querySelectorAll('[data-vm]'), function (x) { x.setAttribute('aria-checked', String(x.dataset.vm === vm)) })
+    }
     function note() { msg.textContent = get.anim() !== anim0 ? 'Las animaciones cambiarán al cerrar los ajustes.' : '' }
     paint()
     o.addEventListener('click', function (e) {
+      var v = e.target.closest('[data-vm]')
+      if (v) { set('vero', v.dataset.vm); paint(); return }
       var t = e.target.closest('.aj-t')
       if (t) { set(t.dataset.k, !get[t.dataset.k]()); paint(); note(); return }
       if (e.target.closest('.aj-rs')) { ROWS.forEach(function (r) { set(r[0], true) }); paint(); note(); return }
@@ -144,7 +161,7 @@
       document.removeEventListener('keydown', key, true); o.remove()
       if (get.anim() !== anim0) location.reload()
     }
-    setTimeout(function () { var f = o.querySelector('.aj-t'); if (f) try { f.focus({ preventScroll: true }) } catch (e) { } }, 30)
+    setTimeout(function () { var f = o.querySelector('[data-vm][aria-checked="true"]') || o.querySelector('.aj-t'); if (f) try { f.focus({ preventScroll: true }) } catch (e) { } }, 30)
   }
 
   /* entrada "Ajustes" al final del menu de paginas */
@@ -165,5 +182,5 @@
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', menu); else menu()
 
-  window.vcAjustes = { open: open, get: function (k) { return get[k] ? get[k]() : true } }
+  window.vcAjustes = { open: open, get: function (k) { return get[k] ? get[k]() : true }, veroMode: veroMode }
 })()
