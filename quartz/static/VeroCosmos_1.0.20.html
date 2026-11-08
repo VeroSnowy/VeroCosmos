@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
+<script src="ajustes.js?v=1"></script>
 <meta name="theme-color" content="#05060f">
 <meta name="viewport" content="width=device-width,initial-scale=1,interactive-widget=resizes-visual">
 <title>Vero Cosmos · Atlas astrofotográfico</title>
@@ -2038,7 +2039,7 @@ function fichaFromHash(){
 function openFicha(n,fromUrl,replace){
   if(fi)return;
   fi=document.createElement('iframe');fi.className='ficha-frame';fi.title=n.t;fiNode=n;
-  fi.src='ficha.html?v=11#'+encodeURIComponent(n.s);
+  fi.src='ficha.html?v=12#'+encodeURIComponent(n.s);
   fi.style.cssText='position:fixed;inset:0;width:100%;height:100%;border:0;z-index:100001;background:#05060f;color-scheme:only light';
   document.body.append(fi);
   fi.addEventListener('load',()=>{try{fi.contentWindow.focus()}catch(e){}});
@@ -2204,8 +2205,8 @@ function vcSky(cv,active){
 }
 vcSky(document.getElementById("sky"),()=>document.body.classList.contains("principal-page")&&!document.body.classList.contains("lugar-cover"));
 </script>
-<script src="vc-i18n.js?v=55"></script>
+<script src="vc-i18n.js?v=56"></script>
 <script>vcI18n.mount(document.getElementById("stage"));</script>
-<script src="vero.js?v=4" defer></script>
+<script src="vero.js?v=6" defer></script>
 </body>
 </html>

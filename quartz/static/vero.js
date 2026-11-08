@@ -94,6 +94,9 @@
       b.style.setProperty('--vv-ax', Math.max(14, Math.round(document.documentElement.clientWidth - ir.right + ir.width / 2 - 12 - 7)) + 'px')
     }
     place(); addEventListener('resize', place)
+    /* el selector se mueve sin cambiar la ventana (p. ej. al abrirse el panel lateral del atlas): se sigue su contenedor */
+    if (window.ResizeObserver && !flex) new ResizeObserver(function () { place() }).observe(lg.offsetParent || document.body)
+    document.addEventListener('transitionend', function () { place() }, true)
     new MutationObserver(place).observe(document.body, { attributes: true, attributeFilter: ['class'] })
     /* en "Quienes somos" el selector se desvanece al desplazar: el icono lo sigue */
     function sync() { w.style.opacity = lg.style.opacity || ''; w.style.pointerEvents = lg.style.opacity === '0' ? 'none' : '' }
