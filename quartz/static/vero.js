@@ -78,7 +78,7 @@
     if (!lg) { if (tries++ < 30) setTimeout(mount, 300); return }
     var st = document.createElement('style'); st.textContent = CSS; document.head.append(st)
     var w = W = document.createElement('div'); w.id = 'vc-vero'
-    w.innerHTML = '<button type="button" class="vv-i" aria-label="Vero: un consejo y el dato del día"><span class="vv-p" hidden></span><img alt="" src="' + BASE + 'a-feliz.webp" decoding="async"></button>' +
+    w.innerHTML = '<button type="button" class="vv-i" aria-label="Vero: un consejo y el dato del día"><span class="vv-p" hidden></span><img alt="" src="' + BASE + 'icono.webp" decoding="async"></button>' +
       '<div class="vv-b" role="dialog" aria-label="Vero"><button type="button" class="vv-x" aria-label="Cerrar">×</button><div class="vv-n">Vero</div><div class="vv-t"></div><div class="vv-d"><div class="vv-n">Dato del día</div><div class="vv-f"></div></div><button type="button" class="vv-h">Desactivar a Vero</button></div>'
     var flex = lg.parentNode && lg.parentNode.classList && lg.parentNode.classList.contains('tools')
     if (flex) { w.classList.add('vv-flex'); lg.parentNode.insertBefore(w, lg) } else document.body.append(w)
