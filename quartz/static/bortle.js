@@ -72,7 +72,7 @@
     x.fillStyle = g; x.fillRect(0, 0, 64, 64); GLOW = c; return c
   }
 
-  var CACHE = null
+  var CACHE = null, BUILDS = 0, WARMED = false
   function mount(host) {
     if (!document.getElementById('bz-css')) { var st = document.createElement('style'); st.id = 'bz-css'; st.textContent = CSS; document.head.append(st) }
     host.innerHTML = ''
@@ -612,7 +612,7 @@
       /* si ya se construyo un paisaje de este mismo tamano (p. ej. al volver a abrir la seccion), se reutiliza al instante */
       var key = W + 'x' + H + '@' + Math.min(1.5, window.devicePixelRatio || 1)
       if (CACHE && CACHE.key === key) { clearTimeout(buildT); S = CACHE.sc; return }
-      clearTimeout(buildT); buildT = setTimeout(function () { if (!dead) { S = build(); CACHE = { key: key, sc: S } } }, S ? 140 : 30)
+      clearTimeout(buildT); buildT = setTimeout(function () { if (!dead) { S = build(); CACHE = { key: key, sc: S }; BUILDS++ } }, S ? 140 : 30)
     }
 
     /* =====================================================================================================
@@ -767,5 +767,15 @@
       destroy: function () { dead = true; clearTimeout(buildT); cancelAnimationFrame(raf); window.removeEventListener('vc-lang', onLang); window.removeEventListener('resize', resize); if (ro) ro.disconnect() }
     }
   }
-  window.vcBortle = { mount: mount }
+  /* precarga: construye el paisaje en un hueco invisible del mismo tamano que el real, para que al abrir la seccion salga al instante */
+  function warm(host) {
+    if (WARMED) return Promise.resolve(true)
+    var b0 = BUILDS, m = mount(host)
+    return new Promise(function (ok) {
+      var t0 = Date.now(), iv = setInterval(function () {
+        if (BUILDS > b0 || Date.now() - t0 > 6000) { clearInterval(iv); try { m.destroy() } catch (e) { } WARMED = BUILDS > b0; ok(WARMED) }
+      }, 60)
+    })
+  }
+  window.vcBortle = { mount: mount, warm: warm, get warmed() { return WARMED } }
 })()
