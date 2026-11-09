@@ -1703,7 +1703,7 @@ function secBody(name){
   return d;
 }
 /* Secciones con dibujo interactivo: se cargan bajo demanda (bortle.js) */
-const SEC_VIZ={'Contaminación Lumínica':{src:'bortle.js?v=5',api:'vcBortle'},'Entorno':{src:'entorno.js?v=2',api:'vcEntorno'},'Meteorología':{src:'meteo.js?v=3',api:'vcMeteo'},'Elección del lugar':{src:'eleccion.js?v=1',api:'vcEleccion'},'Preparación':{src:'mochila.js?v=2',api:'vcMochila'}};
+const SEC_VIZ={'Contaminación Lumínica':{src:'bortle.js?v=7',api:'vcBortle'},'Entorno':{src:'entorno.js?v=2',api:'vcEntorno'},'Meteorología':{src:'meteo.js?v=3',api:'vcMeteo'},'Elección del lugar':{src:'eleccion.js?v=1',api:'vcEleccion'},'Preparación':{src:'mochila.js?v=2',api:'vcMochila'}};
 function secLoadViz(def,cb,fail,n){
   n=n||0;
   if(window[def.api]){cb();return}
@@ -1752,12 +1752,13 @@ function openSection(btn,name){
   secEl={side,page,btn,roll,others,c,fades:[],act:null,vz:null};
   /* el dibujo se descarga ya, pero se monta cuando termina la animacion de apertura: montarlo (Bortle tarda ~0,3 s)
      durante la animacion la congelaba. Despues aparece con un fundido. */
-  let vzReady=false,vzWant=false;
-  const vzMount=()=>{if(!vzReady||!vzWant||!secEl||secEl.page!==page||secEl.vz)return;secEl.vz=window[vzDef.api].mount(vzHost);if(vzHost.animate)vzHost.animate([{opacity:0},{opacity:1}],{duration:500,easing:'ease-out'})};
+  let vzReady=false,vzWant=false,vzOpts=null;
+  const vzMount=()=>{if(!vzReady||!vzWant||!secEl||secEl.page!==page||secEl.vz)return;secEl.vz=window[vzDef.api].mount(vzHost,vzOpts);if(vzHost.animate)vzHost.animate([{opacity:0},{opacity:1}],{duration:500,easing:'ease-out'})};
   if(vzHost)secLoadViz(vzDef,()=>{vzReady=true;vzMount()});
   const vzGo=()=>{vzWant=true;vzMount()};
   /* movimiento reducido: sin desplazamientos, solo un fundido suave */
   if(red){
+    if(vzDef&&vzDef.api==='vcBortle')vzOpts=window.vcBortle&&vcBortle.warmed?null:{buildDelay:550};
     others.forEach(x=>{x.style.opacity='0'});c.style.opacity='0';roll.remove();secEl.roll=null;
     if(side.animate){const F={duration:420,easing:'ease-out',fill:'backwards'};others.concat([c]).forEach(x=>x.animate([{opacity:1},{opacity:0}],{duration:300,easing:'ease-out'}));side.animate([{opacity:0},{opacity:1}],F);page.animate([{opacity:0},{opacity:1}],Object.assign({},F,{delay:120})).onfinish=vzGo}
     else vzGo();
@@ -1794,8 +1795,9 @@ function openSection(btn,name){
   if(bdS)bdS.animate([{opacity:0},{opacity:1}],{duration:520,delay:D0+140,easing:'ease-out',fill:'both'});
   const T={duration:900,delay:D0+250,easing:E,fill:'backwards'};
   page.animate([{clipPath:'inset(0px '+fp.width+'px 0px 0px)'},{clipPath:'inset(0px 0px 0px 0px)'}],T);
-  /* si el dibujo ya esta precargado, aparece mientras se desenrolla la pagina (sin esperar al final) */
-  if(vzDef&&window[vzDef.api]&&window[vzDef.api].warmed)setTimeout(vzGo,D0+250);
+  /* Contaminacion Luminica aparece como las demas secciones (con su fundido al terminar de desplegarse la pagina):
+     si esta precargado sale ya dibujado; si no, se ve su imagen fija y el calculo espera a que acabe el fundido */
+  if(vzDef&&vzDef.api==='vcBortle')vzOpts=window.vcBortle&&vcBortle.warmed?null:{buildDelay:550};
   roll.animate([{left:x0+'px',opacity:0},{left:x0+'px',opacity:1,offset:.04},{left:x1+'px',opacity:1,offset:.94},{left:x1+'px',opacity:0}],{duration:900,delay:D0+250,easing:E,fill:'both'}).onfinish=()=>{secBusy=false;roll.style.display='none';vzGo()};
 }
 function closeSection(){

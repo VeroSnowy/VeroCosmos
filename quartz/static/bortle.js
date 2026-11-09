@@ -73,10 +73,16 @@
   }
 
   var CACHE = null, BUILDS = 0, WARMED = false
-  function mount(host) {
+  var PH = { a: { src: 'bortle-ancho.webp', w: 1716, h: 1000 }, t: { src: 'bortle-alto.webp', w: 700, h: 1700 } }
+  /* se descarga ya la imagen fija que corresponde a esta pantalla */
+  try { new Image().src = (window.innerWidth / window.innerHeight > 1 ? PH.a : PH.t).src } catch (e) { }
+  /* opts.buildDelay: espera antes de calcular el paisaje (para no trabar una animacion; mientras, se ve la imagen fija) */
+  function mount(host, opts) {
+    var BDU = Date.now() + ((opts && opts.buildDelay) || 0)   /* hasta cuando esperar para el primer calculo */
     if (!document.getElementById('bz-css')) { var st = document.createElement('style'); st.id = 'bz-css'; st.textContent = CSS; document.head.append(st) }
     host.innerHTML = ''
-    var cv = document.createElement('canvas'); cv.className = 'bz-c'; cv.setAttribute('role', 'img')
+    var cv = document.createElement('canvas'); cv.className = 'bz-c'; cv.style.opacity = '0'; cv.style.transition = 'opacity .45s ease-out'
+    var shown = false; cv.setAttribute('role', 'img')
     var side = document.createElement('div'); side.className = 'bz-s'
     side.innerHTML = '<div class="bz-h"></div><div class="bz-e" data-e="0"></div><div class="bz-n"></div><div class="bz-lv"></div><div class="bz-e" data-e="1"></div>'
     host.append(cv, side)
@@ -473,7 +479,7 @@
         fc.stroke()
       }
       /* flores pequenas */
-      for (var fq = 0; fq < 30; fq++) { var u5 = rg(), fy = edgeY(u5) + Math.pow(rg(), 1.5) * (H - edgeY(u5)), fx2 = u5 * FW, fs = 1 + (fy - edgeY(u5)) / 60; fc.fillStyle = rg() < .5 ? 'rgba(207,214,255,.75)' : 'rgba(185,201,255,.6)'; for (var pe = 0; pe < 5; pe++) { var an = pe / 5 * 6.283; fc.beginPath(); fc.arc(fx2 + Math.cos(an) * fs * 1.2, fy - 6 * fs + Math.sin(an) * fs * 1.2, fs * .8, 0, 6.283); fc.fill() } fc.strokeStyle = 'rgba(110,126,204,.6)'; fc.lineWidth = .7; fc.beginPath(); fc.moveTo(fx2, fy); fc.lineTo(fx2, fy - 5 * fs); fc.stroke() }
+      for (var fq = 0; fq < 30; fq++) { var u5 = rg(), fy = edgeY(u5) + Math.pow(rg(), 1.5) * Math.max(0, H - edgeY(u5)), fx2 = u5 * FW, fs = Math.max(.5, 1 + (fy - edgeY(u5)) / 60); fc.fillStyle = rg() < .5 ? 'rgba(207,214,255,.75)' : 'rgba(185,201,255,.6)'; for (var pe = 0; pe < 5; pe++) { var an = pe / 5 * 6.283; fc.beginPath(); fc.arc(fx2 + Math.cos(an) * fs * 1.2, fy - 6 * fs + Math.sin(an) * fs * 1.2, fs * .8, 0, 6.283); fc.fill() } fc.strokeStyle = 'rgba(110,126,204,.6)'; fc.lineWidth = .7; fc.beginPath(); fc.moveTo(fx2, fy); fc.lineTo(fx2, fy - 5 * fs); fc.stroke() }
       /* rocas con grietas */
       for (var rq = 0; rq < 7; rq++) { var u4 = .05 + rq * .14 + rg() * .05, rx = u4 * FW, ry = edgeY(u4) + 8 + rg() * 24, rr = 6 + rg() * 12; fc.fillStyle = 'rgb(12,16,38)'; fc.strokeStyle = 'rgba(110,126,204,.85)'; fc.lineWidth = 1.1; fc.beginPath(); fc.moveTo(rx - rr, ry); fc.quadraticCurveTo(rx - rr * .9, ry - rr * .7, rx - rr * .2, ry - rr * .62); fc.quadraticCurveTo(rx + rr * .6, ry - rr * .8, rx + rr, ry); fc.closePath(); fc.fill(); fc.stroke(); fc.strokeStyle = 'rgba(79,92,156,.7)'; fc.lineWidth = .7; fc.beginPath(); fc.moveTo(rx - rr * .2, ry - rr * .6); fc.lineTo(rx - rr * .05, ry - rr * .3); fc.lineTo(rx - rr * .25, ry - rr * .05); fc.stroke() }
       fc.restore()
@@ -601,6 +607,11 @@
       return sc
     }
 
+    /* imagen fija del mismo paisaje (nivel 5) que se ve al instante mientras se calcula el dibujo animado */
+    function placeholder() {
+      var p = W / H > 1 ? PH.a : PH.t, k = Math.max(W / p.w, H / p.h), w = p.w * k, h = p.h * k
+      host.style.background = '#05060f url(' + p.src + ') ' + Math.round((W - w) / 2) + 'px ' + Math.round(H - h) + 'px/' + Math.round(w) + 'px ' + Math.round(h) + 'px no-repeat'
+    }
     function resize() {
       var r = cv.getBoundingClientRect(); W = Math.max(40, Math.round(r.width)); H = Math.max(40, Math.round(r.height))
       var dpr = Math.min(2, window.devicePixelRatio || 1)
@@ -610,12 +621,13 @@
       host.classList.toggle('bz-root-short', side.clientHeight < 440); host.classList.toggle('bz-root-tiny', side.clientHeight < 300)
       /* la escena se reconstruye poco despues (evita rehacerla en cada paso de un redimensionado) */
       /* si ya se construyo un paisaje de este mismo tamano (p. ej. al volver a abrir la seccion), se reutiliza al instante */
+      if (!shown) placeholder()
       var key = W + 'x' + H + '@' + Math.min(1.5, window.devicePixelRatio || 1)
       if (CACHE && CACHE.key === key) { clearTimeout(buildT); S = CACHE.sc; return }
       /* si hay uno de tamano parecido (p. ej. el movil ha escondido su barra), se ensena ya y se rehace con calma despues */
       var near = !S && CACHE && Math.abs(CACHE.W - W) / W < .15 && Math.abs(CACHE.H - H) / H < .15
       if (near) S = CACHE.sc
-      clearTimeout(buildT); buildT = setTimeout(function () { if (!dead) { S = build(); CACHE = { key: key, sc: S, W: W, H: H }; BUILDS++ } }, near ? 2600 : S ? 140 : 30)
+      clearTimeout(buildT); buildT = setTimeout(function () { if (!dead) { S = build(); CACHE = { key: key, sc: S, W: W, H: H }; BUILDS++ } }, near ? 2600 : S ? 140 : Math.max(30, BDU - Date.now()))
     }
 
     /* =====================================================================================================
@@ -752,7 +764,9 @@
         /* en reposo (nivel fijo y sin mover el raton) basta con 30 fotogramas por segundo: menos consumo */
         var idle = cur === target && mx === lastMx; lastMx = mx
         if (!idle || now - lastDraw > 31) { lastDraw = now; draw(now) }
-      } else { ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = '#05060f'; ctx.fillRect(0, 0, cv.width, cv.height) }
+      } else { ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, cv.width, cv.height) }
+      /* en cuanto hay paisaje calculado, sustituye a la imagen fija con un fundido corto */
+      if (S && W > 0 && !shown) { shown = true; cv.style.opacity = '1'; setTimeout(function () { if (!dead) host.style.background = '' }, 700) }
       raf = requestAnimationFrame(frame)
     }
 
@@ -764,6 +778,7 @@
     var ro = null
     try { ro = new ResizeObserver(resize); ro.observe(host); ro.observe(lv) } catch (e) { window.addEventListener('resize', resize) }
     resize(); setLevel(5, true)
+    if (S) cv.style.transition = 'none'   /* ya estaba calculado: sin fundido */
     raf = requestAnimationFrame(frame)
     return {
       setLevel: setLevel,
