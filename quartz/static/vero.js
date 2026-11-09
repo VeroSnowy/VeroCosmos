@@ -322,7 +322,13 @@
     function schedule() {
       clearTimeout(autoT); clearInterval(every)
       if (ls(KEY) === 'full') {
-        autoT = setTimeout(function () { auto('ctx') }, 7000)
+        /* el primer intento espera a que se cierre lo que haya abierto (Ajustes, la presentacion...) y deja 3 s de margen */
+        var first = function (late) {
+          if (busy()) { autoT = setTimeout(function () { first(true) }, 1500); return }
+          if (late) { autoT = setTimeout(function () { auto('ctx') }, 3000); return }
+          auto('ctx')
+        }
+        autoT = setTimeout(first, 7000)
         every = setInterval(function () { auto('periodic') }, 30000)
       } else guideTip()
     }
@@ -356,7 +362,10 @@
   function off() { if (W) { W.remove(); W = null } document.body.classList.remove('vero-on') }
   /* cambio de modo (desde la presentacion o desde Ajustes) */
   function setMode(m) {
+    var prev = ls(KEY)
     ls(KEY, m === 'off' || m === 'full' ? m : 'on')
+    /* al elegir Completa a mano, se empieza de cero: sin esperas acumuladas, para que se asome pronto */
+    if (m === 'full' && prev !== 'full') { ls(IGN, '0'); ls(LAST, '0') }
     if (m === 'off') { off(); return }
     if (!W) { tries = 0; mount() } else if (W.schedule) W.schedule()
   }
