@@ -612,7 +612,10 @@
       /* si ya se construyo un paisaje de este mismo tamano (p. ej. al volver a abrir la seccion), se reutiliza al instante */
       var key = W + 'x' + H + '@' + Math.min(1.5, window.devicePixelRatio || 1)
       if (CACHE && CACHE.key === key) { clearTimeout(buildT); S = CACHE.sc; return }
-      clearTimeout(buildT); buildT = setTimeout(function () { if (!dead) { S = build(); CACHE = { key: key, sc: S }; BUILDS++ } }, S ? 140 : 30)
+      /* si hay uno de tamano parecido (p. ej. el movil ha escondido su barra), se ensena ya y se rehace con calma despues */
+      var near = !S && CACHE && Math.abs(CACHE.W - W) / W < .15 && Math.abs(CACHE.H - H) / H < .15
+      if (near) S = CACHE.sc
+      clearTimeout(buildT); buildT = setTimeout(function () { if (!dead) { S = build(); CACHE = { key: key, sc: S, W: W, H: H }; BUILDS++ } }, near ? 2600 : S ? 140 : 30)
     }
 
     /* =====================================================================================================
