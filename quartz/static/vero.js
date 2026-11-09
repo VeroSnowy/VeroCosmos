@@ -235,11 +235,11 @@
     /* si se la ignora, cada vez espera mas para volver a asomarse: 3, 6, 12, 24, 48 min... (maximo 1 h). Al pulsarla, vuelve a empezar */
     /* el tiempo cuenta para toda la web (se guarda en el navegador) y desde que acaba la ultima aparicion, no desde que empieza */
     /* primera visita a la web: como antes, puede volver a salir al cambiar de seccion (45 s como minimo).
-       Desde la segunda visita, el tiempo es el mismo para toda la web (3 min, o mas si se la ignora) */
+       Desde la segunda visita, el tiempo es el mismo para toda la web (2 min, o mas si se la ignora: 4, 8, 16... hasta 1 h) */
     function waitFull(kind) {
       var n = +ls(IGN) || 0
-      if (!n && (+ls(VISITS) || 1) <= 1) return kind === 'ctx' ? 45000 : 170000
-      return Math.min(170000 * Math.pow(2, n), 3600000)
+      if (!n && (+ls(VISITS) || 1) <= 1) return kind === 'ctx' ? 45000 : 120000
+      return Math.min(120000 * Math.pow(2, n), 3600000)
     }
     function endInt() { ls(LAST, String(Date.now())) }
     /* registro de consejos ya mostrados: primero los que aun no ha dicho; si ya los dijo todos, el que dijo hace mas tiempo */
@@ -362,10 +362,9 @@
   function off() { if (W) { W.remove(); W = null } document.body.classList.remove('vero-on') }
   /* cambio de modo (desde la presentacion o desde Ajustes) */
   function setMode(m) {
-    var prev = ls(KEY)
     ls(KEY, m === 'off' || m === 'full' ? m : 'on')
-    /* al elegir Completa a mano, se empieza de cero: sin esperas acumuladas, para que se asome pronto */
-    if (m === 'full' && prev !== 'full') { ls(IGN, '0'); ls(LAST, '0') }
+    /* al elegir Completa a mano (aunque ya lo estuviera), se empieza de cero: sin esperas acumuladas, para que se asome pronto */
+    if (m === 'full') { ls(IGN, '0'); ls(LAST, '0') }
     if (m === 'off') { off(); return }
     if (!W) { tries = 0; mount() } else if (W.schedule) W.schedule()
   }
