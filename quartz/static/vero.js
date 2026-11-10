@@ -72,6 +72,12 @@
     '#vc-big .vb-t{margin:0 0 16px;font-size:21px;line-height:1.4;color:#fff}' +
     '#vc-big .vb-ok{font:inherit;font-size:16px;padding:9px 22px;border-radius:999px;cursor:pointer;color:#1a1500;background:#f8d874;border:1.5px solid #f8d874;font-weight:600}' +
     '#vc-big .vb-ok:hover,#vc-big .vb-ok:focus-visible{background:#ffe59a;outline:none}' +
+    '#vc-big .vb-bt{display:flex;flex-wrap:wrap;align-items:center;gap:10px}' +
+    '#vc-big .vb-lk{font-size:16px;padding:8px 18px;border-radius:999px;color:#eef1ff;border:1.5px solid #5b6bb4;text-decoration:none}' +
+    '#vc-big .vb-lk:hover,#vc-big .vb-lk:focus-visible{border-color:#b9c9ff;background:#1a2040;outline:none}' +
+    '#vc-vero .vv-lk{display:inline-block;margin-top:8px;color:#f8d874;text-decoration:none;font-weight:600}' +
+    '#vc-vero .vv-lk[hidden]{display:none}' +
+    '#vc-vero .vv-lk:hover,#vc-vero .vv-lk:focus-visible{text-decoration:underline;outline:none}' +
     '@media(max-width:700px){#vc-big{align-items:flex-start;overflow:auto;padding:max(16px,env(safe-area-inset-top)) 12px max(40px,calc(env(safe-area-inset-bottom) + 24px))}#vc-big .vb-in{flex-direction:column;justify-content:flex-start;max-height:none;gap:8px;margin:0 auto 40px;width:100%}#vc-big .vb-img{height:min(34vh,300px);max-width:70vw}}' +
     '#vc-vero .vv-b:before{content:"";position:absolute;top:-8px;right:var(--vv-ax,40px);width:14px;height:14px;background:#0b1025;border:1.5px solid #5b6bb4;border-bottom:0;border-right:0;transform:rotate(45deg)}' +
     '#vc-vero .vv-n,#vc-vero-intro .vv-n{font-size:12.5px;letter-spacing:.12em;text-transform:uppercase;color:#f8d874;margin-bottom:2px}' +
@@ -180,13 +186,17 @@
     if (!document.getElementById('vc-vero-css')) { var st = document.createElement('style'); st.id = 'vc-vero-css'; st.textContent = CSS; document.head.append(st) }
     var w = W = document.createElement('div'); w.id = 'vc-vero'
     w.innerHTML = '<button type="button" class="vv-i" aria-label="Vero: un consejo y el dato del día"><span class="vv-p" hidden></span><img alt="" src="' + BASE + 'icono.webp" decoding="async"></button>' +
-      '<div class="vv-b" role="dialog" aria-label="Vero"><button type="button" class="vv-x" aria-label="Cerrar">×</button><div class="vv-n">Vero</div><div class="vv-t"></div><div class="vv-d"><div class="vv-n">Dato del día</div><div class="vv-f"></div></div><button type="button" class="vv-h">Desactivar a Vero</button></div>'
+      '<div class="vv-b" role="dialog" aria-label="Vero"><button type="button" class="vv-x" aria-label="Cerrar">×</button><div class="vv-n">Vero</div><div class="vv-t"></div><a class="vv-lk" target="_blank" rel="noopener noreferrer" hidden></a><div class="vv-d"><div class="vv-n">Dato del día</div><div class="vv-f"></div></div><button type="button" class="vv-h">Desactivar a Vero</button></div>'
     var flex = lg.parentNode && lg.parentNode.classList && lg.parentNode.classList.contains('tools')
     if (flex) { w.classList.add('vv-flex'); lg.parentNode.insertBefore(w, lg) } else document.body.append(w)
     document.body.classList.add('vero-on')
     var b = w.querySelector('.vv-b'), t = w.querySelector('.vv-t'), f = w.querySelector('.vv-f'), ic = w.querySelector('.vv-i'), pt = w.querySelector('.vv-p')
     var day = dayN()
-    pt.hidden = !(ls(KEY) && ls(KEY) !== 'off' && String(day) !== ls(SEEN))
+    /* aviso temporal (promo.js): un sorteo, una novedad... */
+    function promo() { return window.vcPromo && window.vcPromo.pendiente() ? window.vcPromo : null }
+    var lk = w.querySelector('.vv-lk')
+    lk.addEventListener('click', function () { if (window.vcPromo) { lk.href = window.vcPromo.url(); window.vcPromo.visto() } })
+    pt.hidden = !(ls(KEY) && ls(KEY) !== 'off' && (String(day) !== ls(SEEN) || promo()))
     var dd = w.querySelector('.vv-d')
 
     /* el icono se coloca a la izquierda del selector de idioma */
@@ -214,7 +224,9 @@
     var ti = Math.floor(Math.random() * TIPS.length), clicks = 0, ct = 0
     function open() {
       place()
-      t.textContent = TIPS[ti++ % TIPS.length]
+      var pr = promo()
+      t.textContent = pr ? pr.texto : TIPS[ti++ % TIPS.length]
+      lk.hidden = !pr; if (pr) { lk.textContent = pr.boton; lk.insertAdjacentHTML('beforeend', '<span aria-hidden="true"> →</span>'); lk.href = pr.url(); pr.visto() }
       f.textContent = FACTS[((day % FACTS.length) + FACTS.length) % FACTS.length]
       dd.hidden = false; delete b.dataset.auto; clearTimeout(hideT)
       b.classList.add('on'); pt.hidden = true; ls(SEEN, String(day))
@@ -259,15 +271,16 @@
       lastAuto = Date.now()
       if (m === 'full') {
         if (Date.now() - (+ls(LAST) || 0) < waitFull(kind)) return
-        endInt(); peek(c, pickTip(c)); return
+        var pr = promo()
+        endInt(); peek(c, pr ? pr.texto : pickTip(c), pr); return
       }
-      t.textContent = pickTip(c); dd.hidden = true; b.dataset.auto = '1'; b.classList.add('on'); place()
+      t.textContent = pickTip(c); lk.hidden = true; dd.hidden = true; b.dataset.auto = '1'; b.classList.add('on'); place()
       clearTimeout(hideT); hideT = setTimeout(function () { if (b.dataset.auto === '1') { b.classList.remove('on'); endInt() } }, 12000)
     }
 
     /* modo completa: Vero se asoma por el borde inferior, resplandeciendo; si se pulsa, se abre en grande con el consejo */
     var pk = null, pkT = 0
-    function peek(c, tip) {
+    function peek(c, tip, pr) {
       if (pk || document.getElementById('vc-big')) return
       var ps = PICS[c] || ['saluda'], pose = ps[Math.floor(Math.random() * ps.length)]
       var el = pk = document.createElement('button'); el.type = 'button'; el.id = 'vc-peek'; el.setAttribute('aria-label', 'Vero tiene un consejo para ti')
@@ -284,17 +297,23 @@
       var show = function () { if (shown || pk !== el) return; shown = true; requestAnimationFrame(function () { requestAnimationFrame(function () { el.classList.add('on') }) }) }
       if (im.complete && im.naturalWidth) show(); else { im.onload = show; im.onerror = function () { hidePeek() } }
       clearTimeout(pkT); pkT = setTimeout(function () { if (pk === el) ls(IGN, String((+ls(IGN) || 0) + 1)); hidePeek() }, 15000)
-      el.addEventListener('click', function () { var r = im.getBoundingClientRect(); clearTimeout(pkT); ls(IGN, '0'); pk = null; el.remove(); bigOpen(tip, big.src, r) })
+      el.addEventListener('click', function () { var r = im.getBoundingClientRect(); clearTimeout(pkT); ls(IGN, '0'); pk = null; el.remove(); bigOpen(tip, big.src, r, pr) })
     }
     function hidePeek() {
       clearTimeout(pkT); if (!pk) return
       endInt()
       var el = pk; pk = null; el.classList.remove('on'); setTimeout(function () { el.remove() }, reduced() ? 0 : 700)
     }
-    function bigOpen(tip, src, from) {
+    function bigOpen(tip, src, from, pr) {
       var o = document.createElement('div'); o.id = 'vc-big'; o.setAttribute('role', 'dialog'); o.setAttribute('aria-modal', 'true'); o.setAttribute('aria-label', 'Vero')
-      o.innerHTML = '<div class="vb-bd"></div><div class="vb-in"><img class="vb-img" alt="" src="' + src + '"><div class="vb-card"><div class="vv-n">Vero</div><p class="vb-t"></p><button type="button" class="vb-ok">¡Gracias, Vero!</button></div></div>'
+      o.innerHTML = '<div class="vb-bd"></div><div class="vb-in"><img class="vb-img" alt="" src="' + src + '"><div class="vb-card"><div class="vv-n">Vero</div><p class="vb-t"></p><div class="vb-bt"><button type="button" class="vb-ok">¡Gracias, Vero!</button></div></div></div>'
       o.querySelector('.vb-t').textContent = tip
+      if (pr) {
+        var a = document.createElement('a'); a.className = 'vb-lk'; a.target = '_blank'; a.rel = 'noopener noreferrer'
+        a.textContent = pr.boton; a.insertAdjacentHTML('beforeend', '<span aria-hidden="true"> →</span>'); a.href = pr.url()
+        a.addEventListener('click', function () { a.href = pr.url() })
+        o.querySelector('.vb-bt').append(a); pr.visto()
+      }
       document.body.append(o)
       var img = o.querySelector('.vb-img')
       var pop = function () {
@@ -346,7 +365,7 @@
       ic.classList.remove('hi')
       if (!ls(KEY)) { intro(ic); return }
       clearTimeout(ct); clicks++; ct = setTimeout(function () { clicks = 0 }, 1500)
-      if (clicks >= 5) { clicks = 0; place(); t.textContent = '¡Eh, que me despeinas!'; f.textContent = FACTS[(day + 3) % FACTS.length]; b.classList.add('on'); return }
+      if (clicks >= 5) { clicks = 0; place(); lk.hidden = true; t.textContent = '¡Eh, que me despeinas!'; f.textContent = FACTS[(day + 3) % FACTS.length]; b.classList.add('on'); return }
       if (b.classList.contains('on')) b.classList.remove('on'); else open()
     })
     w.querySelector('.vv-x').addEventListener('click', function () { if (b.dataset.auto) { mute = Date.now() + 120000; endInt() } b.classList.remove('on') })
@@ -372,15 +391,15 @@
   /* presentacion: Vero sale del icono, grande, se presenta y se elige el modo (con vista previa animada) */
   var MODES = [
     ['off', 'Desactivada', 'No aparezco en ningún sitio.', 'La web tal cual, sin mí. Podrás activarme cuando quieras desde Ajustes.'],
-    ['on', 'Discreta', 'En mi icono y en las fichas; casi no molesto.', 'Mi icono junto al idioma, datos curiosos en las fichas y, de vez en cuando, un consejo en la guía.'],
-    ['full', 'Completa', '¡Me asomaré de vez en cuando! Púlsame si quieres un consejo.', 'Aparezco a menudo con consejos por toda la web, y aquí llegará todo lo nuevo que prepare.']
+    ['on', 'Discreta', 'En mi icono y en las fichas; casi no molesto.', 'Mi icono junto al idioma, datos curiosos en las fichas y, de vez en cuando, un consejo en la guía. Si hay un sorteo o una promoción, te avisaré en mi icono.'],
+    ['full', 'Completa', '¡Me asomaré de vez en cuando! Púlsame si quieres un consejo.', 'Aparezco a menudo con consejos por toda la web, te aviso de sorteos y promociones, y aquí llegará todo lo nuevo que prepare.']
   ]
   function intro(ic) {
     if (document.getElementById('vc-vero-intro')) return
     var o = document.createElement('div'); o.id = 'vc-vero-intro'; o.setAttribute('role', 'dialog'); o.setAttribute('aria-modal', 'true'); o.setAttribute('aria-label', 'Vero')
     o.innerHTML = '<div class="vi-bd"></div><div class="vi-in"><img class="vi-img" alt="" src="' + BASE + 'saluda.webp" decoding="async"><div class="vi-card">' +
       '<img class="vi-mini" alt="" src="' + BASE + 'saluda.webp" decoding="async"><div class="vv-n">Vero</div><h2 class="vi-h vi-line" style="animation-delay:.5s">¡Hola! Soy Vero Andromedasis</h2>' +
-      '<p class="vi-line" style="animation-delay:.8s">Me flipa el cielo, así que te acompaño por la web con consejos para empezar a observar y un dato curioso cada día.</p>' +
+      '<p class="vi-line" style="animation-delay:.8s">Me flipa el cielo, así que te acompaño por la web con consejos para empezar a observar, un dato curioso cada día y avisos de sorteos y promociones.</p>' +
       '<p class="vi-q vi-line" style="animation-delay:1.1s">Vivo en este icono, junto al idioma, y tú decides cuánto te acompaño:</p>' +
       '<div class="vi-ms vi-line" role="radiogroup" aria-label="Modo de Vero" style="animation-delay:1.3s">' + MODES.map(function (m) { return '<button type="button" class="vi-m" role="radio" aria-checked="false" data-m="' + m[0] + '"><b>' + m[1] + '</b><span>' + m[2] + '</span></button>' }).join('') + '</div>' +
       '<div class="vi-acts vi-line" style="animation-delay:1.5s"><button type="button" class="vi-go" disabled>Elegir este modo</button><button type="button" class="vi-later">Ahora no</button></div>' +
