@@ -33,7 +33,10 @@
   }
 
   var CSS =
-    '#vc-promo{position:relative;z-index:3;display:flex;align-items:center;gap:14px;width:min(460px,calc(100% - 36px));margin:26px 0 0;padding:10px 12px 10px 10px;border:1px solid #5b6bb4;border-radius:16px;background:linear-gradient(120deg,#16204ae6,#0b1025e6);box-shadow:0 12px 34px #0005,0 0 26px #5b6bb433;backdrop-filter:blur(12px);color:#eef1ff;text-align:left;animation:vcpr .7s .5s both}' +
+    '#vc-promo-w{position:relative;z-index:3;flex:none;width:min(460px,calc(100% - 36px));height:0;margin:0;overflow:hidden;transition:height .55s cubic-bezier(.22,.8,.25,1),margin-top .55s cubic-bezier(.22,.8,.25,1)}' +
+    '#vc-promo-w.on{margin-top:26px}#vc-promo-w.fin{overflow:visible}' +
+    '#vc-promo{position:relative;display:flex;align-items:center;gap:14px;margin:0;padding:10px 12px 10px 10px;opacity:0;transform:translateY(12px);transition:opacity .4s ease,transform .5s cubic-bezier(.22,.8,.25,1);border:1px solid #5b6bb4;border-radius:16px;background:linear-gradient(120deg,#16204ae6,#0b1025e6);box-shadow:0 12px 34px #0005,0 0 26px #5b6bb433;backdrop-filter:blur(12px);color:#eef1ff;text-align:left}' +
+    '#vc-promo-w.on #vc-promo{opacity:1;transform:none;transition-delay:.15s,.1s}' +
     '#vc-promo img{flex:none;width:64px;height:64px;border-radius:12px;object-fit:cover;object-position:50% 20%;border:1px solid #414e7a}' +
     '#vc-promo .pr-c{display:flex;flex:1;min-width:0;flex-direction:column;gap:3px}' +
     '#vc-promo .pr-k{color:#f8d874;font-size:10.5px;font-weight:650;letter-spacing:.17em;text-transform:uppercase}' +
@@ -43,12 +46,11 @@
     '#vc-promo .pr-a:hover,#vc-promo .pr-a:focus-visible{background:#ffe59a;transform:translateY(-1px);outline:none}' +
     '#vc-promo .pr-x{position:absolute;top:-9px;right:-9px;display:flex;align-items:center;justify-content:center;width:24px;height:24px;padding:0;border:1px solid #5b6bb4;border-radius:50%;background:#0b1025;color:#b9c9ff;font:16px/1 sans-serif;cursor:pointer}' +
     '#vc-promo .pr-x:hover,#vc-promo .pr-x:focus-visible{border-color:#b9c9ff;color:#fff;outline:none}' +
-    '@keyframes vcpr{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}' +
     '@media(max-width:520px){#vc-promo{flex-wrap:wrap;gap:10px 12px}#vc-promo img{width:56px;height:56px}#vc-promo .pr-a{width:100%;justify-content:center;padding:10px 14px}}' +
-    '@media(max-width:700px){body.principal-page #vc-promo{order:2;flex-shrink:0;max-width:420px}}' +
+    '@media(max-width:700px){body.principal-page #vc-promo-w{order:2;max-width:420px}}' +
     /* en pantallas de ordenador bajas no cabe entre el lema y las tarjetas de abajo */
-    '@media(min-width:701px) and (max-height:620px){#vc-promo{display:none}}' +
-    '@media(prefers-reduced-motion:reduce){#vc-promo{animation:none}}'
+    '@media(min-width:701px) and (max-height:620px){#vc-promo-w{display:none}}' +
+    '@media(prefers-reduced-motion:reduce){#vc-promo-w,#vc-promo{transition:none!important}}'
 
   function mount() {
     if (!activo() || ls('vc-promo-x-' + P.id) || document.getElementById('vc-promo')) return
@@ -65,10 +67,27 @@
     var a = d.querySelector('.pr-a'); a.querySelector('span').textContent = P.boton; a.href = url()
     a.addEventListener('click', function () { a.href = url() })
     window.addEventListener('vc-lang', function () { a.href = url() })
-    d.querySelector('.pr-x').addEventListener('click', function () { ls('vc-promo-x-' + P.id, '1'); d.remove() })
-    sub.parentNode.insertBefore(d, sub.nextSibling)
+    var w = document.createElement('div'); w.id = 'vc-promo-w'; w.append(d)
+    sub.parentNode.insertBefore(w, sub.nextSibling)
+    var rm = matchMedia('(prefers-reduced-motion: reduce)')
+    function fin(el, cb) { var done = false, go = function () { if (!done) { done = true; cb() } }; el.addEventListener('transitionend', function (e) { if (e.target === el && e.propertyName === 'height') go() }); setTimeout(go, 800) }
+    function abrir() {
+      if (rm.matches) { w.style.height = 'auto'; w.classList.add('on', 'fin'); return }
+      w.style.height = d.offsetHeight + 'px'; w.classList.add('on')
+      fin(w, function () { w.style.height = 'auto'; w.classList.add('fin') })
+    }
+    function cerrar() {
+      if (!w.parentNode) return
+      if (rm.matches) { w.remove(); return }
+      w.style.height = w.offsetHeight + 'px'; w.classList.remove('fin'); void w.offsetHeight
+      w.classList.remove('on'); w.style.height = '0px'
+      fin(w, function () { w.remove() })
+    }
+    /* sale un momento despues de cargar, cuando ya se ve la portada */
+    setTimeout(function () { requestAnimationFrame(abrir) }, 600)
+    d.querySelector('.pr-x').addEventListener('click', function () { ls('vc-promo-x-' + P.id, '1'); cerrar() })
     /* si la pagina sigue abierta cuando acaba, se quita */
-    setTimeout(function () { if (d.parentNode) d.remove() }, Math.min(P.fin - Date.now(), 2147483000))
+    setTimeout(cerrar, Math.min(P.fin - Date.now(), 2147483000))
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount); else mount()
 })()
