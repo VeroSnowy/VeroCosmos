@@ -2,8 +2,6 @@ name: Prueba SEO fichas (temporal)
 on:
   push:
     branches: [claude/seo-prueba]
-permissions:
-  contents: write
 jobs:
   prueba:
     runs-on: ubuntu-latest
@@ -26,12 +24,10 @@ jobs:
           sleep 2
           node .github/prueba/comparar.mjs | tee resultados-log.txt
           echo "::notice title=resultado::$(tr '\n' '|' < resultados-log.txt)"
-      - name: Guardar resultados en una rama
+      - name: Enviar capturas como anotaciones
         run: |
-          mv resultados-log.txt resultados/
-          git config user.name "github-actions" && git config user.email "actions@github.com"
-          git checkout --orphan claude/seo-prueba-resultados
-          git rm -rq --cached .
-          git add -f resultados
-          git commit -qm "Resultados de la prueba"
-          git push -f origin claude/seo-prueba-resultados
+          for f in resultados/*.jpg; do
+            n=$(basename $f .jpg); base64 -w0 $f > /tmp/b64; split -b 30000 -d /tmp/b64 /tmp/part_$n_
+            for c in /tmp/part_$n_*; do echo "::notice title=IMG $n $(basename $c)::$(cat $c)"; done
+            rm -f /tmp/part_$n_*
+          done
