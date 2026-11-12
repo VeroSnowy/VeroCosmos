@@ -7,6 +7,8 @@
  *   - datos, etiquetas, curiosidades y otros objetos al final del articulo
  *   - datos estructurados (JSON-LD)
  * No toca las notas de Obsidian ni nada fuera de public/. Si una pagina no existe, avisa y sigue.
+ * IMPORTANTE: el atlas y ficha.html leen estas mismas paginas y muestran como texto cada <p> del <article>
+ * (preview, panel lateral y ficha completa). Por eso aqui no se anade NINGUN <p>: solo div, h2, ul y li.
  *
  * Uso:  node tools/seo-fichas.mjs [carpeta]   (por defecto public)
  */
@@ -84,7 +86,7 @@ for (const [clave, f] of Object.entries(FICHAS)) {
     fotos.sort((a, b) => b.d.localeCompare(a.d))
 
     /* 3. boton al atlas 3D, al principio del articulo */
-    const boton = `<p class="vc-seo-atlas" ${MARCA}><a href="${esc(atlas)}" class="external">Ver ${esc(f.name)} en el atlas 3D de Vero Cosmos →</a></p>`
+    const boton = `<div class="vc-seo-atlas" ${MARCA}><a href="${esc(atlas)}" class="external">Ver ${esc(f.name)} en el atlas 3D de Vero Cosmos →</a></div>`
     h = h.replace(/(<article\b[^>]*>)/i, `$1${boton}`)
 
     /* 4. datos, etiquetas, curiosidades y otros objetos, al final del articulo */
@@ -99,8 +101,8 @@ for (const [clave, f] of Object.entries(FICHAS)) {
           return `<li>${n}: ${esc(o.d)}</li>`
         })
         .join('')}</ul>`
-    if ((f.cats || []).length) extra += `<p><strong>Etiquetas:</strong> ${f.cats.map(esc).join(' · ')}</p>`
-    extra += `<p><a href="${esc(atlas)}" class="external">Abrir la ficha completa con el modelo 3D →</a></p></section>`
+    if ((f.cats || []).length) extra += `<h2 id="etiquetas">Etiquetas</h2><ul>${f.cats.map(c => `<li>${esc(c)}</li>`).join('')}</ul>`
+    extra += `<div><a href="${esc(atlas)}" class="external">Abrir la ficha completa con el modelo 3D →</a></div></section>`
     const fin = h.search(/<\/article>/i)
     h = h.slice(0, fin) + extra + h.slice(fin)
 
