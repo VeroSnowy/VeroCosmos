@@ -40,6 +40,8 @@ seguirán usando la versión vieja.
   `node tools/nueva-ficha.mjs mi-ficha.md` (primero con `--simular`). Rellenar `en`/`fr` en
   `tools/pendientes-traduccion.json` y luego `node tools/nueva-ficha.mjs --aplicar`.
   La nota y su foto deben existir ya en el vault. Opciones: `--reemplazar`, `--sin-version`.
+  El proceso completo (incluida la traducción de la `description` y los párrafos de la nota) está en la skill
+  `.claude/skills/nueva-ficha/SKILL.md`.
 - **Revisar traducciones:** `node tools/auditar-traducciones.mjs` (duplicadas, vacías, iguales al español).
 - **Ubicación celeste:** `tools/data/cielo.json` (generado por `tools/construir-cielo.mjs`; no regenerarlo sin motivo).
 - **Comprobar antes de terminar:** `npm run check` (tsc + prettier) si se tocó código de Quartz.
