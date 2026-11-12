@@ -30,6 +30,8 @@ jobs:
         run: npx quartz plugin install
       - name: Build Quartz
         run: npx quartz build
+      - name: Completar las fichas para Google
+        run: node tools/seo-fichas.mjs
       - uses: actions/upload-pages-artifact@v3
         with:
           path: public
