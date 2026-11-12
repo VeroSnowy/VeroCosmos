@@ -24,10 +24,31 @@ jobs:
           sleep 2
           node .github/prueba/comparar.mjs | tee resultados-log.txt
           echo "::notice title=resultado::$(tr '\n' '|' < resultados-log.txt)"
-      - name: Enviar capturas como anotaciones
+      - name: Captura 2-ficha-3d-despues
+        if: always()
         run: |
-          for f in resultados/*.jpg; do
-            n=$(basename $f .jpg); base64 -w0 $f > /tmp/b64; split -b 30000 -d /tmp/b64 /tmp/part_$n_
-            for c in /tmp/part_$n_*; do echo "::notice title=IMG $n $(basename $c)::$(cat $c)"; done
-            rm -f /tmp/part_$n_*
-          done
+          convert resultados/2-ficha-3d-despues.jpg -resize 560x -quality 40 /tmp/2-ficha-3d-despues.jpg
+          base64 -w0 /tmp/2-ficha-3d-despues.jpg > /tmp/2-ficha-3d-despues.b64; split -b 4000 -d -a 2 /tmp/2-ficha-3d-despues.b64 /tmp/2-ficha-3d-despues.part
+          echo "::notice title=SIZE 2-ficha-3d-despues::$(wc -c < /tmp/2-ficha-3d-despues.b64)"
+          for c in /tmp/2-ficha-3d-despues.part*; do echo "::notice title=IMG 2-ficha-3d-despues ${c##*.part}::$(cat $c)"; done
+      - name: Captura 3-pagina-google-despues
+        if: always()
+        run: |
+          convert resultados/3-pagina-google-despues.jpg -resize 560x -quality 40 /tmp/3-pagina-google-despues.jpg
+          base64 -w0 /tmp/3-pagina-google-despues.jpg > /tmp/3-pagina-google-despues.b64; split -b 4000 -d -a 2 /tmp/3-pagina-google-despues.b64 /tmp/3-pagina-google-despues.part
+          echo "::notice title=SIZE 3-pagina-google-despues::$(wc -c < /tmp/3-pagina-google-despues.b64)"
+          for c in /tmp/3-pagina-google-despues.part*; do echo "::notice title=IMG 3-pagina-google-despues ${c##*.part}::$(cat $c)"; done
+      - name: Captura 5-pagina-google-abajo
+        if: always()
+        run: |
+          convert resultados/5-pagina-google-abajo.jpg -resize 560x -quality 40 /tmp/5-pagina-google-abajo.jpg
+          base64 -w0 /tmp/5-pagina-google-abajo.jpg > /tmp/5-pagina-google-abajo.b64; split -b 4000 -d -a 2 /tmp/5-pagina-google-abajo.b64 /tmp/5-pagina-google-abajo.part
+          echo "::notice title=SIZE 5-pagina-google-abajo::$(wc -c < /tmp/5-pagina-google-abajo.b64)"
+          for c in /tmp/5-pagina-google-abajo.part*; do echo "::notice title=IMG 5-pagina-google-abajo ${c##*.part}::$(cat $c)"; done
+      - name: Captura 4-pagina-google-movil
+        if: always()
+        run: |
+          convert resultados/4-pagina-google-movil.jpg -resize 300x -quality 40 /tmp/4-pagina-google-movil.jpg
+          base64 -w0 /tmp/4-pagina-google-movil.jpg > /tmp/4-pagina-google-movil.b64; split -b 4000 -d -a 2 /tmp/4-pagina-google-movil.b64 /tmp/4-pagina-google-movil.part
+          echo "::notice title=SIZE 4-pagina-google-movil::$(wc -c < /tmp/4-pagina-google-movil.b64)"
+          for c in /tmp/4-pagina-google-movil.part*; do echo "::notice title=IMG 4-pagina-google-movil ${c##*.part}::$(cat $c)"; done
