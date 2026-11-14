@@ -11,7 +11,8 @@
     /* enlace por idioma; si falta uno, se usa el ingles */
     url: {
       es: 'https://www.instagram.com/p/Dfk5vFwkV9G/',
-      en: 'https://www.instagram.com/p/Dfk72IDEd9R/'
+      en: 'https://www.instagram.com/p/Dfk72IDEd9R/',
+      fr: 'https://www.instagram.com/p/DflFyMEjOI2/'
     },
     img: 'sorteo/planisferio.webp',
     tipo: 'Sorteo',
