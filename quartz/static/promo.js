@@ -49,8 +49,8 @@
     '#vc-promo .pr-x:hover,#vc-promo .pr-x:focus-visible{border-color:#b9c9ff;color:#fff;outline:none}' +
     '@media(max-width:520px){#vc-promo{flex-wrap:wrap;gap:10px 12px}#vc-promo img{width:56px;height:56px}#vc-promo .pr-a{width:100%;justify-content:center;padding:10px 14px}}' +
     '@media(max-width:700px){body.principal-page #vc-promo-w{order:2;max-width:420px}}' +
-    /* en pantallas de ordenador bajas no cabe entre el lema y las tarjetas de abajo */
-    '@media(min-width:701px) and (max-height:620px){#vc-promo-w{display:none}}' +
+    /* sin sitio entre el lema y las tarjetas de abajo (ordenador con ventana baja): no se muestra */
+    '#vc-promo-w.nf{height:0!important;margin-top:0!important;overflow:hidden!important;visibility:hidden}' +
     '@media(prefers-reduced-motion:reduce){#vc-promo-w,#vc-promo{transition:none!important}}'
 
   function mount() {
@@ -70,16 +70,45 @@
     window.addEventListener('vc-lang', function () { a.href = url() })
     var w = document.createElement('div'); w.id = 'vc-promo-w'; w.append(d)
     sub.parentNode.insertBefore(w, sub.nextSibling)
-    var rm = matchMedia('(prefers-reduced-motion: reduce)')
+    var rm = matchMedia('(prefers-reduced-motion: reduce)'), pv = sub.parentNode
+    /* En ordenador, el titulo, el lema y el aviso van centrados, y las tarjetas de abajo (herramientas y contacto)
+       van pegadas al borde inferior. Se calcula cuanto hay que subir el bloque central (con padding-bottom) para que
+       el aviso no las pise sin que el titulo se meta bajo los botones de arriba. Devuelve -1 si no cabe. */
+    function hueco() {
+      if (window.innerWidth <= 700) return 0
+      if (!document.body.classList.contains('principal-page')) return null
+      var ttl = document.getElementById('principal-title'); if (!ttl) return 0
+      var pr = pv.getBoundingClientRect(), V = pv.clientHeight
+      var total = sub.getBoundingClientRect().bottom - ttl.getBoundingClientRect().top + 26 + d.offsetHeight
+      var cw = Math.min(460, pv.clientWidth - 36), x0 = pr.left + (pv.clientWidth - cw) / 2, x1 = x0 + cw, B = V
+      ;['featured-tools', 'contacts'].forEach(function (id) {
+        var e = document.getElementById(id); if (!e) return
+        var r = e.getBoundingClientRect(); if (!r.height) return
+        if (r.right > x0 - 10 && r.left < x1 + 10) B = Math.min(B, r.top - pr.top)
+      })
+      var pmin = V + total - 2 * (B - 18), pmax = V - total - 2 * 64
+      return pmin > pmax ? -1 : Math.max(0, Math.ceil(pmin))
+    }
+    function ajustar() {
+      if (!w.parentNode || !w.classList.contains('on')) return
+      var p = hueco(); if (p === null) return
+      w.classList.toggle('nf', p < 0)
+      pv.style.paddingBottom = p > 0 ? p + 'px' : ''
+    }
+    if (!rm.matches) pv.style.transition = 'padding-bottom .55s cubic-bezier(.22,.8,.25,1)'
+    window.addEventListener('resize', ajustar)
+    new MutationObserver(ajustar).observe(document.body, { attributes: true, attributeFilter: ['class'] })
     function fin(el, cb) { var done = false, go = function () { if (!done) { done = true; cb() } }; el.addEventListener('transitionend', function (e) { if (e.target === el && e.propertyName === 'height') go() }); setTimeout(go, 800) }
     function abrir() {
-      if (rm.matches) { w.style.height = 'auto'; w.classList.add('on', 'fin'); return }
-      w.style.height = d.offsetHeight + 'px'; w.classList.add('on')
+      w.classList.add('on'); ajustar()
+      if (rm.matches || w.classList.contains('nf')) { w.style.height = 'auto'; w.classList.add('fin'); return }
+      w.style.height = d.offsetHeight + 'px'
       fin(w, function () { w.style.height = 'auto'; w.classList.add('fin') })
     }
     function cerrar() {
       if (!w.parentNode) return
-      if (rm.matches) { w.remove(); return }
+      pv.style.paddingBottom = ''
+      if (rm.matches || w.classList.contains('nf')) { w.remove(); return }
       w.style.height = w.offsetHeight + 'px'; w.classList.remove('fin'); void w.offsetHeight
       w.classList.remove('on'); w.style.height = '0px'
       fin(w, function () { w.remove() })
