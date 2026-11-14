@@ -279,30 +279,77 @@
     }
 
     /* modo completa: Vero se asoma por el borde inferior, resplandeciendo; si se pulsa, se abre en grande con el consejo */
-    var pk = null, pkT = 0
-    function peek(c, tip, pr) {
+    var pk = null, pkT = 0, PKS = 'vc-vero-pk'
+    /* la asomada se guarda en la sesion: si se cambia de pagina, la nueva la vuelve a poner donde estaba */
+    function ss(k, v) { try { if (v === undefined) return sessionStorage.getItem(k); if (v === null) sessionStorage.removeItem(k); else sessionStorage.setItem(k, v) } catch (e) { return null } }
+    function sideOk(c, sd) { return (SIDES[c] || ['l', 'r']).indexOf(sd) >= 0 }
+    function pkPlace(el, side, pos) {
+      var vw = document.documentElement.clientWidth, vh = window.innerHeight, wpk = vw < 520 ? 120 : 150
+      el.className = 's-' + side; el.style.left = ''; el.style.top = ''
+      if (side === 'b') el.style.left = Math.round(Math.max(12, Math.min(vw - wpk - 12, pos != null ? pos : vw * (.12 + Math.random() * .58)))) + 'px'
+      else el.style.top = Math.round(Math.max(70, Math.min(vh - wpk - 20, pos != null ? pos : vh * (.22 + Math.random() * .4)))) + 'px'
+    }
+    function pkIn(el, still) {
+      /* still: aparece ya asomada (viene de otra pagina), sin volver a deslizarse */
+      if (still) el.style.transition = 'none'
+      requestAnimationFrame(function () { requestAnimationFrame(function () { el.classList.add('on'); if (still) requestAnimationFrame(function () { requestAnimationFrame(function () { el.style.transition = '' }) }) }) })
+    }
+    function pkTimer(el) {
+      clearTimeout(pkT); pkT = setTimeout(function () { if (pk === el) ls(IGN, String((+ls(IGN) || 0) + 1)); hidePeek() }, Math.max(0, el._until - Date.now()))
+    }
+    function pkSave(el) {
+      var m = /s-(\w)/.exec(el.className), sd = m ? m[1] : 'r'
+      ss(PKS, JSON.stringify({ tip: el._tip, pr: !!el._pr, side: sd, pos: parseInt(sd === 'b' ? el.style.left : el.style.top, 10) || 0, until: el._until }))
+    }
+    function peek(c, tip, pr, keep) {
       if (pk || document.getElementById('vc-big')) return
-      var ps = PICS[c] || ['saluda'], pose = ps[Math.floor(Math.random() * ps.length)]
       var el = pk = document.createElement('button'); el.type = 'button'; el.id = 'vc-peek'; el.setAttribute('aria-label', 'Vero tiene un consejo para ti')
       el.innerHTML = '<span class="pk-s" aria-hidden="true">✦</span><img alt="" src="' + BASE + 'p-asoma.webp" decoding="async">'
       /* por donde se asoma: abajo solo donde no tapa nada importante; en el resto, por los laterales */
-      var sides = SIDES[c] || ['l', 'r'], side = sides[Math.floor(Math.random() * sides.length)]
-      var vw = document.documentElement.clientWidth, vh = window.innerHeight, wpk = vw < 520 ? 120 : 150
-      el.className = 's-' + side
-      if (side === 'b') el.style.left = Math.round(Math.max(12, Math.min(vw - wpk - 12, vw * (.12 + Math.random() * .58)))) + 'px'
-      else el.style.top = Math.round(Math.max(70, Math.min(vh - wpk - 20, vh * (.22 + Math.random() * .4)))) + 'px'
+      var sides = SIDES[c] || ['l', 'r'], still = !!(keep && sideOk(c, keep.side))
+      if (still) pkPlace(el, keep.side, keep.pos); else pkPlace(el, sides[Math.floor(Math.random() * sides.length)])
+      el._c = c; el._tip = tip; el._pr = pr; el._until = Date.now() + (keep ? Math.max(6000, keep.until - Date.now()) : 15000)
       document.body.append(el)
-      var big = new Image(); big.src = BASE + (pose === 'saluda' ? 'saluda' : 'g-' + pose) + '.webp'
       var im = el.querySelector('img'), shown = false
-      var show = function () { if (shown || pk !== el) return; shown = true; requestAnimationFrame(function () { requestAnimationFrame(function () { el.classList.add('on') }) }) }
+      var show = function () { if (shown || pk !== el) return; shown = true; pkIn(el, still) }
       if (im.complete && im.naturalWidth) show(); else { im.onload = show; im.onerror = function () { hidePeek() } }
-      clearTimeout(pkT); pkT = setTimeout(function () { if (pk === el) ls(IGN, String((+ls(IGN) || 0) + 1)); hidePeek() }, 15000)
-      el.addEventListener('click', function () { var r = im.getBoundingClientRect(); clearTimeout(pkT); ls(IGN, '0'); pk = null; el.remove(); bigOpen(tip, big.src, r, pr) })
+      pkTimer(el); pkSave(el)
+      el.addEventListener('click', function () {
+        /* si se ha cambiado de seccion, el consejo y la pose son los de donde se esta ahora */
+        var c2 = ctx(), t2 = el._pr ? el._tip : (c2 === el._c ? el._tip : pickTip(c2))
+        var ps = PICS[c2] || ['saluda'], pose = ps[Math.floor(Math.random() * ps.length)]
+        var r = im.getBoundingClientRect(); clearTimeout(pkT); ls(IGN, '0'); ss(PKS, null); pk = null; el.remove()
+        bigOpen(t2, BASE + (pose === 'saluda' ? 'saluda' : 'g-' + pose) + '.webp', r, el._pr)
+      })
+      /* precarga las poses de esta seccion para que el consejo grande salga al momento */
+      ;(PICS[c] || ['saluda']).forEach(function (q) { new Image().src = BASE + (q === 'saluda' ? 'saluda' : 'g-' + q) + '.webp' })
+    }
+    /* al cambiar de seccion sigue asomada; si estaba por abajo y ahi estorba, se pasa a un lateral */
+    function peekMove(c) {
+      var el = pk; if (!el) return
+      el._until = Math.max(el._until, Date.now() + 6000); pkTimer(el)
+      var m = /s-(\w)/.exec(el.className)
+      if (m && sideOk(c, m[1])) { pkSave(el); return }
+      el.classList.remove('on')
+      setTimeout(function () {
+        if (pk !== el) return
+        var al = SIDES[c] || ['l', 'r']; pkPlace(el, al[Math.floor(Math.random() * al.length)]); pkIn(el, false); pkSave(el)
+      }, reduced() ? 0 : 500)
     }
     function hidePeek() {
-      clearTimeout(pkT); if (!pk) return
+      clearTimeout(pkT); ss(PKS, null); if (!pk) return
       endInt()
       var el = pk; pk = null; el.classList.remove('on'); setTimeout(function () { el.remove() }, reduced() ? 0 : 700)
+    }
+    /* viene de otra pagina con Vero asomada: se vuelve a poner (salvo en una ficha abierta encima, donde ya se ve la de debajo) */
+    function peekRestore() {
+      if (ls(KEY) !== 'full') { ss(PKS, null); return }
+      var sv = null; try { sv = JSON.parse(ss(PKS) || 'null') } catch (e) { }
+      if (!sv || !(sv.until > Date.now() + 1000)) { ss(PKS, null); return }
+      try { if (window.parent !== window && window.parent.document.getElementById('vc-peek')) return } catch (e) { }
+      if (busy()) return
+      var c = ctx(), pr = sv.pr ? window.vcPromo || null : null
+      peek(c, sv.pr && !pr ? pickTip(c) : sv.tip, pr, sv)
     }
     function bigOpen(tip, src, from, pr) {
       var o = document.createElement('div'); o.id = 'vc-big'; o.setAttribute('role', 'dialog'); o.setAttribute('aria-modal', 'true'); o.setAttribute('aria-label', 'Vero')
@@ -352,10 +399,11 @@
       } else guideTip()
     }
     schedule()
+    peekRestore()
     new MutationObserver(function () {
       var c = ctx(); if (c === lastCtx) return; lastCtx = c
       if (b.dataset.auto === '1') b.classList.remove('on')
-      hidePeek()
+      if (pk) { peekMove(c); return }
       if (ls(KEY) === 'full') { clearTimeout(autoT); autoT = setTimeout(function () { auto('ctx') }, 2500) } else guideTip()
     }).observe(document.body, { attributes: true, attributeFilter: ['class'] })
     b.addEventListener('pointerenter', function () { delete b.dataset.auto })
