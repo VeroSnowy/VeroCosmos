@@ -1,0 +1,96 @@
+{
+ "v": 1,
+ "generado": "2026-11-15T17:37:51.628Z",
+ "items": [
+  {
+   "id": "leonidas-2026",
+   "tipo": "evento",
+   "fecha": "2026-11-15",
+   "lluvia": "leonidas",
+   "t": {
+    "es": "Leónidas 2026",
+    "en": "Leonids 2026",
+    "fr": "Léonides 2026"
+   },
+   "d": {
+    "es": "¡Se avecina nueva lluvia de estrellas en el horizonte, las Leónidas! Esta vez contando con hasta 15 meteoros por hora.",
+    "en": "A new meteor shower is on the horizon: the Leonids! This time with up to 15 meteors per hour.",
+    "fr": "Une nouvelle pluie d’étoiles filantes se profile à l’horizon : les Léonides ! Cette fois, avec jusqu’à 15 météores par heure."
+   },
+   "p": [
+    {
+     "es": "Se acerca mediados de noviembre y con ello damos bienvenida a la mítica lluvia de estrellas de las Leónidas. Esta contará con hasta casi 10-20 meteoros visibles por hora.",
+     "en": "Mid-November is approaching, and with it we welcome the legendary Leonid meteor shower. This year it will bring around 10–20 visible meteors per hour.",
+     "fr": "La mi-novembre approche, et avec elle nous accueillons la mythique pluie d’étoiles filantes des Léonides. Elle offrira environ 10 à 20 météores visibles par heure."
+    },
+    {
+     "es": "¿Qué son las Leónidas?",
+     "en": "What are the Leonids?",
+     "fr": "Que sont les Léonides ?",
+     "h": 1
+    },
+    {
+     "es": "Las Leónidas son una lluvia de estrellas que se produce cada año a mediados del mes de noviembre. Su nombre hace referencia al lugar del cielo del que se proyectan que nacen las estrellas fugaces durante esta lluvia, es decir, las estrellas parecen venir desde la constelación de Leo.",
+     "en": "The Leonids are a meteor shower that takes place every year in mid-November. Their name refers to the part of the sky from which the shooting stars seem to emerge during the shower: they appear to come from the constellation Leo.",
+     "fr": "Les Léonides sont une pluie d’étoiles filantes qui se produit chaque année à la mi-novembre. Leur nom fait référence à la région du ciel d’où semblent naître les étoiles filantes pendant cette pluie : elles paraissent venir de la constellation du Lion."
+    },
+    {
+     "es": "¿Cuántas estrellas fugaces se podrán ver este año?",
+     "en": "How many shooting stars will we see this year?",
+     "fr": "Combien d’étoiles filantes pourra-t-on voir cette année ?",
+     "h": 1
+    },
+    {
+     "es": "Este año se espera poder observar entre 10 y 20 meteoros por hora, dentro de su tasa habitual de actividad. No obstante, cada ~33 años estas pueden dar lugar a verdaderas tormentas de estrellas debido a la visita del cometa 55P/Tempel-Tuttle en el punto más cercano de su órbita al Sol.",
+     "en": "This year we expect to see between 10 and 20 meteors per hour, within their usual level of activity. However, every ~33 years they can turn into true meteor storms, when comet 55P/Tempel-Tuttle passes the point of its orbit closest to the Sun.",
+     "fr": "Cette année, on s’attend à observer entre 10 et 20 météores par heure, dans leur niveau d’activité habituel. Cependant, tous les ~33 ans, elles peuvent donner lieu à de véritables tempêtes d’étoiles filantes, lors du passage de la comète 55P/Tempel-Tuttle au point de son orbite le plus proche du Soleil."
+    },
+    {
+     "es": "¿Cuándo son este año?",
+     "en": "When are they this year?",
+     "fr": "Quand ont-elles lieu cette année ?",
+     "h": 1
+    },
+    {
+     "es": "Su pico máximo se dará este año en la madrugada del martes 17 de noviembre al miércoles 18 de noviembre, tomando como referencia de inicio las 22:00 (hora peninsular española).",
+     "en": "This year their peak will be on the night of Tuesday 17 to Wednesday 18 November, starting from 22:00 (mainland Spain time).",
+     "fr": "Cette année, leur pic aura lieu dans la nuit du mardi 17 au mercredi 18 novembre, à partir de 22 h (heure de l’Espagne péninsulaire)."
+    },
+    {
+     "es": "¿Cómo verlas?",
+     "en": "How to see them",
+     "fr": "Comment les observer ?",
+     "h": 1
+    },
+    {
+     "es": "Las Leónidas son visibles a simple vista pero se recomienda buscar un lugar con muy poca luminosidad para no perderse las estrellas fugaces de menor intensidad.",
+     "en": "The Leonids can be seen with the naked eye, but it is best to find a place with very little light so you don’t miss the fainter shooting stars.",
+     "fr": "Les Léonides sont visibles à l’œil nu, mais il est conseillé de chercher un endroit très peu éclairé pour ne pas manquer les étoiles filantes les plus faibles."
+    },
+    {
+     "es": "Se recomienda buscar un sitio fuera de las ciudades, de carácter rural, dejar acostumbrarse al menos 20 minutos la vista a la oscuridad del lugar y mirar a una zona amplia del cielo, sin necesidad de fijarse solo en Leo, que estará alto a partir de medianoche.",
+     "en": "Look for a rural spot away from cities, give your eyes at least 20 minutes to get used to the darkness, and take in a wide area of the sky, without focusing only on Leo, which will be high in the sky from midnight onwards.",
+     "fr": "Il est conseillé de choisir un lieu à la campagne, loin des villes, de laisser vos yeux s’habituer à l’obscurité pendant au moins 20 minutes et de regarder une large portion du ciel, sans vous limiter au Lion, qui sera haut dans le ciel à partir de minuit."
+    },
+    {
+     "es": "Curiosidades de las Leónidas",
+     "en": "Leonid fun facts",
+     "fr": "Curiosités des Léonides",
+     "h": 1
+    },
+    {
+     "es": "En 1966, el paso del cometa desencadenó una gran tormenta de estrellas pudiéndose ver miles de meteoros por minuto convirtiéndose en uno de los mayores eventos astronómicos de la década de 1960.",
+     "en": "In 1966, the comet’s passage triggered a huge meteor storm with thousands of meteors per minute, making it one of the greatest astronomical events of the 1960s.",
+     "fr": "En 1966, le passage de la comète a déclenché une grande tempête d’étoiles filantes, avec des milliers de météores par minute, ce qui en a fait l’un des plus grands événements astronomiques des années 1960."
+    }
+   ],
+   "fuente": "https://astronomia.ign.es/leonidas",
+   "credito": {
+    "es": "É. L. Trouvelot, 1882 (dominio público)",
+    "en": "É. L. Trouvelot, 1882 (public domain)",
+    "fr": "É. L. Trouvelot, 1882 (domaine public)"
+   },
+   "img": "bitacora/leonidas-2026.webp"
+  }
+ ]
+}

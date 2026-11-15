@@ -18,12 +18,13 @@
     guia: ['Antes de salir a observar, mira en «Lugar para observar» qué tal estará tu cielo esta noche.', 'Con Luna llena el cielo se aclara: es buena noche para planetas y para la propia Luna.'],
     lugar: ['Busca un sitio y te calculo la contaminación lumínica, el relieve y el tiempo de esa noche.', 'La «Valoración de la noche» resume en una nota las nubes, la Luna, la oscuridad del cielo, el viento y la humedad.'],
     ficha: ['Mira «Mejores días y horas para observarlo»: te dice cuándo se ve mejor desde tu ubicación.', 'Cambia entre el modelo 3D y la foto con los botones de encima de la imagen.'],
-    quien: ['Esta web la hace Vero Snowy, estudiante de Física. ¡Gracias por pasarte!']
+    quien: ['Esta web la hace Vero Snowy, estudiante de Física. ¡Gracias por pasarte!'],
+    bitacora: ['Pulsa cualquier evento para ver cuándo y cómo verlo desde tu casa.', 'Cuando se acerque un evento del cielo, te avisaré un par de días antes.']
   }
   /* poses de Vero que acompanan los consejos del modo completa, segun la seccion */
-  var PICS = { inicio: ['saluda', 'chibi'], atlas: ['senala', 'chibi'], guia: ['telescopio', 'piensa'], lugar: ['piensa', 'telescopio'], ficha: ['senala', 'piensa'], quien: ['saluda', 'chibi'] }
+  var PICS = { inicio: ['saluda', 'chibi'], atlas: ['senala', 'chibi'], guia: ['telescopio', 'piensa'], lugar: ['piensa', 'telescopio'], ficha: ['senala', 'piensa'], quien: ['saluda', 'chibi'], bitacora: ['telescopio', 'senala'] }
   /* bordes por los que se asoma en el modo completa (b = abajo, l = izquierda, r = derecha) */
-  var SIDES = { inicio: ['b', 'l', 'r'], quien: ['b', 'l', 'r'], atlas: ['l', 'r'], guia: ['l', 'r'], lugar: ['l', 'r'], ficha: ['l', 'r'] }
+  var SIDES = { inicio: ['b', 'l', 'r'], quien: ['b', 'l', 'r'], atlas: ['l', 'r'], guia: ['l', 'r'], lugar: ['l', 'r'], ficha: ['l', 'r'], bitacora: ['l', 'r'] }
   var FACTS = [
     'La Nebulosa de Orión (M42) se ve a simple vista como la «estrella» borrosa del centro de la Espada de Orión.',
     'Un día en Venus dura más que su año: gira sobre sí misma en unos 243 días terrestres y orbita al Sol en unos 225.',
@@ -195,7 +196,11 @@
     /* aviso temporal (promo.js): un sorteo, una novedad... */
     function promo() { return window.vcPromo && window.vcPromo.pendiente() ? window.vcPromo : null }
     var lk = w.querySelector('.vv-lk')
-    lk.addEventListener('click', function () { if (window.vcPromo) { lk.href = window.vcPromo.url(); window.vcPromo.visto() } })
+    /* el enlace guarda a que aviso apunta (al marcarlo como visto, el siguiente pasa a ser el actual) */
+    lk.addEventListener('click', function (e) {
+      if (lk._go) { e.preventDefault(); b.classList.remove('on'); lk._go(); return }
+      if (lk._url) lk.href = lk._url
+    })
     pt.hidden = !(ls(KEY) && ls(KEY) !== 'off' && (String(day) !== ls(SEEN) || promo()))
     var dd = w.querySelector('.vv-d')
 
@@ -226,7 +231,13 @@
       place()
       var pr = promo()
       t.textContent = pr ? pr.texto : TIPS[ti++ % TIPS.length]
-      lk.hidden = !pr; if (pr) { lk.textContent = pr.boton; lk.insertAdjacentHTML('beforeend', '<span aria-hidden="true"> →</span>'); lk.href = pr.url(); pr.visto() }
+      lk.hidden = !pr
+      if (pr) {
+        lk.textContent = pr.boton; lk.insertAdjacentHTML('beforeend', '<span aria-hidden="true"> →</span>')
+        lk._go = pr.go; lk._url = lk.href = pr.url()
+        if (lk._go) lk.removeAttribute('target'); else lk.target = '_blank'
+        pr.visto()
+      }
       f.textContent = FACTS[((day % FACTS.length) + FACTS.length) % FACTS.length]
       dd.hidden = false; delete b.dataset.auto; clearTimeout(hideT)
       b.classList.add('on'); pt.hidden = true; ls(SEEN, String(day))
@@ -240,6 +251,7 @@
       if (c.contains('lugar-on')) return 'lugar'
       if (c.contains('principal-page')) return 'inicio'
       if (c.contains('guide-page')) return 'guia'
+      if (c.contains('log-page')) return 'bitacora'
       return 'atlas'
     }
     var hideT = 0, autoT = 0, every = 0, lastAuto = 0, mute = 0, lastCtx = ctx()
@@ -356,9 +368,11 @@
       o.innerHTML = '<div class="vb-bd"></div><div class="vb-in"><img class="vb-img" alt="" src="' + src + '"><div class="vb-card"><div class="vv-n">Vero</div><p class="vb-t"></p><div class="vb-bt"><button type="button" class="vb-ok">¡Gracias, Vero!</button></div></div></div>'
       o.querySelector('.vb-t').textContent = tip
       if (pr) {
-        var a = document.createElement('a'); a.className = 'vb-lk'; a.target = '_blank'; a.rel = 'noopener noreferrer'
-        a.textContent = pr.boton; a.insertAdjacentHTML('beforeend', '<span aria-hidden="true"> →</span>'); a.href = pr.url()
-        a.addEventListener('click', function () { a.href = pr.url() })
+        var a = document.createElement('a'); a.className = 'vb-lk'; a.rel = 'noopener noreferrer'
+        a.textContent = pr.boton; a.insertAdjacentHTML('beforeend', '<span aria-hidden="true"> →</span>')
+        var go = pr.go, u0 = a.href = pr.url()
+        if (go) a.addEventListener('click', function (e) { e.preventDefault(); close(); go() })
+        else { a.target = '_blank'; a.addEventListener('click', function () { a.href = u0 }) }
         o.querySelector('.vb-bt').append(a); pr.visto()
       }
       document.body.append(o)
@@ -439,15 +453,15 @@
   /* presentacion: Vero sale del icono, grande, se presenta y se elige el modo (con vista previa animada) */
   var MODES = [
     ['off', 'Desactivada', 'No aparezco en ningún sitio.', 'La web tal cual, sin mí. Podrás activarme cuando quieras desde Ajustes.'],
-    ['on', 'Discreta', 'En mi icono y en las fichas; casi no molesto.', 'Mi icono junto al idioma, datos curiosos en las fichas y, de vez en cuando, un consejo en la guía. Si hay un sorteo o una promoción, te avisaré en mi icono.'],
-    ['full', 'Completa', '¡Me asomaré de vez en cuando! Púlsame si quieres un consejo.', 'Aparezco a menudo con consejos por toda la web, te aviso de sorteos y promociones, y aquí llegará todo lo nuevo que prepare.']
+    ['on', 'Discreta', 'En mi icono y en las fichas; casi no molesto.', 'Mi icono junto al idioma, datos curiosos en las fichas y, de vez en cuando, un consejo en la guía. Si se acerca un evento del cielo, un sorteo o una promoción, te avisaré en mi icono.'],
+    ['full', 'Completa', '¡Me asomaré de vez en cuando! Púlsame si quieres un consejo.', 'Aparezco a menudo con consejos por toda la web, te aviso de eventos del cielo, sorteos y promociones, y aquí llegará todo lo nuevo que prepare.']
   ]
   function intro(ic) {
     if (document.getElementById('vc-vero-intro')) return
     var o = document.createElement('div'); o.id = 'vc-vero-intro'; o.setAttribute('role', 'dialog'); o.setAttribute('aria-modal', 'true'); o.setAttribute('aria-label', 'Vero')
     o.innerHTML = '<div class="vi-bd"></div><div class="vi-in"><img class="vi-img" alt="" src="' + BASE + 'saluda.webp" decoding="async"><div class="vi-card">' +
       '<img class="vi-mini" alt="" src="' + BASE + 'saluda.webp" decoding="async"><div class="vv-n">Vero</div><h2 class="vi-h vi-line" style="animation-delay:.5s">¡Hola! Soy Vero Andromedasis</h2>' +
-      '<p class="vi-line" style="animation-delay:.8s">Me flipa el cielo, así que te acompaño por la web con consejos para empezar a observar, un dato curioso cada día y avisos de sorteos y promociones.</p>' +
+      '<p class="vi-line" style="animation-delay:.8s">Me flipa el cielo, así que te acompaño por la web con consejos para empezar a observar, un dato curioso cada día y avisos de eventos del cielo, sorteos y promociones.</p>' +
       '<p class="vi-q vi-line" style="animation-delay:1.1s">Vivo en este icono, junto al idioma, y tú decides cuánto te acompaño:</p>' +
       '<div class="vi-ms vi-line" role="radiogroup" aria-label="Modo de Vero" style="animation-delay:1.3s">' + MODES.map(function (m) { return '<button type="button" class="vi-m" role="radio" aria-checked="false" data-m="' + m[0] + '"><b>' + m[1] + '</b><span>' + m[2] + '</span></button>' }).join('') + '</div>' +
       '<div class="vi-acts vi-line" style="animation-delay:1.5s"><button type="button" class="vi-go" disabled>Elegir este modo</button><button type="button" class="vi-later">Ahora no</button></div>' +

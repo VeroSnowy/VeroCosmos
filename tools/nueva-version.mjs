@@ -14,7 +14,7 @@ import { fileURLToPath } from 'url'
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url))
 const STATIC = path.join(ROOT, 'quartz', 'static')
-const PAGINAS = ['index', 'atlas-astrofotografico', 'guia-astronomica', 'quienes-somos']
+const PAGINAS = ['index', 'atlas-astrofotografico', 'guia-astronomica', 'quienes-somos', 'bitacora-del-cielo']
 const CONSERVAR = ['0.2.24']
 const simular = process.argv.includes('--simular')
 const pedida = process.argv.slice(2).find(a => /^\d+\.\d+\.\d+$/.test(a))
