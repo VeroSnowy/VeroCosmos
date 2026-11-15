@@ -45,8 +45,8 @@
       id: 'bitacora-' + it.id, fin: Date.parse(it.fin || it.inicio), img: it.img || 'vero/g-telescopio.webp', i18n: false, ev: it,
       tipo: function () { return B.chip(it) || B.ui('ev') }, titulo: function () { return tx(it.t) }, texto: function () { return tx(it.d) },
       boton: function () { return EV[lang()].more },
-      url: function () { return B.PATH + '#' + encodeURIComponent(it.id) },
-      go: function () { if (window.vcGoLog) window.vcGoLog(it.id); else try { window.top.location.href = B.PATH + '#' + encodeURIComponent(it.id) } catch (e) { location.href = B.PATH } },
+      url: function () { return B.href ? B.href(it.id) : B.PATH + '#' + encodeURIComponent(it.id) },
+      go: function () { if (window.vcGoLog) window.vcGoLog(it.id); else try { window.top.location.href = B.href ? B.href(it.id) : B.PATH + '#' + encodeURIComponent(it.id) } catch (e) { location.href = B.PATH } },
       vero: function () { return EV[lang()].vero.replace('{t}', tx(it.t)).replace('{d}', tx(it.d)) },
       veroBoton: function () { return EV[lang()].btn }
     }

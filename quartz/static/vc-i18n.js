@@ -1534,8 +1534,12 @@ function detect(langs){
   const first=String((langs&&langs[0])||'').toLowerCase();
   return first.indexOf('es')===0?'es':first.indexOf('fr')===0?'fr':'en';
 }
-let lang;
-try{const s=localStorage.getItem('vc-lang');if(ORDER.includes(s))lang=s}catch(e){}
+/* idioma de la direccion (rutas.js): /en/... ingles, /fr/... frances y el resto de paginas de la web, espanol.
+   Si la pagina tiene direccion propia, manda ella; si no (paginas sueltas), lo elegido con el boton o el del navegador */
+function urlLang(){try{if(!window.vcRutas)return null;const r=vcRutas.parse(window.top.location.pathname);return r.key||r.lang!=='es'?r.lang:null}catch(e){return null}}
+const UL=urlLang();
+let lang=UL;
+if(!lang)try{const s=localStorage.getItem('vc-lang');if(ORDER.includes(s))lang=s}catch(e){}
 if(!lang)lang=detect(navigator.languages&&navigator.languages.length?navigator.languages:[navigator.language]);
 try{document.documentElement.lang=lang}catch(e){}
 
@@ -1632,6 +1636,17 @@ const mo=new MutationObserver(ms=>{
 });
 function setLang(l){
   if(!ORDER.includes(l))return;
+  /* con direcciones por idioma, cambiar de idioma es ir a la misma pagina en ese idioma */
+  if(UL){
+    try{
+      const T=window.top,a=T.document.querySelector('link[rel="alternate"][hreflang="'+l+'"]');
+      let u=a&&a.getAttribute('href');
+      if(!u)u=vcRutas.path(vcRutas.parse(T.location.pathname).key||'principal',l);
+      try{localStorage.setItem('vc-lang',l)}catch(e){}
+      if(l!==lang)T.location.href=u;
+      return;
+    }catch(e){}
+  }
   lang=l;
   try{localStorage.setItem('vc-lang',l)}catch(e){}
   document.documentElement.lang=l;
@@ -1683,6 +1698,39 @@ function mount(parent){
 }
 function start(){apply();mo.observe(document.body,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:ATTRS})}
 if(document.body)start();else document.addEventListener('DOMContentLoaded',start);
-window.addEventListener('storage',e=>{if(e.key==='vc-lang'&&ORDER.includes(e.newValue)&&e.newValue!==lang){lang=e.newValue;document.documentElement.lang=lang;apply();refreshUI();window.dispatchEvent(new CustomEvent('vc-lang',{detail:lang}))}});
+window.addEventListener('storage',e=>{if(!UL&&e.key==='vc-lang'&&ORDER.includes(e.newValue)&&e.newValue!==lang){lang=e.newValue;document.documentElement.lang=lang;apply();refreshUI();window.dispatchEvent(new CustomEvent('vc-lang',{detail:lang}))}});
+/* aviso: si el visitante prefiere otro idioma (el que eligio antes o el de su navegador) y esta pagina existe en el,
+   se le ofrece cambiar. No se le lleva solo: asi Google puede leer cada version. Solo en el atlas (el marco de la pagina) */
+const TIP={
+  es:['Esta página también está en español.','Ver en español','Cerrar'],
+  en:['This page is also available in English.','Switch to English','Close'],
+  fr:['Cette page existe aussi en français.','Voir en français','Fermer']
+};
+function langTip(){
+  try{
+    if(!UL||window===window.top||window.parent!==window.top)return;
+    if(localStorage.getItem('vc-lang-tip'))return;
+    let pref=null;try{const s=localStorage.getItem('vc-lang');if(ORDER.includes(s))pref=s}catch(e){}
+    if(!pref)pref=detect(navigator.languages&&navigator.languages.length?navigator.languages:[navigator.language]);
+    if(!pref||pref===lang)return;
+    const a=window.top.document.querySelector('link[rel="alternate"][hreflang="'+pref+'"]');if(!a)return;
+    const t=TIP[pref];
+    if(!document.getElementById('vc-tip-css')){const st=document.createElement('style');st.id='vc-tip-css';st.textContent=
+      '.vc-tip{position:fixed;left:50%;top:70px;z-index:100003;display:flex;align-items:center;gap:12px;max-width:calc(100vw - 24px);padding:10px 10px 10px 16px;border:1px solid #5b6bb4;border-radius:14px;background:#0b1025f2;box-shadow:0 12px 34px #000a;color:#e8edff;font:400 15px/1.35 "Iowan Old Style",Georgia,serif;transform:translateX(-50%);animation:vcTip .45s cubic-bezier(.2,1.2,.4,1) both;backdrop-filter:blur(8px)}'+
+      '.vc-tip a{flex:none;padding:7px 13px;border-radius:999px;background:#f8d874;color:#1b1f3a;font:650 13.5px/1 system-ui,sans-serif;text-decoration:none;white-space:nowrap}.vc-tip a:hover,.vc-tip a:focus-visible{background:#ffe79a;outline:none}'+
+      '.vc-tip button{flex:none;width:30px;height:30px;padding:0;border:0;border-radius:50%;background:none;color:#aebbe1;font:20px/1 system-ui,sans-serif;cursor:pointer}.vc-tip button:hover,.vc-tip button:focus-visible{background:#1a2040;color:#fff;outline:none}'+
+      '@keyframes vcTip{from{opacity:0;transform:translate(-50%,-10px)}}'+
+      '@media(max-width:560px){.vc-tip{top:64px;width:calc(100vw - 24px);flex-wrap:wrap;font-size:14px}.vc-tip span{flex:1 1 60%}}';
+      document.head.append(st)}
+    const el=document.createElement('div');el.className='vc-tip';el.setAttribute('data-no-i18n','');el.setAttribute('role','status');el.lang=pref;
+    const sp=document.createElement('span');sp.textContent=t[0];
+    const go=document.createElement('a');go.href=a.getAttribute('href');go.target='_top';go.textContent=t[1];go.hreflang=pref;
+    go.addEventListener('click',()=>{try{localStorage.setItem('vc-lang',pref)}catch(e){}});
+    const x=document.createElement('button');x.type='button';x.textContent='×';x.setAttribute('aria-label',t[2]);
+    x.addEventListener('click',()=>{el.remove();try{localStorage.setItem('vc-lang-tip','1')}catch(e){}});
+    el.append(sp,go,x);document.body.append(el);
+  }catch(e){}
+}
+if(UL)setTimeout(langTip,1800);
 window.vcI18n={mount,setLang,detect,t:tr,get lang(){return lang},DICT};
 })();

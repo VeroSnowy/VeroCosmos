@@ -32,6 +32,8 @@ jobs:
         run: npx quartz build
       - name: Completar las fichas para Google
         run: node tools/seo-fichas.mjs
+      - name: Paginas en ingles y frances, hreflang y sitemap
+        run: node tools/idiomas.mjs
       - uses: actions/upload-pages-artifact@v3
         with:
           path: public

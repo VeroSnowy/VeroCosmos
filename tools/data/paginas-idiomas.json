@@ -1,0 +1,60 @@
+{
+  "_info": "Textos de las paginas en ingles y frances que genera tools/idiomas.mjs. Los nombres de las secciones salen del diccionario de la web (vc-i18n.js); aqui van las descripciones y el texto para Google.",
+  "paginas": {
+    "principal": {
+      "en": { "description": "Interactive 3D astrophotography atlas and astronomy guide for complete beginners. Explore nebulae, galaxies, clusters and the Solar System." },
+      "fr": { "description": "Atlas astrophotographique interactif en 3D et guide d’astronomie pour débuter de zéro. Explorez nébuleuses, galaxies, amas et le Système solaire." }
+    },
+    "atlas": {
+      "en": { "description": "Explore Vero Cosmos’s astrophotography atlas in 3D: the Messier, NGC and Solar System catalogs, with photos of every object." },
+      "fr": { "description": "Explorez en 3D l’atlas astrophotographique de Vero Cosmos : catalogues Messier, NGC et Système solaire, avec les photos de chaque objet." }
+    },
+    "guide": {
+      "en": { "description": "Vero Cosmos’s astronomy guide for complete beginners: a map of the Solar System, astronomical objects and observing guides." },
+      "fr": { "description": "Le guide d’astronomie de Vero Cosmos pour débuter de zéro : carte du Système solaire, objets astronomiques et guides d’observation." }
+    },
+    "lugar": {
+      "en": { "description": "Where to watch the sky: Vero Cosmos’s guide to choosing a good observing site." },
+      "fr": { "description": "Où observer le ciel : le guide de Vero Cosmos pour choisir un bon lieu d’observation." }
+    },
+    "log": {
+      "en": { "description": "Astronomy news and events from Vero Cosmos: meteor showers, eclipses, conjunctions and the latest from the cosmos, with when and how to see them." },
+      "fr": { "description": "Actualités et événements astronomiques de Vero Cosmos : pluies d’étoiles filantes, éclipses, conjonctions et actualité du cosmos, avec quand et comment les observer." }
+    },
+    "about": {
+      "en": { "description": "Vero Cosmos is a personal project by Vero Snowy, a student of the Double Degree in Physics and Materials Engineering, to teach and share astrophotography, astronomy and astrophysics." },
+      "fr": { "description": "Vero Cosmos est un projet personnel de Vero Snowy, étudiante en double diplôme de physique et d’ingénierie des matériaux, pour enseigner et partager l’astrophotographie, l’astronomie et l’astrophysique." }
+    }
+  },
+  "portada": {
+    "en": "<p>Vero Cosmos is an interactive 3D astrophotography atlas and an astronomy guide for complete beginners. Explore nebulae, galaxies, star clusters and the Solar System with photographs of each object, and browse the Messier and NGC catalogs. It is available in Spanish, English and French.</p><p>It is a personal project by Vero Snowy to teach and share astrophotography, astronomy and astrophysics.</p>",
+    "fr": "<p>Vero Cosmos est un atlas astrophotographique interactif en 3D et un guide d’astronomie pour débuter de zéro. Explorez nébuleuses, galaxies, amas d’étoiles et le Système solaire avec les photographies de chaque objet, et consultez les catalogues Messier et NGC. Il est disponible en espagnol, en anglais et en français.</p><p>C’est un projet personnel de Vero Snowy pour enseigner et partager l’astrophotographie, l’astronomie et l’astrophysique.</p>"
+  },
+  "menu": {
+    "es": { "atlas": "catálogos Messier, NGC y Sistema Solar en 3D.", "guide": "el Sistema Solar, los objetos astronómicos y guías de observación.", "lugar": "cómo elegir un buen sitio para observar el cielo.", "log": "noticias y eventos astronómicos.", "about": "el proyecto y su autora.", "titulo": "Secciones", "entradas": "Entradas", "fichas": "Objetos del atlas", "volver": "Volver a la portada" },
+    "en": { "atlas": "the Messier, NGC and Solar System catalogs in 3D.", "guide": "the Solar System, astronomical objects and observing guides.", "lugar": "how to choose a good spot to watch the sky.", "log": "astronomy news and events.", "about": "the project and its author.", "titulo": "Sections", "entradas": "Entries", "fichas": "Objects in the atlas", "volver": "Back to the home page" },
+    "fr": { "atlas": "les catalogues Messier, NGC et Système solaire en 3D.", "guide": "le Système solaire, les objets astronomiques et des guides d’observation.", "lugar": "comment choisir un bon endroit pour observer le ciel.", "log": "actualités et événements astronomiques.", "about": "le projet et son autrice.", "titulo": "Rubriques", "entradas": "Articles", "fichas": "Objets de l’atlas", "volver": "Retour à l’accueil" }
+  },
+  "fichas": {
+    "_info": "Frases de las fichas que no estan en el diccionario de la web (clave: texto exacto en espanol)",
+    "en": {
+      "Datos": "Facts",
+      "Curiosidades": "Fun facts",
+      "Etiquetas": "Tags",
+      "Otros objetos cercanos o relacionados": "Other nearby or related objects",
+      "Abrir la ficha completa con el modelo 3D →": "Open the full card with the 3D model →"
+    },
+    "fr": {
+      "Datos": "Données",
+      "Curiosidades": "Curiosités",
+      "Etiquetas": "Étiquettes",
+      "Otros objetos cercanos o relacionados": "Autres objets proches ou liés",
+      "Abrir la ficha completa con el modelo 3D →": "Ouvrir la fiche complète avec le modèle 3D →"
+    }
+  },
+  "bitacora": {
+    "es": { "fuente": "Fuente", "publicado": "Publicado el", "cuando": "Cuándo" },
+    "en": { "fuente": "Source", "publicado": "Published on", "cuando": "When" },
+    "fr": { "fuente": "Source", "publicado": "Publié le", "cuando": "Quand" }
+  }
+}

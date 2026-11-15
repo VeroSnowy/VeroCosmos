@@ -6,7 +6,13 @@
    - Los textos vienen ya traducidos en el JSON; la interfaz se traduce aqui (la seccion va con data-no-i18n). */
 (function () {
   var SRC = (document.currentScript && document.currentScript.getAttribute('data-src')) || 'bitacora.json'
-  var PATH = '/bitacora-del-cielo'
+  /* direcciones por idioma (rutas.js): /bitacora-del-cielo/leonidas-2026, /en/sky-log/leonids-2026, /fr/journal-du-ciel/leonides-2026 */
+  var R = window.vcRutas
+  function L() { try { return R.parse(T0().location.pathname).lang } catch (e) { return 'es' } }
+  var PATH = R ? R.path('log', L()) : '/bitacora-del-cielo'
+  var RESTS = {}
+  function inLog() { try { return R.parse(T0().location.pathname).key === 'log' } catch (e) { return false } }
+  function entryPath(id) { var l = L(); return id && RESTS[id] ? R.path('log', l, RESTS[id][l]) : R.path('log', l) }
   var UI = {
     es: { name: 'Bitácora del Cielo', lead: 'Noticias y eventos astronómicos', up: 'Próximos eventos', news: 'Noticias', past: 'Eventos pasados', noUp: 'Ahora mismo no hay eventos a la vista. ¡Vuelve pronto!', noNews: 'Todavía no hay noticias.', now: '¡Ahora!', tonight: '¡Esta noche!', today: 'Hoy', tomorrow: 'Mañana', inDays: 'Dentro de {n} días', back: 'Volver a la Bitácora', source: 'Fuente', best: 'Cuándo', ended: 'Terminado', more: 'Ver más eventos pasados', loading: 'Cargando…', error: 'No se ha podido cargar la Bitácora. Prueba a recargar la página.', ev: 'Evento', nw: 'Noticia', from: 'Del {a} al {b}', tHome: 'Página principal', tEv: 'Eventos astronómicos', tTrips: 'Viajes y curiosidades', tabs: 'Secciones de la Bitácora', cd: 'Cuenta atrás', cdNow: '¡Está pasando ahora!', dd: 'días', d1: 'día', hh: 'horas', h1: 'hora', mm: 'min', arch: 'Otras noticias', noArch: 'Aquí irán las entradas anteriores.', noHome: 'Todavía no hay entradas. ¡Vuelve pronto!', noTrips: 'Pronto habrá viajes y curiosidades. ¡Vuelve pronto!', vj: 'Viaje', cu: 'Curiosidad', cr: 'Crónica', moreA: 'Ver más', noPast: 'Todavía no hay eventos pasados.', bye: '¡Gracias por leer!', hmm: '¿Qué hay de nuevo hoy? Hmm...', bLive: '¡Está pasando ahora! Sal a mirar el cielo.', bTonight: '¡Esta noche, {t}! No te lo pierdas.', bToday: '¡Hoy, {t}! No te lo pierdas.', bTomorrow: '¡Mañana, {t}! No te lo pierdas.', bDays: '¡Faltan {n} días para {t}!', goEntry: 'Ver la entrada', close: 'Cerrar', seeEv: 'Ver el evento', byeS: 'Nos vemos bajo las estrellas.', rel: 'Noticias y eventos relacionados' },
     en: { name: 'Sky Log', lead: 'Astronomy news and events', up: 'Upcoming events', news: 'News', past: 'Past events', noUp: 'There are no events coming up right now. Check back soon!', noNews: 'No news yet.', now: 'Now!', tonight: 'Tonight!', today: 'Today', tomorrow: 'Tomorrow', inDays: 'In {n} days', back: 'Back to the Sky Log', source: 'Source', best: 'When', ended: 'Ended', more: 'Show more past events', loading: 'Loading…', error: 'The Sky Log could not be loaded. Try reloading the page.', ev: 'Event', nw: 'News', from: 'From {a} to {b}', tHome: 'Front page', tEv: 'Astronomical events', tTrips: 'Trips and curiosities', tabs: 'Sky Log sections', cd: 'Countdown', cdNow: 'Happening right now!', dd: 'days', d1: 'day', hh: 'hours', h1: 'hour', mm: 'min', arch: 'More news', noArch: 'Older entries will appear here.', noHome: 'No entries yet. Check back soon!', noTrips: 'Trips and curiosities coming soon. Check back soon!', vj: 'Trip', cu: 'Curiosity', cr: 'Story', moreA: 'Show more', noPast: 'No past events yet.', bye: 'Thanks for reading!', hmm: 'What’s new today? Hmm...', bLive: 'It’s happening now! Go out and look at the sky.', bTonight: 'Tonight: {t}! Don’t miss it.', bToday: 'Today: {t}! Don’t miss it.', bTomorrow: 'Tomorrow: {t}! Don’t miss it.', bDays: 'Only {n} days until {t}!', goEntry: 'Read the entry', close: 'Close', seeEv: 'See the event', byeS: 'See you under the stars.', rel: 'Related news and events' },
@@ -228,7 +234,7 @@
   function load() {
     if (data) return Promise.resolve(data)
     /* si bitacora.json no carga, al menos salen las lluvias calculadas */
-    if (!loading) loading = fetch(SRC).then(function (r) { if (!r.ok) throw 0; return r.json() }).catch(function () { return { items: [] } }).then(function (j) { data = merge(j); return data })
+    if (!loading) loading = fetch(SRC).then(function (r) { if (!r.ok) throw 0; return r.json() }).catch(function () { return { items: [] } }).then(function (j) { data = merge(j); RESTS = R ? R.entryRests(data.items) : {}; return data })
     return loading
   }
   function evState(it, now) {
@@ -604,28 +610,42 @@
   function setHash(id, push) {
     var t = T0(); if (t === window) return
     try {
-      var p = t.location.pathname.replace(/\/+$/, '')
-      if (p !== PATH) return
-      var url = PATH + (id ? '#' + encodeURIComponent(id) : '')
-      if (t.location.pathname + t.location.hash === url) return
-      t.history[push ? 'pushState' : 'replaceState']({ vc: 1 }, '', url)
+      if (!inLog()) return
+      setAlts(id)
+      var url = entryPath(id)
+      if (R.clean(t.location.pathname) === R.clean(url) && !t.location.hash) return
+      /* bl: se abrio desde la lista, asi que "volver" puede usar el boton atras */
+      t.history[push ? 'pushState' : 'replaceState']({ vc: 1, bl: push && view && view.dataset.fromList === '1' ? 1 : 0 }, '', url)
       setTitle()
     } catch (e) { }
   }
+  /* enlaces a las versiones en otros idiomas de lo que se ve (la lista o la entrada abierta) */
+  function setAlts(id) { try { R.setAlts(T0().document, R.alts('log', id && RESTS[id] ? RESTS[id] : null)) } catch (e) { } }
   /* titulo de la pestana: el de la entrada abierta, si la hay */
   function setTitle() {
     var t = T0(); if (t === window) return
-    try { if (t.location.pathname.replace(/\/+$/, '') !== PATH) return; var nm = it0(openId); t.document.title = (nm ? tx(nm.t) + ' · ' : '') + u('name') + ' · Vero Cosmos' } catch (e) { }
+    try { if (!inLog()) return; var nm = it0(openId); t.document.title = (nm ? tx(nm.t) + ' · ' : '') + u('name') + ' · Vero Cosmos' } catch (e) { }
   }
   function it0(id) { return id && data ? data.items.filter(function (x) { return x.id === id })[0] : null }
   function open(id, push) { openId = id; draw(true); play(); main.scrollTop = 0; setHash(id, push) }
   function close(push) {
     /* si se llego a la entrada desde la lista, "volver" usa el historial; si se entro directo, se cambia la direccion */
     var t = T0()
-    if (push && history.length > 1 && t !== window && view.dataset.fromList === '1') { view.dataset.fromList = ''; try { t.history.back(); return } catch (e) { } }
+    var hs = null; try { hs = t.history.state } catch (e) { }
+    if (push && t !== window && hs && hs.bl) { try { t.history.back(); return } catch (e) { } }
     openId = null; draw(false); play(); main.scrollTop = 0; setHash(null, false)
   }
-  function hashId() { try { var h = decodeURIComponent((T0().location.hash || '').slice(1)); return h || null } catch (e) { return null } }
+  /* la entrada de la direccion: /en/sky-log/leonids-2026 -> leonidas-2026. La direccion antigua (#leonidas-2026) tambien vale */
+  var legacy = false
+  function hashId() {
+    legacy = false
+    try {
+      var r = R.parse(T0().location.pathname)
+      if (r.key === 'log' && r.rest) for (var id in RESTS) if (RESTS[id][r.lang] === r.rest || RESTS[id].es === r.rest) return id
+      var h = decodeURIComponent((T0().location.hash || '').slice(1)); if (h && it0(h)) { legacy = true; return h }
+    } catch (e) { }
+    return null
+  }
 
   function mount(v) {
     if (view) return
@@ -657,16 +677,19 @@
       var changed = (it ? it.id : null) !== openId
       openId = it ? it.id : null
       if (fresh || changed) { draw(true); play(); main.scrollTop = 0 }
+      if (legacy) setHash(openId, false); else setAlts(openId)
       setTitle()
     }).catch(function () { main.replaceChildren(); var e = document.createElement('p'); e.className = 'b-empty'; e.textContent = u('error'); main.append(e) })
   }
   /* al abrir una entrada desde la lista se recuerda, para que "volver" use el boton atras del navegador */
   var _open = open
-  open = function (id, push) { if (push && view) view.dataset.fromList = '1'; _open(id, push) }
+  open = function (id, push) { if (view) view.dataset.fromList = push && !openId ? '1' : ''; _open(id, push) }
   /* estilos desde el principio (la seccion puede abrirse directamente por su direccion) */
   if (!document.getElementById('vc-bitacora-css')) { var st0 = document.createElement('style'); st0.id = 'vc-bitacora-css'; st0.textContent = CSS; document.head.append(st0) }
   window.vcBitacora = {
     show: show, load: load, PATH: PATH, tx: tx,
+    /* direccion de una entrada en el idioma de la pagina (cargada ya la Bitacora) */
+    href: function (id) { return entryPath(id) },
     ui: function (k) { return u(k) },
     /* etiqueta de cuenta atras de un evento ("¡Esta noche!", "Dentro de 2 dias"...) o null si ya paso */
     chip: function (it) { var st = evState(it, Date.now()); return st.past ? null : st.chip },
