@@ -170,7 +170,15 @@ for (const k of KEYS) {
   const alts = R.alts(k)
   const extra = l => (k === 'atlas' ? listaFichas(l) : '') + (k === 'log' ? listaEntradas(l) : '')
   /* espanol: la pagina de Quartz, con sus hreflang y, salvo la portada (que ya trae su texto), el texto para Google */
-  escribir(ES[k].f, completarEs(ES[k].html, alts, k === 'principal' ? null : `<h1>${esc(nombre(k, 'es'))}</h1><p>${esc(ES[k].desc)}</p>${extra('es')}${menu('es')}`))
+  let hes = completarEs(ES[k].html, alts, k === 'principal' ? null : `<h1>${esc(nombre(k, 'es'))}</h1><p>${esc(ES[k].desc)}</p>${extra('es')}${menu('es')}`)
+  /* portada (verocosmos.com): la primera visita va al idioma del navegador; despues, al que se haya elegido con el
+     selector. Nunca a los buscadores, para que Google siga leyendo la portada en espanol */
+  if (k === 'principal' && !hes.includes('data-vc-idioma')) hes = hes.replace(/<head>/, '<head><script data-vc-idioma>(function(){try{' +
+    'if(location.pathname!=="/"||navigator.webdriver||/bot|crawl|spider|slurp|google|bing|yandex|baidu|duckduck|facebookexternal|headless|lighthouse|preview/i.test(navigator.userAgent))return;' +
+    'var s=localStorage,c=s.getItem("vc-lang"),t=null;' +
+    'if(c==="en"||c==="fr")t=c;else if(!c&&!s.getItem("vc-visto")){var l=String((navigator.languages&&navigator.languages[0])||navigator.language||"").toLowerCase();t=l.indexOf("es")===0?null:l.indexOf("fr")===0?"fr":"en"}' +
+    's.setItem("vc-visto","1");if(t)location.replace("/"+t+"/"+location.search+location.hash)}catch(e){}})()</script>')
+  escribir(ES[k].f, hes)
   for (const l of ['en', 'fr']) {
     const desc = D.paginas[k][l].description
     const body = `<h1>${esc(nombre(k, l))}</h1>` + (k === 'principal' ? D.portada[l] : `<p>${esc(desc)}</p>`) + extra(l) + menu(l)
