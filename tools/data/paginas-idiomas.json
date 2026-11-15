@@ -53,8 +53,8 @@
     }
   },
   "bitacora": {
-    "es": { "fuente": "Fuente", "publicado": "Publicado el", "cuando": "Cuándo" },
-    "en": { "fuente": "Source", "publicado": "Published on", "cuando": "When" },
-    "fr": { "fuente": "Source", "publicado": "Publié le", "cuando": "Quand" }
+    "es": { "fuente": "Fuente", "fuentes": "Fuentes", "publicado": "Publicado el", "cuando": "Cuándo" },
+    "en": { "fuente": "Source", "fuentes": "Sources", "publicado": "Published on", "cuando": "When" },
+    "fr": { "fuente": "Source", "fuentes": "Sources", "publicado": "Publié le", "cuando": "Quand" }
   }
 }

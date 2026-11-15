@@ -263,7 +263,7 @@ for (const it of ENTRADAS) {
       else body += md(tx(p, l))
     }
     const fu = [].concat(it.fuente || []).filter(Boolean)
-    if (fu.length) body += `<p>${esc(B.fuente)}: ` + fu.map(u => `<a href="${esc(u)}" rel="noopener">${esc(u.replace(/^https?:\/\/(www\.)?/, '').replace(/\/.*$/, ''))}</a>`).join(', ') + '</p>'
+    if (fu.length) body += `<p>${esc(fu.length > 1 ? B.fuentes : B.fuente)}: ` + fu.map(u => `<a href="${esc(u)}" rel="noopener">${esc(u.replace(/^https?:\/\/(www\.)?/, '').replace(/\/.*$/, ''))}</a>`).join(', ') + '</p>'
     body += `<p><a href="${abs(R.path('log', l))}">← ${esc(nombre('log', l))}</a></p></article>` + menu(l)
     const desc = corta(d || t), img = it.img ? imgUrl(it.img) : null
     const json = { '@context': 'https://schema.org', '@type': 'BlogPosting', headline: t, description: desc, inLanguage: l, url: abs(alts[l]), mainEntityOfPage: abs(alts[l]), ...(it.fecha && it.fecha <= HOY ? { datePublished: it.fecha } : {}), ...(img ? { image: img } : {}), author: { '@type': 'Person', name: 'Vero Snowy' }, publisher: { '@type': 'Organization', name: 'Vero Cosmos', logo: { '@type': 'ImageObject', url: SITE + '/static/logo.png' } }, isPartOf: { '@type': 'WebPage', name: titulo('log', l), url: abs(R.path('log', l)) } }

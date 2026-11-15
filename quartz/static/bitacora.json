@@ -1,6 +1,6 @@
 {
  "v": 1,
- "generado": "2026-11-15T17:37:51.628Z",
+ "generado": "2026-11-15T21:12:06.801Z",
  "items": [
   {
    "id": "leonidas-2026",
@@ -84,7 +84,10 @@
      "fr": "En 1966, le passage de la comète a déclenché une grande tempête d’étoiles filantes, avec des milliers de météores par minute, ce qui en a fait l’un des plus grands événements astronomiques des années 1960."
     }
    ],
-   "fuente": "https://astronomia.ign.es/leonidas",
+   "fuente": [
+    "https://astronomia.ign.es/leonidas",
+    "https://science.nasa.gov/solar-system/meteors-meteorites/leonids/"
+   ],
    "credito": {
     "es": "É. L. Trouvelot, 1882 (dominio público)",
     "en": "É. L. Trouvelot, 1882 (public domain)",
