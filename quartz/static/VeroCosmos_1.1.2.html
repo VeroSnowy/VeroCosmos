@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <script src="ajustes.js?v=6"></script>
+<script src="rutas.js?v=1"></script>
 <meta name="theme-color" content="#05060f">
 <meta name="viewport" content="width=device-width,initial-scale=1,interactive-widget=resizes-visual">
 <title>Vero Cosmos · Atlas astrofotográfico</title>
@@ -786,8 +787,8 @@ cv.addEventListener('click',ev=>{
   const n=hit(ev);if(!n)return;hov=NOHOVER?null:n;
   if(n.obj||(n===focus&&/seestar/i.test(n.s)))openPanel(n);else{closePanel();setView(n)}
 });
-let FICHAS=new Set();
-const fichasReady=fetch('fichas.json?v=3').then(r=>r.json()).then(j=>{FICHAS=new Set(Object.keys(j))}).catch(()=>{});
+let FICHAS=new Set(),FMAP={};
+const fichasReady=fetch('fichas.json?v=5').then(r=>r.json()).then(j=>{FMAP=j;FICHAS=new Set(Object.keys(j))}).catch(()=>{});
 function openFull(n){
   closeMini();
   if(FICHAS.has(n.s)){openFicha(n);return}
@@ -1551,7 +1552,7 @@ window.addEventListener('pointerdown',e=>{NOHOVER=(e.pointerType==='touch')||cal
 {
 const st=document.getElementById('stage');
 if(st){
-const a=document.createElement('a');a.id='logo-btn';a.href='/quienes-somos';a.target='_top';
+const a=document.createElement('a');a.id='logo-btn';a.href=(()=>{try{return vcRutas.path('about',vcRutas.parse(window.top.location.pathname).lang)}catch(e){return '/quienes-somos'}})();a.target='_top';
 a.setAttribute('aria-label','\u00bfQui\u00e9nes somos?');a.title='\u00bfQui\u00e9nes somos?';
 a.innerHTML='<img src="logo.png" alt="">';
 st.append(a);a.addEventListener('click',logoGo);
@@ -2082,6 +2083,13 @@ function titleFor(k){
   return k==='principal'?nm:nm+' \u00b7 Vero Cosmos';
 }
 let T0=window;try{T0=window.top;void T0.location.pathname}catch(e){T0=window}
+/* idioma de la pagina: lo decide su direccion (/en/..., /fr/..., sin prefijo = espanol). Ver rutas.js */
+const PL=(()=>{try{return vcRutas.parse(T0.location.pathname).lang}catch(e){return 'es'}})();
+const rpath=k=>vcRutas.path(k,PL),rp=k=>rpath(k).replace(/\/+$/,'');
+/* trozo de URL de cada ficha en los tres idiomas (lo calcula tools/idiomas.mjs al publicar; si falta, el nombre en espanol) */
+function fichaRests(k){const f=FMAP[k]||{};if(f.slug)return f.slug;const x=vcRutas.slug(f.name||fichaSeg(k));return {es:x,en:x,fr:x}}
+/* enlaces a las otras versiones de la pagina abierta (los usa el selector de idioma y los ve Google) */
+function setAlts(key,rests){try{vcRutas.setAlts(T0.document,vcRutas.alts(key,rests))}catch(e){}}
 /* Colores fijos: la pagina de fuera siempre oscura, sea cual sea el modo claro/oscuro del movil */
 try{const D=T0.document;let ms=[...D.querySelectorAll('meta[name="theme-color"]')];if(!ms.length){const m=D.createElement('meta');m.name='theme-color';D.head.appendChild(m);ms=[m]}ms.forEach(m=>{m.content='#05060f';m.removeAttribute('media')});D.documentElement.style.colorScheme='dark';D.documentElement.style.backgroundColor='#05060f'}catch(e){}
 /* Movil: la barra del navegador puede tapar la parte baja del iframe; ajustarlo a la zona visible */
@@ -2104,8 +2112,8 @@ function topGo(key,push){
   if(T0===window)return false;
   const r=ROUTES[key];let pushed=false;
   try{
-    if(cleanPath()!==r.path){T0.history[push?'pushState':'replaceState']({vc:1},'',r.path||'/');pushed=push}
-    T0.document.title=titleFor(key);
+    if(cleanPath()!==rp(key)){T0.history[push?'pushState':'replaceState']({vc:1},'',rpath(key));pushed=push}
+    T0.document.title=titleFor(key);setAlts(key);
   }catch(e){}
   return pushed;
 }
@@ -2114,7 +2122,7 @@ setPageActive=function(page){_spa2(page);curPage=page;if(!routeQuiet)topGo(page,
 function openAbout(fromLogo){
   if(qs)return;
   qs=document.createElement('iframe');qs.className='about-frame';qs.title='¿Quiénes somos?';
-  qs.src='quienes-somos.html#'+(fromLogo?'desde-logo':'directo');
+  qs.src='quienes-somos.html?v=2#'+(fromLogo?'desde-logo':'directo');
   qs.style.cssText='position:fixed;inset:0;width:100%;height:100%;border:0;z-index:100002;background:transparent;color-scheme:dark'+(fromLogo?';visibility:hidden':'');
   qs._hidden=fromLogo;document.body.append(qs);
   if(!fromLogo){qs.addEventListener('load',()=>{try{qs.contentWindow.focus()}catch(e){}})}
@@ -2140,26 +2148,30 @@ window.addEventListener('message',e=>{
 });
 /* Ficha completa: pagina a pantalla completa (ficha.html) con modelo 3D, foto, categorias, trivia y visibilidad */
 let fi=null,fichaPushed=false,fiNode=null,afterBack=null;
-const fichaSeg=s=>s.split('/').pop();
+function fichaSeg(s){return s.split('/').pop()}
 /* la ficha abierta se refleja en la URL (#nombre-del-objeto) para que al recargar vuelva a ella */
 function fichaFromHash(){
   try{
+    /* la ficha va en la direccion: /atlas-astrofotografico/m42-nebulosa-de-orion, /en/astrophotography-atlas/m42-orion-nebula... */
+    const r=vcRutas.parse(T0.location.pathname);
+    if(r.key==='atlas'&&r.rest){for(const k of FICHAS){const x=fichaRests(k);if(x[r.lang]===r.rest||x.es===r.rest)return all.find(n=>n.s===k)||null}}
+    /* direccion antigua (#m42---nebulosa-de-orion): se abre y se cambia por la nueva */
     const h=decodeURIComponent((T0.location.hash||'').slice(1));if(!h)return null;
-    for(const k of FICHAS)if(fichaSeg(k)===h)return all.find(n=>n.s===k)||null;
+    for(const k of FICHAS)if(fichaSeg(k)===h){const n=all.find(n=>n.s===k)||null;if(n)try{T0.history.replaceState({vc:1},'',vcRutas.path('atlas',PL,fichaRests(k)[PL]))}catch(e){}return n}
   }catch(e){}
   return null;
 }
 function openFicha(n,fromUrl,replace){
   if(fi)return;
   fi=document.createElement('iframe');fi.className='ficha-frame';fi.title=n.t;fiNode=n;
-  fi.src='ficha.html?v=21#'+encodeURIComponent(n.s);
+  fi.src='ficha.html?v=22#'+encodeURIComponent(n.s);
   fi.style.cssText='position:fixed;inset:0;width:100%;height:100%;border:0;z-index:100001;background:#05060f;color-scheme:dark';
   document.body.append(fi);
   fi.addEventListener('load',()=>{try{fi.contentWindow.focus()}catch(e){}});
   if(T0===window)return;
   try{
-    if(!fromUrl){const u=(cleanPath()||'/')+'#'+encodeURIComponent(fichaSeg(n.s));if(replace)T0.history.replaceState({vc:1},'',u);else{T0.history.pushState({vc:1},'',u);fichaPushed=true}}
-    T0.document.title=n.t+' \u00b7 Vero Cosmos';
+    if(!fromUrl){const u=vcRutas.path('atlas',PL,fichaRests(n.s)[PL]);if(replace)T0.history.replaceState({vc:1},'',u);else{T0.history.pushState({vc:1},'',u);fichaPushed=true}}
+    T0.document.title=(()=>{const nm=FMAP[n.s]&&FMAP[n.s].name;return nm&&window.vcI18n?vcI18n.t(nm):(nm||n.t)})()+' \u00b7 Vero Cosmos';setAlts('atlas',fichaRests(n.s));
   }catch(e){}
 }
 function removeFicha(){if(fi){fi.remove();fi=null}}
@@ -2189,7 +2201,7 @@ function closeFicha(back,toGroup){
     try{T0.history.back()}catch(e){}return;
   }
   fichaPushed=false;
-  try{T0.history.replaceState({vc:1},'',cleanPath()||'/');T0.document.title=titleFor(curPage)}catch(e){}
+  try{T0.history.replaceState({vc:1},'',rpath(curPage));T0.document.title=titleFor(curPage);setAlts(curPage)}catch(e){}
   if(toGroup)applyBack(n);
 }
 window.addEventListener('message',e=>{
@@ -2222,8 +2234,9 @@ window.addEventListener('message',e=>{
   }
 });
 function routeFromLocation(){
-  const p=cleanPath();
-  const key=Object.keys(ROUTES).find(k=>ROUTES[k].path===p)||'principal';
+  const pr=vcRutas.parse(T0.location.pathname);
+  const key=pr.key&&ROUTES[pr.key]?pr.key:'principal';
+  if(!(key==='atlas'&&pr.rest)&&!(key==='log'&&pr.rest))setAlts(key);
   routeQuiet=true;
   try{
     if(key==='lugar'){removeAbout();setPageActive('guide');try{T0.document.title=titleFor('lugar')}catch(e){}if(!lugarEl)openLugar(null,true)}
@@ -2318,10 +2331,11 @@ function vcSky(cv,active){
 }
 vcSky(document.getElementById("sky"),()=>document.body.classList.contains("principal-page")&&!document.body.classList.contains("lugar-cover"));
 </script>
-<script src="vc-i18n.js?v=63"></script>
+<script src="vc-i18n.js?v=64"></script>
 <script src="lluvias.js?v=1"></script>
-<script src="bitacora.js?v=11" data-src="bitacora.json?v=1"></script>
-<script src="promo.js?v=5"></script>
+<script src="temporadas.js?v=1"></script>
+<script src="bitacora.js?v=14" data-src="bitacora.json?v=1"></script>
+<script src="promo.js?v=6"></script>
 <script>vcI18n.mount(document.getElementById("stage"));</script>
 <script src="vero.js?v=26" defer></script>
 </body>

@@ -143,6 +143,11 @@
     '@media(max-width:700px){.b-bub.b-go:hover:before,.b-bub.b-go:focus-visible:before{border-top-color:#b9c9ff}}' +
     /* previsualizacion del evento */
     '.b-top{position:relative}' +
+    /* banner de temporada (temporadas.js): ocupa el hueco a la izquierda de Vero, encima de las pestanas */
+    '.b-top.b-hasbn{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"bn vh" "tabs vh";column-gap:16px;row-gap:14px;align-items:end}' +
+    '.b-top.b-hasbn>.b-bn{grid-area:bn;align-self:stretch}.b-top.b-hasbn>.b-tabs{grid-area:tabs;justify-self:start}.b-top.b-hasbn>.b-vhw{grid-area:vh}' +
+    '.b-top.b-hasbn.b-nov{grid-template-columns:minmax(0,1fr);grid-template-areas:"bn" "tabs"}' +
+    '@media(max-width:700px){.b-top.b-hasbn{grid-template-areas:"bn bn" "tabs vh";row-gap:12px}.b-top.b-hasbn.b-nov{grid-template-areas:"bn" "tabs"}}' +
     '.b-prev{position:absolute;right:0;top:calc(100% + 10px);z-index:6;width:min(340px,calc(100vw - 32px));overflow:hidden;border:1.5px solid #5b6bb4;border-radius:16px;background:#0b1025;box-shadow:0 18px 44px #000b;animation:bPrev .3s cubic-bezier(.2,.9,.3,1)}' +
     '@keyframes bPrev{from{opacity:0;transform:translateY(-8px) scale(.97)}to{opacity:1;transform:none}}' +
     '.b-prev img{display:block;width:100%;height:130px;object-fit:cover}' +
@@ -229,7 +234,7 @@
       m.auto = false; out.push(m); delete byId[a.id]
     })
     notes.forEach(function (n) { if (byId[n.id] && (n.tipo !== 'evento' || n.inicio)) out.push(n) })
-    return { v: (j && j.v) || 1, items: out }
+    return { v: (j && j.v) || 1, items: out, temporadas: (j && j.temporadas) || {} }
   }
   function load() {
     if (data) return Promise.resolve(data)
@@ -282,6 +287,9 @@
     Object.keys(lines).forEach(function (k) { if (k.slice(-1) !== 'l') wmax = Math.max(wmax, lines[k] - lines[k + 'l']) })
     var cs = getComputedStyle(bb), extra = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight) + parseFloat(cs.borderLeftWidth) + parseFloat(cs.borderRightWidth)
     if (wmax) bb.style.width = Math.ceil(wmax + extra + 1) + 'px'
+    var vw = bb.parentNode, bar = bb.closest('.b-top')
+    if (bar && bar.classList.contains('b-hasbn') && window.innerWidth > 700) { var pad = bb.offsetWidth + 22; vw.style.paddingLeft = pad + 'px'; bb.style.right = 'calc(100% - ' + pad + 'px + 12px)' }
+    else if (vw) { vw.style.paddingLeft = ''; bb.style.right = '' }
   }
   function bubSync(bb) {
     var e = bubEvent(), t = bubText()
@@ -307,6 +315,15 @@
     var go = pv.querySelector('.b-gob'); go.textContent = u('goEntry') + ' →'; go.onclick = function () { closePrev(); open(it.id, true) }
     bar.append(pv)
     try { go.focus({ preventScroll: true }) } catch (e) { }
+  }
+  function headFor(e) {
+    var now = Date.now(), a = Date.parse(e.inicio), t = tx(e.t)
+    if (now >= a) return u('bLive')
+    var d0 = new Date(now); d0.setHours(0, 0, 0, 0); var d1 = new Date(a); d1.setHours(0, 0, 0, 0)
+    var days = Math.round((d1 - d0) / 864e5)
+    if (days === 0) return (new Date(a).getHours() >= 17 ? u('bTonight') : u('bToday')).replace('{t}', t)
+    if (days === 1) return u('bTomorrow').replace('{t}', t)
+    return u('bDays').replace('{n}', days).replace('{t}', t)
   }
   function bubText() {
     var now = Date.now(), its = (data && data.items) || []
@@ -467,6 +484,16 @@
     var vm = vmode()
     /* en "Viajes y curiosidades" (completa) ya sale Vero de viaje: no se repite la del periodico */
     var bar = document.createElement('div'); bar.className = 'b-top'; w.append(bar)
+    if (window.vcTemporadas) {
+      try {
+        var bn = window.vcTemporadas.banner({
+          items: its, lang: lang(), imgs: (data && data.temporadas) || {}, tx: tx, when: when, head: headFor,
+          chip: function (it) { var st = evState(it, Date.now()); return st.past ? '' : st.chip },
+          go: function (id) { open(id, true) }
+        })
+        bar.append(anim(bn, .2)); bar.classList.add('b-hasbn'); if (vm === 'off') bar.classList.add('b-nov')
+      } catch (e) { }
+    }
     bar.append(tabs())
     if (vm !== 'off') {
       var vh = document.createElement('span'); vh.className = 'b-vhw'; vh.append(vimg('b-vh m-' + vm, 'm-periodico.webp'))

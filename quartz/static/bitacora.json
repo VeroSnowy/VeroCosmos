@@ -1,6 +1,6 @@
 {
  "v": 1,
- "generado": "2026-11-15T21:12:06.801Z",
+ "generado": "2026-11-16T23:04:26.098Z",
  "items": [
   {
    "id": "leonidas-2026",
@@ -95,5 +95,28 @@
    },
    "img": "bitacora/leonidas-2026.webp"
   }
- ]
+ ],
+ "temporadas": {
+  "carnaval-vero": "bitacora/temporadas/carnaval-vero.webp",
+  "chandeleur-vero": "bitacora/temporadas/chandeleur-vero.webp",
+  "cuadrantidas": "bitacora/temporadas/cuadrantidas.webp",
+  "eta-acuaridas": "bitacora/temporadas/eta-acuaridas.webp",
+  "fallas-vero": "bitacora/temporadas/fallas-vero.webp",
+  "feria-de-abril-vero": "bitacora/temporadas/feria-de-abril-vero.webp",
+  "geminidas": "bitacora/temporadas/geminidas.webp",
+  "halloween-vero": "bitacora/temporadas/halloween-vero.webp",
+  "hispanidad-vero": "bitacora/temporadas/hispanidad-vero.webp",
+  "leonidas": "bitacora/temporadas/leonidas.webp",
+  "liridas": "bitacora/temporadas/liridas.webp",
+  "navidad-vero": "bitacora/temporadas/navidad-vero.webp",
+  "orionidas": "bitacora/temporadas/orionidas.webp",
+  "perseidas": "bitacora/temporadas/perseidas.webp",
+  "reyes-vero": "bitacora/temporadas/reyes-vero.webp",
+  "rocio-vero": "bitacora/temporadas/rocio-vero.webp",
+  "san-fermin-vero": "bitacora/temporadas/san-fermin-vero.webp",
+  "san-juan-vero": "bitacora/temporadas/san-juan-vero.webp",
+  "semana-santa-vero-es": "bitacora/temporadas/semana-santa-vero-es.webp",
+  "semana-santa-vero": "bitacora/temporadas/semana-santa-vero.webp",
+  "tomatina-vero": "bitacora/temporadas/tomatina-vero.webp"
+ }
 }

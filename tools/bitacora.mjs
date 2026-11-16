@@ -117,7 +117,7 @@ const notas = []
   if (!fs.existsSync(d)) return
   for (const e of fs.readdirSync(d, { withFileTypes: true })) {
     const f = path.join(d, e.name)
-    if (e.isDirectory()) { if (e.name !== 'imagenes') rec(f) } else if (/\.md$/i.test(e.name)) notas.push(f)
+    if (e.isDirectory()) { if (e.name !== 'imagenes' && e.name !== 'temporadas') rec(f) } else if (/\.md$/i.test(e.name)) notas.push(f)
   }
 })(CARPETA)
 
@@ -197,13 +197,63 @@ for (const f of notas) {
       await sharp(img).rotate().resize({ width: 1400, height: 1400, fit: 'inside', withoutEnlargement: true }).webp({ quality: 82 }).toFile(path.join(STATIC, it.img))
     }
   }
+  /* "banner: imagen.jpg": imagen de fondo para el banner de temporada mientras dura el evento */
+  const bimg = buscarImagen(fm.banner, path.dirname(f))
+  if (fm.banner && !bimg) avisos.push(`${nombre}: no encuentro la imagen del banner "${fm.banner}"`)
+  if (bimg) {
+    it.banner = 'bitacora/' + it.id + '-banner.webp'
+    if (!SIMULAR) {
+      sharp = sharp || (await import('sharp')).default
+      fs.mkdirSync(IMG_DIR, { recursive: true })
+      await sharp(bimg).rotate().resize({ width: 1600, height: 600, fit: 'cover', withoutEnlargement: true }).webp({ quality: 80 }).toFile(path.join(STATIC, it.banner))
+    }
+  }
   if (items.some(x => x.id === it.id)) { avisos.push(`${nombre}: ya hay otra entrada con el id "${it.id}"; pon un "id:" distinto`); continue }
   items.push(it)
 }
 /* noticias y eventos: los mas recientes primero (la web ya separa proximos y pasados) */
 items.sort((a, b) => (b.inicio || b.fecha).localeCompare(a.inicio || a.fecha))
 
-const data = { v: 1, generado: new Date().toISOString(), items }
+/* banners de temporada: imagenes en bitacora-del-cielo/temporadas/ con el nombre de la temporada
+   (navidad.jpg, leonidas.jpg, primavera.jpg...) = fondo del banner; <temporada>-vero.png = Vero de esa temporada
+   (si tiene fondo blanco, se le quita). Ver quartz/static/temporadas.js para las claves */
+const temporadas = {}
+const TDIR = path.join(CARPETA, 'temporadas'), TOUT = path.join(IMG_DIR, 'temporadas')
+if (fs.existsSync(TDIR)) {
+  for (const e of fs.readdirSync(TDIR)) {
+    if (!/\.(jpe?g|png|webp|avif)$/i.test(e)) continue
+    const clave = e.replace(/\.[^.]+$/, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+    temporadas[clave] = 'bitacora/temporadas/' + clave + '.webp'
+    if (SIMULAR) continue
+    sharp = sharp || (await import('sharp')).default
+    fs.mkdirSync(TOUT, { recursive: true })
+    const src = path.join(TDIR, e), dst = path.join(TOUT, clave + '.webp')
+    if (/-vero(-(es|en|fr))?$/.test(clave)) {
+      /* personaje: se quita el fondo blanco que toca los bordes (relleno desde fuera, con borde suave) */
+      const { data: px, info } = await sharp(src).rotate().resize({ height: 720, withoutEnlargement: true }).ensureAlpha().raw().toBuffer({ resolveWithObject: true })
+      const W = info.width, H = info.height, fuera = new Uint8Array(W * H), cola = []
+      const blanco = i => Math.min(px[i * 4], px[i * 4 + 1], px[i * 4 + 2]) > 228
+      for (let x = 0; x < W; x++) { cola.push(x, (H - 1) * W + x) }
+      for (let y = 0; y < H; y++) { cola.push(y * W, y * W + W - 1) }
+      while (cola.length) {
+        const i = cola.pop(); if (fuera[i] || !blanco(i)) continue
+        fuera[i] = 1; const x = i % W, y = (i / W) | 0
+        if (x > 0) cola.push(i - 1); if (x < W - 1) cola.push(i + 1); if (y > 0) cola.push(i - W); if (y < H - 1) cola.push(i + W)
+      }
+      for (let i = 0; i < W * H; i++) {
+        if (fuera[i]) { px[i * 4 + 3] = 0; continue }
+        const x = i % W, y = (i / W) | 0
+        const junto = (x > 0 && fuera[i - 1]) || (x < W - 1 && fuera[i + 1]) || (y > 0 && fuera[i - W]) || (y < H - 1 && fuera[i + W])
+        if (junto) { const m = Math.min(px[i * 4], px[i * 4 + 1], px[i * 4 + 2]); if (m > 190) px[i * 4 + 3] = Math.round(255 * (255 - m) / 65) }
+      }
+      await sharp(px, { raw: { width: W, height: H, channels: 4 } }).trim().webp({ quality: 85, alphaQuality: 90 }).toFile(dst)
+    } else {
+      await sharp(src).rotate().resize({ width: 2400, height: 600, fit: 'inside', withoutEnlargement: true }).webp({ quality: 80 }).toFile(dst)
+    }
+  }
+  if (Object.keys(temporadas).length) console.log('Banners de temporada: ' + Object.keys(temporadas).join(', '))
+}
+const data = { v: 1, generado: new Date().toISOString(), items, temporadas }
 const NOM = { evento: 'Evento ', noticia: 'Noticia', cronica: 'Crónica' }
 console.log(`Entradas: ${items.length} (${items.filter(i => i.tipo === 'evento').length} eventos, ${items.filter(i => i.tipo === 'noticia').length} noticias, ${items.filter(i => i.tipo === 'cronica').length} crónicas)`)
 for (const i of items) console.log(`  · ${NOM[i.tipo]}  ${i.id}  ${i.inicio || i.fecha}`)
@@ -212,7 +262,9 @@ if (SIMULAR) { console.log('\n(simulación: no se ha escrito nada)'); process.ex
 fs.writeFileSync(OUT, JSON.stringify(data, null, 1) + '\n')
 fs.writeFileSync(PEND_FILE, JSON.stringify(pendientes, null, 2) + '\n')
 /* imagenes de entradas que ya no existen */
-const usadas = new Set(); items.forEach(i => { if (i.img) usadas.add(i.img); (i.p || []).forEach(x => { if (x && x.img) usadas.add(x.img) }) })
-if (fs.existsSync(IMG_DIR)) for (const e of fs.readdirSync(IMG_DIR)) if (!usadas.has('bitacora/' + e)) fs.unlinkSync(path.join(IMG_DIR, e))
+const usadas = new Set(); items.forEach(i => { if (i.img) usadas.add(i.img); if (i.banner) usadas.add(i.banner); (i.p || []).forEach(x => { if (x && x.img) usadas.add(x.img) }) })
+Object.values(temporadas).forEach(v => usadas.add(v))
+if (fs.existsSync(IMG_DIR)) for (const e of fs.readdirSync(IMG_DIR, { withFileTypes: true })) if (e.isFile() && !usadas.has('bitacora/' + e.name)) fs.unlinkSync(path.join(IMG_DIR, e.name))
+if (fs.existsSync(TOUT)) for (const e of fs.readdirSync(TOUT)) if (!usadas.has('bitacora/temporadas/' + e)) fs.unlinkSync(path.join(TOUT, e))
 console.log(`\nEscrito ${path.relative(ROOT, OUT)}`)
 console.log(pendientes.length ? `Textos sin traducir: ${pendientes.length} -> rellena "en" y "fr" en ${path.relative(ROOT, PEND_FILE)} y ejecuta: node tools/bitacora.mjs --aplicar` : 'Todo traducido.')
