@@ -1797,7 +1797,7 @@ function secBody(name){
   return d;
 }
 /* Secciones con dibujo interactivo: se cargan bajo demanda (bortle.js) */
-const SEC_VIZ={'Contaminación Lumínica':{src:'bortle.js?v=7',api:'vcBortle'},'Entorno':{src:'entorno.js?v=2',api:'vcEntorno'},'Meteorología':{src:'meteo.js?v=3',api:'vcMeteo'},'Elección del lugar':{src:'eleccion.js?v=1',api:'vcEleccion'},'Preparación':{src:'mochila.js?v=2',api:'vcMochila'}};
+const SEC_VIZ={'Contaminación Lumínica':{src:'bortle.js?v=8',api:'vcBortle'},'Entorno':{src:'entorno.js?v=2',api:'vcEntorno'},'Meteorología':{src:'meteo.js?v=3',api:'vcMeteo'},'Elección del lugar':{src:'eleccion.js?v=1',api:'vcEleccion'},'Preparación':{src:'mochila.js?v=2',api:'vcMochila'}};
 function secLoadViz(def,cb,fail,n){
   n=n||0;
   if(window[def.api]){cb();return}

@@ -298,7 +298,11 @@
               g.beginPath(); g.moveTo(tx, ty - th - sp); g.lineTo(tx, ty - th - sp - 2.4 * s); g.moveTo(tx - .8 * s, ty - th - sp - 1.7 * s); g.lineTo(tx + .8 * s, ty - th - sp - 1.7 * s); g.stroke()
             })
           } })
-          lights.push({ x: tx - tw * .25, y: ty - th * .97, w: tw * .5, h: th * .12, r: tw * 2.5, t: 7.4, kind: 'win', z: zq - 1.5 })
+          /* luz dentro de cada arco del campanario (mismas medidas que los arcos de arriba; sin arcos, sin luz) */
+          if (tw > 5) [-.22, .22].forEach(function (q) {
+            var aw = tw * .26, ax = tx + q * tw - tw * .13, ay = ty - th * .93, ah = th * .11, i = Math.min(aw * .12, lw(zq, 26))
+            lights.push({ x: ax + i, y: ay + i, w: aw - 2 * i, h: ah - i, r: tw * 1.6, t: 7.4, kind: 'win', arch: true, z: zq - 1.5 })
+          })
           lights.push({ x: tx, y: ty - th * .5, w: 0, h: 0, r: tw * 3.5, t: 8, kind: 'flood', z: zq - 1.5 })
         })
         return true
@@ -716,7 +720,12 @@
       var G = glowSprite()
       sc.lights.forEach(function (l) {
         var a = on(l.t, L); if (a <= 0) return
-        if (l.w > 0) { ctx.fillStyle = 'rgba(248,216,116,' + a + ')'; ctx.fillRect(l.x, l.y, l.w, l.h) }
+        if (l.w > 0) {
+          ctx.fillStyle = 'rgba(248,216,116,' + a + ')'
+          /* arco de medio punto: lados rectos y semicirculo arriba */
+          if (l.arch) { var hr = l.w / 2; ctx.beginPath(); ctx.moveTo(l.x, l.y + l.h); ctx.lineTo(l.x, l.y + hr); ctx.arc(l.x + hr, l.y + hr, hr, Math.PI, 0); ctx.lineTo(l.x + l.w, l.y + l.h); ctx.closePath(); ctx.fill() }
+          else ctx.fillRect(l.x, l.y, l.w, l.h)
+        }
       })
       ctx.globalCompositeOperation = 'lighter'
       sc.lights.forEach(function (l) {
