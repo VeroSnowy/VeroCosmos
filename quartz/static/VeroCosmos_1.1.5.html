@@ -1842,7 +1842,7 @@ function openSection(btn,name){
   if(bdS)secFitAll(view,bdS,bdP,page);
   /* lo que se apaga: el resto de botones, la estrella, las lineas y la etiqueta del elegido */
   const others=[...ls.querySelectorAll('.ls-b,.ls-m,.ls-lines')].filter(x=>x!==btn).concat([btn.querySelector('.ls-t')]);
-  secEl={side,page,btn,roll,others,c,fades:[],act:null,vz:null};
+  secEl={side,page,btn,roll,others,c,fades:[],act:null,vz:null};subPush(name);
   /* el dibujo se descarga ya, pero se monta cuando termina la animacion de apertura: montarlo (Bortle tarda ~0,3 s)
      durante la animacion la congelaba. Despues aparece con un fundido. */
   let vzReady=false,vzWant=false,vzOpts=null;
@@ -1932,6 +1932,25 @@ function lugarCenter(root){
 /* Lugar para observar: pagina a pantalla completa (por ahora en blanco) que se abre con la misma expansion que el logo.
    Tiene su propia URL (/guia-astronomica/lugar-para-observar): se abre con la animacion al pulsar la tarjeta y directamente si se entra por la URL */
 let lugarEl=null,lugarPushed=false;
+/* Mi Lugar y las secciones de "Lugar para observar" dejan una entrada en el historial (misma direccion, estado sub):
+   asi "atras" del navegador las cierra igual que la flecha, y "adelante" las vuelve a abrir */
+let subPushed=false,subQuiet=false;
+function subPush(id){
+  if(subQuiet||T0===window)return;
+  try{T0.history.pushState({vc:1,sub:id},'',T0.location.pathname);subPushed=true}catch(e){}
+}
+function subClose(){
+  if(secEl){if(secBusy){setTimeout(subClose,150);return}closeSection();return}
+  if(mlEl)closeMiLugar();
+}
+function subOpen(id){
+  const view=lugarEl;if(!view)return;
+  subQuiet=true;
+  try{
+    if(id==='ml')openMiLugar(view);
+    else{const b=[...view.querySelectorAll('.ls-b')].find(x=>x.dataset.sec===id);if(b)openSection(b,id)}
+  }finally{subQuiet=false}
+}
 let mlEl=null,mlBusy=false;
 function openMiLugar(view){
   if(mlEl||mlBusy||secEl||secBusy||lugarEl!==view)return;mlBusy=true;
@@ -1956,7 +1975,7 @@ function openMiLugar(view){
     };
     try{go()}finally{mlBusy=false}
   };
-  mlEl=host;
+  mlEl=host;subPush('ml');
   const fades=others.map(x=>x.animate?x.animate([{opacity:1},{opacity:0}],{duration:red?250:500,easing:'ease-out',fill:'forwards'}):null);
   host._fades=fades;host._star=star;
   if(red||!star.animate){star.style.opacity='0';show();return}
@@ -1981,6 +2000,7 @@ function lugarKey(e){if(e.key==='Escape'&&lugarEl){e.preventDefault();e.stopProp
 /* ir a otra pagina desde el menu o el logo cierra "Lugar para observar" */
 document.addEventListener('click',ev=>{if(lugarEl&&ev.target.closest&&ev.target.closest('#page-menu a,#logo-btn')){lugarPushed=false;removeLugar()}},true);
 function removeLugar(){
+  subPushed=false;
   if(!lugarEl)return;
   if(secEl&&secEl.vz)secEl.vz.destroy();
   if(mlEl){if(mlEl._vz)mlEl._vz.destroy();mlEl=null;mlBusy=false}
@@ -1992,8 +2012,7 @@ function removeLugar(){
 /* cerrar con la flecha o Esc: si se abrio desde la guia, "atras" del navegador; si se entro por la URL, vuelve a la guia */
 function closeLugar(){
   if(!lugarEl)return;
-  if(secEl){closeSection();return}
-  if(mlEl){closeMiLugar();return}
+  if(secEl||mlEl){if(subPushed){subPushed=false;try{T0.history.back();return}catch(e){}}subClose();return}
   if(lugarPushed){lugarPushed=false;try{T0.history.back();return}catch(e){}}
   removeLugar();
   routeQuiet=true;try{setPageActive('guide')}finally{routeQuiet=false}
@@ -2240,6 +2259,15 @@ function routeFromLocation(){
   let st=null;try{st=T0.history.state}catch(e){}
   const from=key==='atlas'&&pr.rest&&st&&st.from&&ROUTES[st.from]&&st.from!=='about'&&st.from!=='lugar'?st.from:null;
   if(!(key==='atlas'&&pr.rest)&&!(key==='log'&&pr.rest))setAlts(key);
+  /* dentro de Lugar para observar: atras/adelante entre la estrella y Mi Lugar o una seccion */
+  if(key==='lugar'&&lugarEl){
+    const want=st&&st.sub||null,have=secEl?secEl.btn&&secEl.btn.dataset.sec:mlEl?'ml':null;
+    if(want!==have){
+      if(have){subPushed=false;subClose()}
+      if(want){const go=()=>{if(secEl||mlEl||secBusy||mlBusy){setTimeout(go,150);return}subOpen(want);subPushed=true};go()}
+    }
+    return;
+  }
   routeQuiet=true;
   try{
     if(key==='lugar'){removeAbout();setPageActive('guide');try{T0.document.title=titleFor('lugar')}catch(e){}if(!lugarEl)openLugar(null,true)}
