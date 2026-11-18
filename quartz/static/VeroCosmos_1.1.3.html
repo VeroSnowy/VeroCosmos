@@ -1797,7 +1797,7 @@ function secBody(name){
   return d;
 }
 /* Secciones con dibujo interactivo: se cargan bajo demanda (bortle.js) */
-const SEC_VIZ={'Contaminación Lumínica':{src:'bortle.js?v=7',api:'vcBortle'},'Entorno':{src:'entorno.js?v=2',api:'vcEntorno'},'Meteorología':{src:'meteo.js?v=3',api:'vcMeteo'},'Elección del lugar':{src:'eleccion.js?v=1',api:'vcEleccion'},'Preparación':{src:'mochila.js?v=2',api:'vcMochila'}};
+const SEC_VIZ={'Contaminación Lumínica':{src:'bortle.js?v=8',api:'vcBortle'},'Entorno':{src:'entorno.js?v=2',api:'vcEntorno'},'Meteorología':{src:'meteo.js?v=3',api:'vcMeteo'},'Elección del lugar':{src:'eleccion.js?v=1',api:'vcEleccion'},'Preparación':{src:'mochila.js?v=2',api:'vcMochila'}};
 function secLoadViz(def,cb,fail,n){
   n=n||0;
   if(window[def.api]){cb();return}
@@ -2147,7 +2147,8 @@ window.addEventListener('message',e=>{
   else if(e.data.vc==='close')closeAbout();
 });
 /* Ficha completa: pagina a pantalla completa (ficha.html) con modelo 3D, foto, categorias, trivia y visibilidad */
-let fi=null,fichaPushed=false,fiNode=null,afterBack=null;
+/* fiFrom: pagina desde la que se abrio la ficha (va en el historial: si se vuelve a ella con atras/adelante del navegador, la flecha sigue sabiendo adonde volver) */
+let fi=null,fichaPushed=false,fiNode=null,afterBack=null,fiFrom=null;
 function fichaSeg(s){return s.split('/').pop()}
 /* la ficha abierta se refleja en la URL (#nombre-del-objeto) para que al recargar vuelva a ella */
 function fichaFromHash(){
@@ -2170,7 +2171,7 @@ function openFicha(n,fromUrl,replace){
   fi.addEventListener('load',()=>{try{fi.contentWindow.focus()}catch(e){}});
   if(T0===window)return;
   try{
-    if(!fromUrl){const u=vcRutas.path('atlas',PL,fichaRests(n.s)[PL]);if(replace)T0.history.replaceState({vc:1},'',u);else{T0.history.pushState({vc:1},'',u);fichaPushed=true}}
+    if(!fromUrl){const u=vcRutas.path('atlas',PL,fichaRests(n.s)[PL]);if(!replace)fiFrom=curPage;const st={vc:1,from:fiFrom||curPage};if(replace)T0.history.replaceState(st,'',u);else{T0.history.pushState(st,'',u);fichaPushed=true}}
     T0.document.title=(()=>{const nm=FMAP[n.s]&&FMAP[n.s].name;return nm&&window.vcI18n?vcI18n.t(nm):(nm||n.t)})()+' \u00b7 Vero Cosmos';setAlts('atlas',fichaRests(n.s));
   }catch(e){}
 }
@@ -2236,15 +2237,18 @@ window.addEventListener('message',e=>{
 function routeFromLocation(){
   const pr=vcRutas.parse(T0.location.pathname);
   const key=pr.key&&ROUTES[pr.key]?pr.key:'principal';
+  /* ficha abierta desde otra pagina (p. ej. la Guia): debajo se deja esa pagina, no el atlas */
+  let st=null;try{st=T0.history.state}catch(e){}
+  const from=key==='atlas'&&pr.rest&&st&&st.from&&ROUTES[st.from]&&st.from!=='about'&&st.from!=='lugar'?st.from:null;
   if(!(key==='atlas'&&pr.rest)&&!(key==='log'&&pr.rest))setAlts(key);
   routeQuiet=true;
   try{
     if(key==='lugar'){removeAbout();setPageActive('guide');try{T0.document.title=titleFor('lugar')}catch(e){}if(!lugarEl)openLugar(null,true)}
     else{removeLugar();lugarPushed=false;
     if(key==='about'){if(!qs){beforeAbout=curPage;openAbout(false)}}
-    else{removeAbout();setPageActive(key);try{T0.document.title=titleFor(key)}catch(e){}}}
+    else{removeAbout();setPageActive(from||key);try{T0.document.title=titleFor(from||key)}catch(e){}}}
     const fn=(key==='about'||key==='lugar')?null:fichaFromHash();
-    if(fn){if(!fi)openFicha(fn,true)}else{removeFicha();fichaPushed=false}
+    if(fn){if(!fi){openFicha(fn,true);if(from){fiFrom=from;fichaPushed=true}}}else{removeFicha();fichaPushed=false}
   }finally{routeQuiet=false}
   if(afterBack){const f=afterBack;afterBack=null;f()}
 }
