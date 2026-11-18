@@ -105,7 +105,7 @@
     '#bhead{position:absolute;top:18px;left:62px;right:64px;z-index:3;display:flex;align-items:baseline;gap:14px;pointer-events:none}' +
     '#bhead h2{margin:0;font:400 22px/1 "Iowan Old Style",Georgia,serif;letter-spacing:.02em;color:#fff;white-space:nowrap}' +
     '#bhead p{margin:0;color:#b8c4e6;font:400 15px/1.3 "Iowan Old Style",Georgia,serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' +
-    '@media(max-width:700px){#bhead{left:60px}#bhead{top:22px}#bhead h2{font-size:17px;letter-spacing:0;max-width:calc(100vw - 176px);overflow:hidden;text-overflow:ellipsis}body.vero-on #bhead h2{max-width:calc(100vw - 212px)}#bhead p{display:none}}' +
+    '@media(max-width:700px){#bhead{left:60px}#bhead h2{max-width:calc(100vw - 176px);overflow:hidden;text-overflow:ellipsis}body.vero-on #bhead h2{max-width:calc(100vw - 212px)}#bhead p{display:none}}' +
     '.b-top{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin:0 0 22px}.b-top .b-tabs{margin:0}' +
     '.b-vh{flex:none;margin:0 0 -10px;width:auto;pointer-events:none;-webkit-mask-image:linear-gradient(180deg,#000 78%,transparent);mask-image:linear-gradient(180deg,#000 78%,transparent);filter:drop-shadow(0 10px 24px #0008)}' +
     '.b-vh.m-full{height:clamp(110px,10vw,170px)}.b-vh.m-on{height:clamp(84px,7vw,118px);opacity:.95}' +
@@ -682,7 +682,7 @@
     if (typeof window.vcSky === 'function') { var sk = document.createElement('canvas'); sk.id = 'b-sky'; sk.setAttribute('aria-hidden', 'true'); view.append(sk); try { window.vcSky(sk, function () { return document.body.classList.contains('log-page') }) } catch (e) { sk.remove() } }
     main = document.createElement('div'); main.id = 'b-main'; view.append(main)
     var hd = document.createElement('div'); hd.id = 'bhead'; hd.innerHTML = '<h2></h2><p></p>'; view.append(hd)
-    var head = function () { hd.querySelector('h2').textContent = u('name'); hd.querySelector('p').textContent = u('lead') }; head()
+    var head = function () { hd.querySelector('h2').textContent = u('name'); hd.querySelector('p').textContent = u('lead'); if (window.vcFitTitles) window.vcFitTitles() }; head()
     window.addEventListener('vc-lang', head)
     var p = document.createElement('p'); p.className = 'b-empty'; p.style.maxWidth = '860px'; p.style.margin = '0 auto'; p.textContent = u('loading'); main.append(p)
     window.addEventListener('vc-ajustes', function (e) { if (data && e.detail && e.detail.k === 'vero') draw(false) })

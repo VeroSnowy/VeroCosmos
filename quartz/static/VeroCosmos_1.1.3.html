@@ -60,7 +60,7 @@ body.principal-page #head h1{display:none}
 body.principal-page #panel{display:none}
 #search-wrap{position:absolute;top:12px;right:112px;width:min(320px,calc(100% - 36px));z-index:4}
 body.vero-on #search-wrap{right:160px}
-body.vero-on #lugar-title{display:block!important;line-height:34px;max-width:calc(100vw - 276px);overflow:hidden;text-overflow:ellipsis}
+#lugar-title{display:block!important;line-height:34px!important;max-width:calc(100vw - 218px);overflow:hidden;text-overflow:ellipsis}body.vero-on #lugar-title{max-width:calc(100vw - 262px)}
 #search{width:100%;height:38px;padding:0 13px 0 37px;border:1px solid #343b60;border-radius:8px;outline:none;background:#0e1226eF;color:var(--fg);font:inherit;box-shadow:0 5px 22px #0003}
 #search::placeholder{color:#8f98c0}
 #search:focus{border-color:#8ab4ff;box-shadow:0 0 0 2px #8ab4ff22}
@@ -308,7 +308,6 @@ body.lugar-on #head h1{display:none}
 /* el panel de la derecha del atlas se abre por encima de "Lugar para observar" (enlaces de Mi Lugar) */
 body.lugar-on #mini,body.lugar-on #panel{visibility:visible;position:fixed;top:0;right:0;bottom:0;z-index:100006}@media(max-width:700px){body.lugar-on #mini{top:auto;left:0}}
 body.lugar-cover #app{visibility:hidden}body.lugar-cover #app *{animation-play-state:paused!important}body.lugar-cover #head,body.lugar-cover .vc-lang,body.lugar-cover #logo-btn{visibility:visible}
-@media(max-width:480px){#lugar-title{font-size:16px!important}}
 @media(max-width:350px){#lugar-title{display:none!important}}
 @media(max-width:640px){#lugar-view{--sw:54px}.sec-side .sec-body{display:none}.sec-page .sec-body{display:block}.sec-page .sec-body{padding:0 12px 12px}.sec-pt{padding:12px 12px 8px}.sec-h{padding:12px 0}}
 .sec-side.sec-nogo{visibility:hidden}
@@ -370,7 +369,7 @@ body:not(.principal-page):not(.guide-page) #head h1{display:none}
 #search-wrap{left:62px;right:108px;width:auto}
 body.vero-on #search-wrap{right:156px}
 body.vero-on #ghead h2{max-width:calc(100vw - 224px)}
-#ghead h2{font-size:20px;max-width:calc(100vw - 176px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#ghead h2{max-width:calc(100vw - 176px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #nav{top:58px;left:12px;flex-wrap:wrap}
 #msg{display:none}
 body.mini-open #stage{height:42vh;flex:none;width:100%;align-self:flex-start}
@@ -2006,7 +2005,7 @@ function openLugar(card,fromUrl){
   if(!document.getElementById('pc-photon')){const l=document.createElement('link');l.id='pc-photon';l.rel='preconnect';l.href='https://photon.komoot.io';l.crossOrigin='anonymous';document.head.append(l)}
   const view=document.createElement('div');view.id='lugar-view';view.setAttribute('role','dialog');view.setAttribute('aria-label','Lugar para observar');
   view.style.cssText='position:fixed;inset:0;z-index:100002;background:radial-gradient(ellipse at 50% 40%,#111936 0%,#080b19 55%,#05060f 100%);color:#eef1ff';
-  view.innerHTML=''+topoSvg()+lugarStar()+'<button type="button" id="lugar-back" aria-label="Volver" style="position:absolute;top:12px;left:60px;display:flex;align-items:center;justify-content:center;width:34px;height:34px;padding:0;border:1px solid #232846;border-radius:7px;background:#0e1226ef;color:#eef1ff;cursor:pointer;transition:background .18s,border-color .18s"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><span id="lugar-title" style="position:absolute;top:12px;left:104px;height:34px;display:flex;align-items:center;font:400 20px/1 \'Iowan Old Style\',Georgia,serif;color:#f5f7ff;white-space:nowrap;pointer-events:none;transition:opacity .45s ease"></span>';
+  view.innerHTML=''+topoSvg()+lugarStar()+'<button type="button" id="lugar-back" aria-label="Volver" style="position:absolute;top:12px;left:60px;display:flex;align-items:center;justify-content:center;width:34px;height:34px;padding:0;border:1px solid #232846;border-radius:7px;background:#0e1226ef;color:#eef1ff;cursor:pointer;transition:background .18s,border-color .18s"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><span id="lugar-title" style="position:absolute;top:12px;left:104px;height:34px;display:flex;align-items:center;font:400 22px/1 \'Iowan Old Style\',Georgia,serif;letter-spacing:.02em;color:#fff;white-space:nowrap;pointer-events:none;transition:opacity .45s ease"></span>';
   const bk=view.querySelector('#lugar-back'),tt=view.querySelector('#lugar-title');
   /* el mapa se dibuja una vez (aparece linea a linea) y despues se queda como imagen fija hasta que se vuelva a abrir */
   const still=topoSvg.still;
@@ -2338,9 +2337,30 @@ vcSky(document.getElementById("sky"),()=>document.body.classList.contains("princ
 <script src="vc-i18n.js?v=64"></script>
 <script src="lluvias.js?v=1"></script>
 <script src="temporadas.js?v=1"></script>
-<script src="bitacora.js?v=14" data-src="bitacora.json?v=1"></script>
+<script src="bitacora.js?v=15" data-src="bitacora.json?v=1"></script>
 <script src="promo.js?v=6"></script>
 <script>vcI18n.mount(document.getElementById("stage"));</script>
 <script src="vero.js?v=26" defer></script>
+<script>
+/* Titulos de pagina (Guia, Bitacora, Lugar para observar): mismo tamano que en escritorio (22 px) salvo que no quepan
+   en la pantalla; entonces se reducen poco a poco hasta que caben (minimo 12 px) */
+(function(){
+  const SEL=['#ghead h2','#bhead h2','#lugar-title'];
+  function fit(){
+    SEL.forEach(s=>document.querySelectorAll(s).forEach(el=>{
+      if(!el.getClientRects().length)return;
+      if(!el.dataset.fs0)el.dataset.fs0='22';
+      let fs=+el.dataset.fs0;el.style.fontSize=fs+'px';
+      while(el.scrollWidth>el.clientWidth+1&&fs>12){fs-=.5;el.style.fontSize=fs+'px'}
+    }))
+  }
+  let tm=[];function soon(){tm.forEach(clearTimeout);tm=[0,250,900].map(d=>setTimeout(fit,d))}
+  window.vcFitTitles=soon;
+  addEventListener('resize',soon);addEventListener('vc-lang',soon);
+  new MutationObserver(soon).observe(document.body,{attributes:true,attributeFilter:['class']});
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(soon);
+  soon();
+})();
+</script>
 </body>
 </html>
