@@ -1464,5 +1464,147 @@
    "Su luz salió hace unos 444 años, más o menos cuando se estrenó el calendario que usamos hoy.",
    "Galileo las miró con su telescopio y dibujó 36 estrellas donde a simple vista solo se ven seis o siete."
   ]
+ },
+ "catálogos/ngc/descripciones/ngc_281/ngc-281---nebulosa-pac-man": {
+  "name": "NGC 281 · Nebulosa Pac-Man",
+  "model": "nebula",
+  "palette": "pacman",
+  "facts": [
+   [
+    "Constelación",
+    "Casiopea"
+   ],
+   [
+    "Tipo",
+    "Nebulosa de emisión"
+   ],
+   [
+    "Magnitud aparente",
+    "+7,4"
+   ],
+   [
+    "Distancia",
+    "9.200 años luz"
+   ],
+   [
+    "Diámetro",
+    "Unos 100 años luz"
+   ],
+   [
+    "Tamaño aparente",
+    "35′ × 30′"
+   ],
+   [
+    "Ascensión recta",
+    "0h 52m 59s"
+   ],
+   [
+    "Declinación",
+    "+56° 37′ 19″"
+   ]
+  ],
+  "cats": [
+   "Nebulosa de emisión",
+   "Región H II",
+   "Formación estelar",
+   "Catálogo NGC",
+   "Constelación de Casiopea",
+   "Brazo de Perseo"
+  ],
+  "trivia": [
+   "Su apodo viene del personaje de los videojuegos: una franja de polvo oscuro le dibuja la «boca».",
+   "La descubrió el astrónomo Edward Emerson Barnard en agosto de 1883 y la describió como una nebulosa grande, débil y muy difusa.",
+   "En su centro está el cúmulo IC 1590, de unos 3,5 millones de años, cuyas estrellas hacen brillar el gas.",
+   "Contiene glóbulos de Bok: pequeñas nubes de polvo muy densas en las que pueden estar naciendo estrellas.",
+   "Está en el brazo de Perseo, el brazo espiral de la Vía Láctea que queda justo por fuera del nuestro."
+  ],
+  "others": [
+   {
+    "n": "IC 1590",
+    "d": "Cúmulo abierto muy joven, en el corazón de la nebulosa."
+   },
+   {
+    "n": "Shedar",
+    "d": "Estrella anaranjada de Casiopea, a menos de dos grados de la nebulosa."
+   },
+   {
+    "n": "NGC 457 · Cúmulo de la Lechuza",
+    "d": "Cúmulo abierto de Casiopea con forma de ave."
+   },
+   {
+    "n": "IC 1805 · Nebulosa del Corazón",
+    "d": "Otra nebulosa de emisión de Casiopea, mucho más extensa en el cielo."
+   },
+   {
+    "n": "M31 · Galaxia de Andrómeda",
+    "d": "La gran galaxia de la vecina constelación de Andrómeda.",
+    "s": "catálogos/messier/descripciones/m_31/m31---galaxia-de-andrómeda"
+   }
+  ],
+  "sky": {
+   "ra": 13.25,
+   "dec": 56.62,
+   "stars": [
+    [
+     "Navi",
+     14.18,
+     60.72,
+     2.1
+    ],
+    [
+     "Shedar",
+     10.13,
+     56.54,
+     2.2
+    ],
+    [
+     "Caph",
+     2.29,
+     59.15,
+     2.3
+    ],
+    [
+     "Ruchbah",
+     21.45,
+     60.24,
+     2.7
+    ],
+    [
+     "Segin",
+     28.6,
+     63.67,
+     3.4
+    ]
+   ],
+   "segs": [
+    [
+     [
+      28.6,
+      63.67
+     ],
+     [
+      21.45,
+      60.24
+     ],
+     [
+      14.18,
+      60.72
+     ],
+     [
+      10.13,
+      56.54
+     ],
+     [
+      2.29,
+      59.15
+     ]
+    ]
+   ]
+  },
+  "vero": [
+   "¿Ves la boca? No es un hueco: es una nube de polvo tan densa que tapa la luz del gas que hay detrás.",
+   "La estrella que más la ilumina no está sola: en realidad son al menos cinco, tan juntas que hace falta un telescopio para separarlas.",
+   "Su luz salió hace unos 9.200 años, cuando en Oriente Próximo ya había aldeas de agricultores."
+  ]
  }
 }

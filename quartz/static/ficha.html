@@ -210,7 +210,7 @@ ul.l{margin:0;padding:0;list-style:none}
         <div class="locpop" id="locpop" hidden><button type="button" id="geo">Usar mi ubicación</button><label>Busca tu municipio<input type="search" id="locq" placeholder="Busca tu municipio…" autocomplete="off" autocapitalize="none" spellcheck="false" aria-label="Busca tu municipio"></label><div id="locres" class="locres" role="listbox"></div><p class="note" id="locmsg"></p></div></div></section>
   </main>
 </div>
-<script src="vc-i18n.js?v=69"></script>
+<script src="vc-i18n.js?v=70"></script>
 <script src="vero.js?v=27" defer></script>
 <script>
 const $=id=>document.getElementById(id);
@@ -406,6 +406,14 @@ function run(render){
     requestAnimationFrame(f);
   })();
 }
+/* velo: mancha de luz difuminada, ya dibujada para cada color */
+const VELOS={};
+function velo(col){
+  const k=col.join(',');if(VELOS[k])return VELOS[k];
+  const n=document.createElement('canvas');n.width=n.height=48;const g=n.getContext('2d'),d=g.createRadialGradient(24,24,0,24,24,24);
+  d.addColorStop(0,'rgba('+k+',1)');d.addColorStop(.4,'rgba('+k+',.5)');d.addColorStop(.75,'rgba('+k+',.12)');d.addColorStop(1,'rgba('+k+',0)');
+  g.fillStyle=d;g.fillRect(0,0,48,48);return VELOS[k]=n;
+}
 /* nubes de puntos: nebulosas, cúmulo globular, galaxia */
 function pointRender(P){
   return(c,w,h)=>{
@@ -418,7 +426,8 @@ function pointRender(P){
     pts.sort((a,b)=>a[2]-b[2]);
     for(const[px,py,,p,f]of pts){
       const rr=p.sz*f*(sc/150+.5);
-      if(p.star){const gr=c.createRadialGradient(px,py,0,px,py,rr*5);gr.addColorStop(0,'rgba(255,255,255,.95)');gr.addColorStop(.25,'rgba('+p.col[0]+','+p.col[1]+','+p.col[2]+',.45)');gr.addColorStop(1,'rgba('+p.col[0]+','+p.col[1]+','+p.col[2]+',0)');c.fillStyle=gr;c.beginPath();c.arc(px,py,rr*5,0,6.283);c.fill()}
+      if(p.puff){const R=p.puff*sc*f;c.globalAlpha=p.a;c.drawImage(velo(p.col),px-R,py-R,R*2,R*2);c.globalAlpha=1}
+      else if(p.star){const gr=c.createRadialGradient(px,py,0,px,py,rr*5);gr.addColorStop(0,'rgba(255,255,255,.95)');gr.addColorStop(.25,'rgba('+p.col[0]+','+p.col[1]+','+p.col[2]+',.45)');gr.addColorStop(1,'rgba('+p.col[0]+','+p.col[1]+','+p.col[2]+',0)');c.fillStyle=gr;c.beginPath();c.arc(px,py,rr*5,0,6.283);c.fill()}
       else{c.fillStyle='rgba('+p.col[0]+','+p.col[1]+','+p.col[2]+','+(p.a*(.55+.45*f/1.5)).toFixed(3)+')';c.beginPath();c.arc(px,py,rr,0,6.283);c.fill()}
     }
   };
@@ -440,6 +449,35 @@ function buildNebula(pal){
   if(pal==='flame')P.push({x:-.05,y:-.55,z:.2,col:[190,215,255],a:1,sz:5,star:true});
   else[[.05,.02,.1],[-.04,.05,.12],[-.02,-.05,.09],[.06,-.04,.13]].forEach(([x,y,z])=>P.push({x,y,z,col:[235,245,255],a:1,sz:3.2,star:true}));
   bgStars(P,90,9);return P;
+}
+/* Nebulosas con molde: los puntos se reparten según el brillo y el color de la foto de verdad (sin estrellas), guardados en
+   nebulosas.json por tools/nebulosas.mjs. La profundidad es inventada. NEB: n puntos, e tamaño, sat color, lim densidad del centro,
+   z relieve, est estrellas [x, y, tamaño, color] en la caja del molde */
+const NEB={
+  orion:{n:3800,pf:2300,e:2.9,sat:3,ex:.9,gr:1.1,a:.22,pa:.12,pr:1.1,z:'cuenco',est:[[.234,.526,2.4],[.222,.512,1.9],[.246,.514,1.8],[.236,.54,1.6]],col:[225,238,255]},
+  flame:{n:4300,pf:1700,e:2.75,sat:2.3,ex:1.15,gr:1.25,a:.34,pa:.2,pr:.6,z:'capas',est:[[.956,.406,7]],col:[170,205,255]},
+  pacman:{n:4200,pf:2000,e:2.7,sat:2.5,ex:.85,gr:.95,a:.3,pa:.12,pr:.95,z:'capas',est:[[.434,.548,2.4],[.425,.525,1.2],[.442,.566,1.1],[.415,.575,1],[.45,.53,.9]],col:[205,222,255],cum:[.434,.548]}
+};
+function buildNubes(pal,M){
+  const c=NEB[pal],r=mkRand(pal.length*97+3),g=()=>(r()+r()+r()+r()-2)*.9,P=[],B='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_',N=96,C=24;
+  const L=Float32Array.from(M.l,ch=>{const v=B.indexOf(ch)/63;return v*v}),K=Uint8Array.from(M.c,ch=>B.indexOf(ch)*4);
+  const at=(u,v)=>{const x=Math.max(0,Math.min(N-1.001,u*N-.5)),y=Math.max(0,Math.min(N-1.001,v*N-.5)),i=x|0,j=y|0,a=x-i,b=y-j,o=j*N+i;return(L[o]*(1-a)+L[o+1]*a)*(1-b)+(L[o+N]*(1-a)+L[o+N+1]*a)*b};
+  const hue=(u,v)=>{const o=(Math.min(C-1,v*C|0)*C+Math.min(C-1,u*C|0))*3,R=K[o],G=K[o+1],A=K[o+2],m=(R+G+A)/3,f=[R,G,A].map(x=>Math.max(8,m+(x-m)*c.sat)),k=255/Math.max(...f);return f.map(x=>x*k|0)};
+  let sx=0,sy=0,sw=0;for(let i=0;i<N*N;i++){const w=Math.sqrt(L[i]);sx+=w*(i%N);sy+=w*(i/N|0);sw+=w}
+  const X0=sx/sw/N,Y0=sy/sw/N,wav=(x,y)=>Math.sin(x*5.1+Math.sin(y*3.7)*1.3)*.5+Math.sin(y*6.3-x*2.9)*.3+Math.sin((x+y)*11)*.2;
+  const prof=(x,y)=>c.z==='cuenco'?Math.min(.6,Math.hypot(x+.35,y)*.5)-.35+wav(x,y)*.12:wav(x,y)*.26;
+  const suelta=(n,fn)=>{let q=0,k=0;while(k<n&&q++<600000){
+    const u=r(),v=r(),l=at(u,v);if(l<.008||r()>fn(l))continue;
+    const x=(u-X0)*c.e,y=(v-Y0)*c.e,z=prof(x,y)+g()*(.08+.26*Math.sqrt(l)),f=1-z*.9/2.6;   /* f: de frente, cada punto cae justo donde está en la foto */
+    k++;P.push(Object.assign({x:x*f,y:y*f,z},fn===velo?{puff:c.pr*(.065+.1*r()*(1.3-l)),col:hue(u,v).map(t=>(t>>4)*17),a:c.pa*(.18+.82*l),sz:1}
+      :{col:hue(u,v).map(t=>t+(255-t)*Math.min(1,l*1.2)*.35|0),a:c.a*(.2+.8*l),sz:l>.35?.5+r()*.7:.6+r()*1}));
+  }};
+  const velo=l=>Math.pow(l,c.ex),grano=l=>Math.pow(l,c.gr);
+  suelta(c.pf,velo);suelta(c.n,grano);
+  c.est.forEach(([u,v,t])=>{const x=(u-X0)*c.e,y=(v-Y0)*c.e;P.push({x,y,z:.12,col:c.col,a:1,sz:t,star:true},{x,y,z:.125,col:[244,248,255],a:.95,sz:t*.55})});
+  if(c.cum)for(let i=0;i<60;i++){const d=Math.pow(r(),1.4)*.36,a=r()*6.283;P.push({x:(c.cum[0]-X0)*c.e+Math.cos(a)*d,y:(c.cum[1]-Y0)*c.e+Math.sin(a)*d,z:.1+g()*.15,col:[215,228,255],a:.5+r()*.4,sz:.6+r()*.6})}
+  for(let i=0;i<130;i++)P.push({x:(r()-.5)*3.2,y:(r()-.5)*3.2,z:(r()-.5)*2,col:r()<.25?[255,205,170]:[215,226,255],a:.25+r()*.45,sz:.5+r()*.7});
+  bgStars(P,50,28);return P;
 }
 function buildGlobular(){
   const r=mkRand(21),P=[];
@@ -931,7 +969,12 @@ const hav=(a,b,c,d)=>{const r=Math.PI/180,x=Math.sin((c-a)*r/2)**2+Math.cos(a*r)
 
 function startModel(){
   const m=data.model,norm=v=>{const l=Math.hypot(...v);return v.map(x=>x/l)};
-  if(m==='nebula')run(pointRender(buildNebula(data.palette)));
+  if(m==='nebula'){
+    if(NEB[data.palette]){V.rx=0;V.ry=0;V.auto=false;V.sway=true}   /* se mece, para que no se pierda la forma */
+    const viejo=()=>run(pointRender(buildNebula(data.palette)));
+    if(!NEB[data.palette])viejo();
+    else fetch('nebulosas.json?v=1').then(r=>r.json()).then(j=>run(pointRender(buildNubes(data.palette,j[data.palette])))).catch(viejo);
+  }
   else if(m==='open'){V.rx=0;V.ry=0;V.auto=false;V.sway=true;if(data.palette==='pleyades')V.rz=-.93;run(pointRender(buildOpen(data.palette)))}
   else if(m==='globular'){V.rx=-.2;run(pointRender(buildGlobular()))}
   else if(m==='galaxy'&&data.palette==='andromeda'){V.rx=-.36;V.rz=-.6;V.ry=.4;V.speed=.0014;run(pointRender(buildAndromeda()))}
@@ -954,7 +997,7 @@ window.addEventListener('vc-lang',()=>{
 /* ---------- arranque ---------- */
 (async function(){
   let all={};
-  try{all=await(await fetch('fichas.json?v=9')).json()}catch(e){}
+  try{all=await(await fetch('fichas.json?v=10')).json()}catch(e){}
   data=all[slug];
   if(!data){post({vc:'close'});return}
   const info=await pageInfo();
