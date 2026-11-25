@@ -11,7 +11,7 @@ Nombre: M13 · Cúmulo de Hércules
 # Modelo 3D: nebulosa, galaxia o globular
 Modelo: globular
 
-# Paleta del modelo (opcional; ahora existen: orion, flame). Déjala vacía para la normal.
+# Paleta del modelo (opcional; ahora existen: orion, flame para nebulosas; andromeda, moneda para galaxias, hechas a medida de M31 y NGC 253). Déjala vacía para la normal.
 Paleta:
 
 # Nombre de la constelación en español, tal cual: Orión, Escultor, Acuario, Hércules...
