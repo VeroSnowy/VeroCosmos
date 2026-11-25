@@ -7,3 +7,4 @@
 [[Luna]]
 [[Saturno]]
 [[M31 - Galaxia de Andrómeda]]
+[[M45 - Pléyades]]

@@ -1272,5 +1272,197 @@
    "Si algún día se fusionara con la Vía Láctea, casi ninguna estrella chocaría con otra: hay muchísimo espacio vacío entre ellas."
   ],
   "palette": "andromeda"
+ },
+ "catálogos/messier/descripciones/m_45/m45---pléyades": {
+  "name": "M45 · Pléyades",
+  "model": "open",
+  "palette": "pleyades",
+  "facts": [
+   [
+    "Constelación",
+    "Tauro"
+   ],
+   [
+    "Tipo",
+    "Cúmulo abierto"
+   ],
+   [
+    "Magnitud aparente",
+    "+1,6"
+   ],
+   [
+    "Distancia",
+    "444 años luz"
+   ],
+   [
+    "Tamaño aparente",
+    "1,8°"
+   ],
+   [
+    "Estrellas",
+    "Más de 1.000"
+   ],
+   [
+    "Edad",
+    "Unos 100 millones de años"
+   ],
+   [
+    "Ascensión recta",
+    "3h 47m 00s"
+   ],
+   [
+    "Declinación",
+    "+24° 07′ 00″"
+   ]
+  ],
+  "cats": [
+   "Cúmulo abierto",
+   "Las Siete Hermanas",
+   "Nebulosa de reflexión",
+   "Catálogo Messier",
+   "Constelación de Tauro",
+   "Visible a simple vista"
+  ],
+  "trivia": [
+   "A simple vista se distinguen seis o siete estrellas, pero el cúmulo tiene más de mil.",
+   "Sus estrellas más brillantes llevan los nombres de las siete hermanas de la mitología griega y de sus padres, Atlas y Pléyone.",
+   "Son estrellas muy jóvenes: nacieron hace unos 100 millones de años, cuando en la Tierra vivían los dinosaurios.",
+   "El polvo que brilla a su alrededor no parece ser el resto de la nube en la que nacieron: se cree que lo están atravesando por casualidad.",
+   "Aparecen en el disco celeste de Nebra, de hace unos 3.600 años, una de las representaciones del cielo más antiguas que se conservan."
+  ],
+  "others": [
+   {
+    "n": "NGC 1435 · Nebulosa de Mérope",
+    "d": "Nube de polvo que refleja la luz de Mérope, una de las Pléyades."
+   },
+   {
+    "n": "Híades",
+    "d": "Cúmulo abierto de Tauro con forma de V, junto a la estrella Aldebarán."
+   },
+   {
+    "n": "Aldebarán",
+    "d": "La estrella más brillante de Tauro, de color anaranjado."
+   },
+   {
+    "n": "M1 · Nebulosa del Cangrejo",
+    "d": "Resto de una supernova, también en Tauro."
+   },
+   {
+    "n": "M42 · Nebulosa de Orión",
+    "d": "La gran nebulosa de la vecina constelación de Orión.",
+    "s": "catálogos/messier/descripciones/m_42/m42---nebulosa-de-orión"
+   }
+  ],
+  "sky": {
+   "ra": 56.75,
+   "dec": 24.12,
+   "stars": [
+    [
+     "Aldebarán",
+     68.98,
+     16.51,
+     0.9
+    ],
+    [
+     "Elnath",
+     81.57,
+     28.61,
+     1.6
+    ],
+    [
+     "Tianguan",
+     84.41,
+     21.14,
+     3
+    ],
+    [
+     "λ Tauro",
+     60.17,
+     12.49,
+     3.4
+    ],
+    [
+     "Ain",
+     67.15,
+     19.18,
+     3.5
+    ],
+    [
+     "ξ Tauro",
+     51.79,
+     9.73,
+     3.7
+    ]
+   ],
+   "segs": [
+    [
+     [
+      84.41,
+      21.14
+     ],
+     [
+      68.98,
+      16.51
+     ],
+     [
+      67.17,
+      15.87
+     ],
+     [
+      64.95,
+      15.63
+     ],
+     [
+      65.73,
+      17.54
+     ],
+     [
+      67.15,
+      19.18
+     ],
+     [
+      81.57,
+      28.61
+     ]
+    ],
+    [
+     [
+      64.95,
+      15.63
+     ],
+     [
+      60.17,
+      12.49
+     ],
+     [
+      51.79,
+      9.73
+     ],
+     [
+      60.79,
+      5.99
+     ]
+    ],
+    [
+     [
+      51.79,
+      9.73
+     ],
+     [
+      51.2,
+      9.03
+     ],
+     [
+      54.22,
+      0.4
+     ]
+    ]
+   ]
+  },
+  "vero": [
+   "En Japón las llaman Subaru: por eso la marca de coches lleva seis estrellas en su logo.",
+   "Su luz salió hace unos 444 años, más o menos cuando se estrenó el calendario que usamos hoy.",
+   "Galileo las miró con su telescopio y dibujó 36 estrellas donde a simple vista solo se ven seis o siete."
+  ]
  }
 }

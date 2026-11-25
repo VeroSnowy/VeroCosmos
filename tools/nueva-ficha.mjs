@@ -86,9 +86,9 @@ for (const raw of texto) {
 const req = (k, n) => { if (!campos[k]) fail(`Falta el campo "${n}".`); return campos[k] }
 const nota = req('nota', 'Nota'), nombre = req('nombre', 'Nombre'), modeloEs = req('modelo', 'Modelo')
 const consEs = req('constelacion', 'Constelación'), tipo = req('tipo', 'Tipo')
-const MODELOS = { nebulosa: 'nebula', nebula: 'nebula', galaxia: 'galaxy', galaxy: 'galaxy', globular: 'globular', 'cumulo globular': 'globular' }
+const MODELOS = { nebulosa: 'nebula', nebula: 'nebula', galaxia: 'galaxy', galaxy: 'galaxy', globular: 'globular', 'cumulo globular': 'globular', abierto: 'open', open: 'open', 'cumulo abierto': 'open' }
 const model = MODELOS[norm(modeloEs)]
-if (!model) fail(`Modelo "${modeloEs}" no válido. Usa: nebulosa, galaxia o globular.`)
+if (!model) fail(`Modelo "${modeloEs}" no válido. Usa: nebulosa, galaxia, globular o abierto.`)
 
 /* la nota debe existir en el vault; la clave de fichas.json es su ruta en minusculas con guiones */
 const rutaNota = nota.replace(/\\/g, '/').replace(/\.md$/i, '')

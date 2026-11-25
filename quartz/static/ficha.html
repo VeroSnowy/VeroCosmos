@@ -210,7 +210,7 @@ ul.l{margin:0;padding:0;list-style:none}
         <div class="locpop" id="locpop" hidden><button type="button" id="geo">Usar mi ubicación</button><label>Busca tu municipio<input type="search" id="locq" placeholder="Busca tu municipio…" autocomplete="off" autocapitalize="none" spellcheck="false" aria-label="Busca tu municipio"></label><div id="locres" class="locres" role="listbox"></div><p class="note" id="locmsg"></p></div></div></section>
   </main>
 </div>
-<script src="vc-i18n.js?v=68"></script>
+<script src="vc-i18n.js?v=69"></script>
 <script src="vero.js?v=27" defer></script>
 <script>
 const $=id=>document.getElementById(id);
@@ -410,7 +410,7 @@ function run(render){
 function pointRender(P){
   return(c,w,h)=>{
     c.globalCompositeOperation='lighter';
-    const sc=Math.min(w,h)*.3,cx=w/2,cy=h/2+10,cyy=Math.cos(V.ry),syy=Math.sin(V.ry),cxx=Math.cos(V.rx),sxx=Math.sin(V.rx),czz=Math.cos(V.rz),szz=Math.sin(V.rz),pts=[];
+    const sc=Math.min(w,h)*.3,cx=w/2,cy=h/2+10,ry=V.ry+(V.sway?Math.sin(performance.now()/2600)*.35:0),cyy=Math.cos(ry),syy=Math.sin(ry),cxx=Math.cos(V.rx),sxx=Math.sin(V.rx),czz=Math.cos(V.rz),szz=Math.sin(V.rz),pts=[];
     for(const p of P){
       const x=p.x*cyy+p.z*syy;let z=-p.x*syy+p.z*cyy;const y=p.y*cxx-z*sxx;z=p.y*sxx+z*cxx;
       const f=2.6/Math.max(.7,2.6-z*.9);pts.push([cx+(x*czz-y*szz)*sc*f,cy+(x*szz+y*czz)*sc*f,z,p,f]);   /* rz: giro en el plano del cielo, como en la foto */
@@ -516,6 +516,27 @@ function buildMoneda(){
     P.push({x:Math.cos(ph)*R,y:s*h,z:Math.sin(ph)*R,col:r()<.6?[255,80,110]:[185,105,255],a:.3*Math.pow(1-t,1.1)+.03,sz:.8+r()*1.1});
   }
   bgStars(P,70,4);return P;
+}
+/* Cúmulo abierto. Con la paleta "pleyades" las nueve estrellas principales están en su sitio real (vistas desde la Tierra),
+   con el polvo azul que refleja su luz; sin paleta, un cúmulo cualquiera */
+function buildOpen(pal){
+  const r=mkRand(45),g=()=>(r()+r()+r()+r()-2)*.9,P=[],E=2,pl=pal==='pleyades';
+  /* nombre, ascensión recta, declinación, magnitud, profundidad (inventada), polvo */
+  const S=[['Alcíone',56.871,24.105,2.87,.1,330],['Atlas',57.291,24.053,3.62,-.28,60],['Electra',56.219,24.113,3.7,.26,280],['Maia',56.457,24.368,3.87,-.12,420],['Mérope',56.582,23.948,4.17,.18,560],['Taigeta',56.302,24.467,4.29,.34,60],['Pléyone',57.297,24.137,5.09,-.4,0],['Celeno',56.2,24.289,5.45,-.22,70],['Astérope',56.477,24.555,5.76,.05,0]];
+  const at=(ra,de)=>[-(ra-56.68)*Math.cos(24.2*RAD)*E,-(de-24.24)*E];
+  if(pl)S.forEach(([,ra,de,m,z,n])=>{
+    const[x,y]=at(ra,de);const b=7.4-.95*m;P.push({x,y,z,col:[150,190,255],a:1,sz:b,star:true},{x,y,z:z+.004,col:[235,243,255],a:.95,sz:b*.62});
+    for(let i=0;i<n;i++){ // polvo en hebras casi paralelas
+      const h=Math.round(g()*7)/7,l=g()*.42,w=h*.24+g()*.018,c=Math.cos(.95),s=Math.sin(.95);
+      P.push({x:x+l*c-w*s+g()*.02,y:y+l*s+w*c+g()*.02,z:z+g()*.12,col:r()<.3?[130,170,255]:[70,115,235],a:.11*Math.exp(-Math.hypot(l,w)*2.2),sz:1.6+r()*3});
+    }
+  });
+  else for(let i=0;i<24;i++)P.push({x:g()*.7,y:g()*.7,z:g()*.7,col:r()<.15?[255,190,120]:[170,200,255],a:1,sz:1.2+r()*1.6,star:true});
+  for(let i=0;i<520;i++){ // el resto de estrellas del cúmulo
+    const d=Math.pow(r(),.48)*1.3,ct=r()*2-1,ph=r()*6.283,st=Math.sqrt(1-ct*ct),q=r(),b=Math.pow(r(),1.6);
+    P.push({x:d*st*Math.cos(ph),y:d*ct,z:d*st*Math.sin(ph),col:q<.12?[255,190,130]:q<.3?[255,240,220]:[190,212,255],a:.45+.45*b,sz:.5+b*b*1.1});
+  }
+  bgStars(P,80,12);return P;
 }
 /* ---- esferas con textura procedural: Luna, Saturno y Sol ---- */
 function h3(a,b,c){let n=Math.imul(a,374761393)^Math.imul(b,668265263)^Math.imul(c,1274126177);n=Math.imul(n^(n>>>13),1274126177);return((n^(n>>>16))>>>0)/4294967296}
@@ -911,6 +932,7 @@ const hav=(a,b,c,d)=>{const r=Math.PI/180,x=Math.sin((c-a)*r/2)**2+Math.cos(a*r)
 function startModel(){
   const m=data.model,norm=v=>{const l=Math.hypot(...v);return v.map(x=>x/l)};
   if(m==='nebula')run(pointRender(buildNebula(data.palette)));
+  else if(m==='open'){V.rx=0;V.ry=0;V.auto=false;V.sway=true;if(data.palette==='pleyades')V.rz=-.93;run(pointRender(buildOpen(data.palette)))}
   else if(m==='globular'){V.rx=-.2;run(pointRender(buildGlobular()))}
   else if(m==='galaxy'&&data.palette==='andromeda'){V.rx=-.36;V.rz=-.6;V.ry=.4;V.speed=.0014;run(pointRender(buildAndromeda()))}
   else if(m==='galaxy'&&data.palette==='moneda'){V.rx=-.27;V.rz=.22;V.ry=.35;V.speed=.002;run(pointRender(buildMoneda()))}
@@ -932,7 +954,7 @@ window.addEventListener('vc-lang',()=>{
 /* ---------- arranque ---------- */
 (async function(){
   let all={};
-  try{all=await(await fetch('fichas.json?v=8')).json()}catch(e){}
+  try{all=await(await fetch('fichas.json?v=9')).json()}catch(e){}
   data=all[slug];
   if(!data){post({vc:'close'});return}
   const info=await pageInfo();
