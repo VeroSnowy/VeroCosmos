@@ -210,7 +210,7 @@ ul.l{margin:0;padding:0;list-style:none}
         <div class="locpop" id="locpop" hidden><button type="button" id="geo">Usar mi ubicación</button><label>Busca tu municipio<input type="search" id="locq" placeholder="Busca tu municipio…" autocomplete="off" autocapitalize="none" spellcheck="false" aria-label="Busca tu municipio"></label><div id="locres" class="locres" role="listbox"></div><p class="note" id="locmsg"></p></div></div></section>
   </main>
 </div>
-<script src="vc-i18n.js?v=67"></script>
+<script src="vc-i18n.js?v=68"></script>
 <script src="vero.js?v=27" defer></script>
 <script>
 const $=id=>document.getElementById(id);
@@ -365,10 +365,19 @@ function toggleMax(){
   setTimeout(movePill,60);
 }
 $('mx').addEventListener('click',toggleMax);
-/* Luna: vuelve suavemente a la posicion original (la fase que se ve hoy en el cielo) */
+/* centrar: vuelve a la posición con la que se abre cada modelo (en la Luna, la fase que se ve hoy en el cielo) con el mismo
+   movimiento que el sistema solar de la guía; el avance por fotograma está limitado para que siempre se vea girar, nunca de golpe */
+let rcAnim=0;
 $('rc').addEventListener('click',()=>{
-  const r0=Math.atan2(Math.sin(V.ry),Math.cos(V.ry)),x0=V.rx,t0=performance.now(),D=matchMedia('(prefers-reduced-motion:reduce)').matches?0:650;
-  V.drag=false;const st=()=>{const p=D?1:Math.min(1,(performance.now()-t0)/D),e=1-Math.pow(1-p,3);V.ry=r0*(1-e);V.rx=x0*(1-e);if(p<1)requestAnimationFrame(st)};st();
+  cancelAnimationFrame(rcAnim);V.drag=false;
+  const d=V.ry-V.ry0,dy=Math.atan2(Math.sin(d),Math.cos(d)),dx=V.rx-V.rx0;let t=0,last=performance.now();
+  const fr=now=>{
+    if(V.drag){rcAnim=0;return}   /* si se agarra el modelo, manda la mano */
+    t=Math.min(1,t+Math.min(40,Math.max(0,now-last))/520);last=now;
+    const e=1-Math.pow(1-t,3);V.ry=V.ry0+dy*(1-e);V.rx=V.rx0+dx*(1-e);
+    rcAnim=t<1?requestAnimationFrame(fr):0;
+  };
+  rcAnim=requestAnimationFrame(fr);
 });
 $('tg').addEventListener('click',e=>{const b=e.target.closest('button[data-m]');if(b)setMode(b.dataset.m,true)});
 window.addEventListener('resize',movePill);window.addEventListener('vc-lang',()=>setTimeout(movePill,60));
@@ -401,10 +410,10 @@ function run(render){
 function pointRender(P){
   return(c,w,h)=>{
     c.globalCompositeOperation='lighter';
-    const sc=Math.min(w,h)*.3,cx=w/2,cy=h/2+10,cyy=Math.cos(V.ry),syy=Math.sin(V.ry),cxx=Math.cos(V.rx),sxx=Math.sin(V.rx),pts=[];
+    const sc=Math.min(w,h)*.3,cx=w/2,cy=h/2+10,cyy=Math.cos(V.ry),syy=Math.sin(V.ry),cxx=Math.cos(V.rx),sxx=Math.sin(V.rx),czz=Math.cos(V.rz),szz=Math.sin(V.rz),pts=[];
     for(const p of P){
       const x=p.x*cyy+p.z*syy;let z=-p.x*syy+p.z*cyy;const y=p.y*cxx-z*sxx;z=p.y*sxx+z*cxx;
-      const f=2.6/Math.max(.7,2.6-z*.9);pts.push([cx+x*sc*f,cy+y*sc*f,z,p,f]);
+      const f=2.6/Math.max(.7,2.6-z*.9);pts.push([cx+(x*czz-y*szz)*sc*f,cy+(x*szz+y*czz)*sc*f,z,p,f]);   /* rz: giro en el plano del cielo, como en la foto */
     }
     pts.sort((a,b)=>a[2]-b[2]);
     for(const[px,py,,p,f]of pts){
@@ -412,62 +421,6 @@ function pointRender(P){
       if(p.star){const gr=c.createRadialGradient(px,py,0,px,py,rr*5);gr.addColorStop(0,'rgba(255,255,255,.95)');gr.addColorStop(.25,'rgba('+p.col[0]+','+p.col[1]+','+p.col[2]+',.45)');gr.addColorStop(1,'rgba('+p.col[0]+','+p.col[1]+','+p.col[2]+',0)');c.fillStyle=gr;c.beginPath();c.arc(px,py,rr*5,0,6.283);c.fill()}
       else{c.fillStyle='rgba('+p.col[0]+','+p.col[1]+','+p.col[2]+','+(p.a*(.55+.45*f/1.5)).toFixed(3)+')';c.beginPath();c.arc(px,py,rr,0,6.283);c.fill()}
     }
-  };
-}
-/* galaxias con modelo propio: se suman los puntos en un lienzo de luz (con polvo que la absorbe) y se revela como una foto.
-   Mucho mas rapido que trazar miles de circulos, y el centro no se quema. */
-function galaxyRender(P){
-  const LUT=new Uint8ClampedArray(4096);for(let i=0;i<4096;i++)LUT[i]=255*(1-Math.exp(-i/4096*4.2));
-  /* tipo: 0 estrella, 1 polvo, 2 resplandor del nucleo, 3 estrella de fondo; las brumas (4) van aparte, a baja resolucion */
-  const HZ=P.filter(p=>p.k===4),S=P.filter(p=>p.k!==4),N=S.length,fa=fn=>Float32Array.from(S,fn);
-  const PX=fa(p=>p.x),PY=fa(p=>p.y),PZ=fa(p=>p.z),CR=fa(p=>p.col[0]),CG=fa(p=>p.col[1]),CB=fa(p=>p.col[2]),A=fa(p=>p.a),SZ=fa(p=>p.sz),K=Uint8Array.from(S,p=>p.k||0);
-  const X=new Float32Array(N),Y=new Float32Array(N),Z=new Uint8Array(N),Q=new Float32Array(N),ord=new Uint16Array(N),cnt=new Uint32Array(257);
-  let off=null,oc,img,buf,lo,bw=0,bh=0,lw=0,lh=0;
-  return(c,w,h)=>{
-    const q=Math.min(devicePixelRatio||1,1.6,Math.sqrt(360000/(w*h))),W=Math.max(8,Math.round(w*q)),H=Math.max(8,Math.round(h*q));
-    if(!off){off=document.createElement('canvas');oc=off.getContext('2d')}
-    if(W!==bw||H!==bh){bw=off.width=W;bh=off.height=H;lw=(W>>2)+2;lh=(H>>2)+2;img=oc.createImageData(W,H);buf=new Float32Array(W*H*3);lo=new Float32Array(lw*lh*3);for(let i=3;i<img.data.length;i+=4)img.data[i]=255}
-    const sc=Math.min(W,H)*.3,cx=W/2,cy=H/2+10*q,cyy=Math.cos(V.ry),syy=Math.sin(V.ry),cxx=Math.cos(V.rx),sxx=Math.sin(V.rx),czz=Math.cos(V.rz),szz=Math.sin(V.rz),tilt=.45+.55*Math.abs(sxx);
-    /* brumas del disco */
-    lo.fill(0);
-    for(let i=0;i<HZ.length;i++){
-      const p=HZ[i],x=p.x*cyy+p.z*syy;let z=-p.x*syy+p.z*cyy;const y=p.y*cxx-z*sxx;z=p.y*sxx+z*cxx;
-      const f=2.6/Math.max(.7,2.6-z*.9),R=p.sz*sc*f/4,px=(cx+(x*czz-y*szz)*sc*f)/4,py=(cy+(x*szz+y*czz)*sc*f)/4,inv=1/(R*R),a=p.a*tilt/255,r=p.col[0]*a,g=p.col[1]*a,b=p.col[2]*a;
-      const x0=Math.max(0,Math.ceil(px-R)),x1=Math.min(lw-1,Math.floor(px+R)),y0=Math.max(0,Math.ceil(py-R)),y1=Math.min(lh-1,Math.floor(py+R));
-      for(let yy=y0;yy<=y1;yy++){const dy=yy-py;let o=(yy*lw+x0)*3;for(let xx=x0;xx<=x1;xx++,o+=3){const dx=xx-px;let t=1-(dx*dx+dy*dy)*inv;if(t<=0)continue;t*=t;lo[o]+=r*t;lo[o+1]+=g*t;lo[o+2]+=b*t}}
-    }
-    for(let y=0,o=0;y<H;y++){
-      const v=(y&3)/4,l0=(y>>2)*lw*3,l1=l0+lw*3;
-      for(let x=0;x<W;x++,o+=3){
-        const u=(x&3)/4,m=(x>>2)*3,a=(1-u)*(1-v),b=u*(1-v),d=(1-u)*v,e=u*v;
-        buf[o]=lo[l0+m]*a+lo[l0+m+3]*b+lo[l1+m]*d+lo[l1+m+3]*e;buf[o+1]=lo[l0+m+1]*a+lo[l0+m+4]*b+lo[l1+m+1]*d+lo[l1+m+4]*e;buf[o+2]=lo[l0+m+2]*a+lo[l0+m+5]*b+lo[l1+m+2]*d+lo[l1+m+5]*e;
-      }
-    }
-    cnt.fill(0);
-    for(let i=0;i<N;i++){
-      const x=PX[i]*cyy+PZ[i]*syy;let z=-PX[i]*syy+PZ[i]*cyy;const y=PY[i]*cxx-z*sxx;z=PY[i]*sxx+z*cxx;
-      const f=2.6/Math.max(.7,2.6-z*.9);
-      X[i]=cx+(x*czz-y*szz)*sc*f;Y[i]=cy+(x*szz+y*czz)*sc*f;Q[i]=f;Z[i]=Math.max(0,Math.min(255,(z+2.4)*53|0));cnt[Z[i]+1]++;
-    }
-    for(let i=0;i<256;i++)cnt[i+1]+=cnt[i];
-    for(let i=0;i<N;i++)ord[cnt[Z[i]]++]=i;   /* de atras adelante, sin ordenar con comparaciones */
-    for(let n=0;n<N;n++){
-      const i=ord[n],k=K[i],f=Q[i],R=k===2?SZ[i]*sc*f:Math.max(.95,SZ[i]*f*sc/105),px=X[i],py=Y[i];
-      const x0=Math.max(0,Math.ceil(px-R)),x1=Math.min(W-1,Math.floor(px+R)),y0=Math.max(0,Math.ceil(py-R)),y1=Math.min(H-1,Math.floor(py+R));
-      if(x0>x1||y0>y1)continue;
-      const inv=1/(R*R),pa=A[i],a=pa*(k>1?1:tilt)*(.55+.3*f)/255*(k===2?.9:Math.min(1.5,Math.max(.8,1.7/R))),r=CR[i]*a,g=CG[i]*a,b=CB[i]*a;
-      for(let yy=y0;yy<=y1;yy++){
-        const dy=yy-py;let o=(yy*W+x0)*3;
-        for(let xx=x0;xx<=x1;xx++,o+=3){
-          const dx=xx-px;let t=1-(dx*dx+dy*dy)*inv;if(t<=0)continue;
-          if(k===1){t*=pa;buf[o]*=1-t*.82;buf[o+1]*=1-t*.94;buf[o+2]*=1-t}   /* el polvo se come antes el azul */
-          else{if(k===2){t*=t;t*=t}buf[o]+=r*t;buf[o+1]+=g*t;buf[o+2]+=b*t}
-        }
-      }
-    }
-    const D=img.data;
-    for(let j=0,o=0,n=W*H*4;j<n;j+=4,o+=3){D[j]=5+LUT[Math.min(4095,buf[o]*1500)|0];D[j+1]=6+LUT[Math.min(4095,buf[o+1]*1500)|0];D[j+2]=15+LUT[Math.min(4095,buf[o+2]*1500)|0]}
-    oc.putImageData(img,0,0);c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';c.drawImage(off,0,0,w,h);
   };
 }
 function bgStars(P,n,seed){const r=mkRand(seed);for(let i=0;i<n;i++)P.push({x:(r()-.5)*3.2,y:(r()-.5)*3.2,z:(r()-.5)*3.2,col:[220,230,255],a:.5,sz:.8})}
@@ -511,62 +464,58 @@ function buildGalaxy(){
   }
   bgStars(P,70,4);return P;
 }
-function galTools(seed){
-  const r=mkRand(seed),g=()=>(r()+r()+r()+r()-2)*.9,P=[];
-  const add=(x,y,z,col,a,sz,o)=>P.push({x,y,z,col,a,sz,k:o||0});
-  const glow=(x,y,z,col,a,R)=>add(x,y,z,col,a,R,2),haze=(x,y,z,col,a,R)=>add(x,y,z,col,a,R,4);
-  const ball=(n,R,pw,fl,ex,fn)=>{for(let i=0;i<n;i++){const d=Math.pow(r(),pw)*R,ct=r()*2-1,ph=r()*6.283,st=Math.sqrt(1-ct*ct);fn(d*st*Math.cos(ph)*ex,d*ct*fl,d*st*Math.sin(ph),d)}};
-  const stars=()=>{for(let i=0;i<80;i++)add((r()-.5)*3.2,(r()-.5)*3.2,(r()-.5)*3.2,[220,230,255],.6,.8,3)};
-  return{r,g,P,add,glow,haze,ball,stars};
-}
-/* M31: bulbo dorado y grande, brazos muy cerrados con el anillo azul de estrellas jóvenes, bandas de polvo y sus satélites M32 y M110 */
+/* M31: bulbo dorado y grande, brazos muy cerrados con el anillo azul de estrellas jóvenes, bandas de polvo (huecos) y sus satélites M32 y M110 */
 function buildAndromeda(){
-  const{r,g,P,add,glow,haze,ball,stars}=galTools(31);
-  glow(0,0,0,[255,214,150],.8,.62);glow(0,0,0,[255,240,210],1.6,.16);
-  ball(2000,.46,1.9,.62,1,(x,y,z,d)=>add(x,y,z,d<.1?[255,242,208]:r()<.3?[255,190,120]:[255,216,152],.3,.7+r()*1.1));
-  for(let i=0;i<520;i++){const q=Math.pow(r(),.75)*1.22,a=r()*6.283;haze(Math.cos(a)*q,g()*.02,Math.sin(a)*q,q<.5?[255,200,140]:q<.85?[205,190,200]:[135,165,230],.07*Math.exp(-q*.5),.17)}
-  for(let i=0;i<2300;i++){const q=.12+Math.pow(r(),.75)*1.28,a=r()*6.283;add(Math.cos(a)*q,g()*.035,Math.sin(a)*q,q<.5?[255,210,155]:q<.85?[222,210,214]:[165,188,240],.34*Math.exp(-q*.6),.7+r()*.9)}
+  const r=mkRand(31),g=()=>(r()+r()+r()+r()-2)*.9,P=[];
   const wind=q=>Math.log(q/.3)/.15; // espiral muy cerrada (unos 8-9 grados)
-  for(let i=0;i<5200;i++){
-    const q=.34+Math.pow(r(),.85)*1.08,a=wind(q)+(i%2)*Math.PI+g()*.32,w=q+g()*(.03+.03*q),hii=r()<.03;
-    add(Math.cos(a)*w,g()*.022,Math.sin(a)*w,hii?[255,95,150]:q<.5?[235,212,200]:[120,170,255],hii?.8:.32,hii?1.1+r()*.7:.7+r()*.9);
+  const polvo=(x,z)=>{const q=Math.hypot(x,z);if(q<.25||q>1.12)return false;let d=(Math.atan2(z,x)-wind(q)-.62)%Math.PI;if(d<0)d+=Math.PI;return Math.min(d,Math.PI-d)<.27&&r()<.93};
+  const add=(x,y,z,col,a,sz)=>{if(!polvo(x,z))P.push({x,y,z,col,a,sz})};
+  P.push({x:0,y:0,z:0,col:[255,205,125],a:1,sz:10,star:true});
+  for(let i=0;i<1500;i++){ // bulbo
+    const d=Math.pow(r(),1.7)*.46,ct=r()*2-1,ph=r()*6.283,st=Math.sqrt(1-ct*ct);
+    add(d*st*Math.cos(ph),d*ct*.6,d*st*Math.sin(ph),r()<.3?[255,176,96]:[255,206,134],d<.14?.16:.3,.7+r()*.9);
   }
-  for(let i=0;i<2400;i++){ // anillo de formación estelar (a unos 10 kpc del centro)
+  for(let i=0;i<1500;i++){ // disco de estrellas viejas
+    const q=.15+Math.pow(r(),.8)*1.25,a=r()*6.283;
+    add(Math.cos(a)*q,g()*.03,Math.sin(a)*q,q<.5?[255,200,140]:q<.85?[214,196,200]:[150,178,240],.36*Math.exp(-q*.5),.8+r()*1);
+  }
+  for(let i=0;i<2900;i++){ // brazos
+    const q=.34+Math.pow(r(),.8)*1.08,a=wind(q)+(i%2)*Math.PI+g()*.34,w=q+g()*.04,hii=r()<.035;
+    add(Math.cos(a)*w,g()*.02,Math.sin(a)*w,hii?[255,95,150]:q<.5?[226,196,176]:[112,160,255],hii?.7:.26,hii?1.1+r()*.7:.7+r()*.8);
+  }
+  for(let i=0;i<1500;i++){ // anillo de formación estelar (a unos 10 kpc del centro)
     const q=.74+g()*.07,a=r()*6.283,c=.5+.5*Math.sin(a*9+Math.sin(a*4)*2),hii=r()<.07;
     if(r()>.35+.65*c)continue;
-    add(Math.cos(a)*q,g()*.02,Math.sin(a)*q,hii?[255,85,145]:[135,185,255],hii?.85:.4,hii?1.2+r()*.8:.7+r());
+    add(Math.cos(a)*q,g()*.02,Math.sin(a)*q,hii?[255,85,145]:[125,172,255],hii?.75:.32,hii?1.2+r()*.7:.7+r()*.8);
   }
-  for(let i=0;i<1700;i++){ // polvo, pegado al borde interior de los brazos
-    const q=.3+Math.pow(r(),.9)*.78,a=wind(q)+(i%2)*Math.PI+.62+g()*.22;
-    add(Math.cos(a)*q,g()*.014,Math.sin(a)*q,[0,0,0],.3,1.8+r()*2.6,1);
-  }
-  const sat=(x,y,z,n,R,ex,col,ga)=>{glow(x,y,z,col,ga,R*2);ball(n,R,1.8,1,ex,(a,b,d)=>add(x+a,y+b,z+d,col,.35,.6+r()*.6))};
-  sat(.5,.2,.28,260,.06,1,[255,222,170],1.3);      // M32, compacta
-  sat(-.7,-.42,-.35,380,.13,1.6,[230,220,215],.4); // M110, alargada y tenue
-  stars();return P;
+  const sat=(x,y,z,n,R,ex,col,s)=>{P.push({x,y,z,col,a:1,sz:s,star:true});for(let i=0;i<n;i++){const d=Math.pow(r(),1.8)*R,ct=r()*2-1,ph=r()*6.283,st=Math.sqrt(1-ct*ct);P.push({x:x+d*st*Math.cos(ph)*ex,y:y+d*ct,z:z+d*st*Math.sin(ph),col,a:.35,sz:.6+r()*.6})}};
+  sat(.5,.2,.28,130,.06,1,[255,214,150],2.4);       // M32, compacta
+  sat(-.7,-.42,-.35,220,.13,1.6,[226,214,208],1.6); // M110, alargada y tenue
+  bgStars(P,70,4);return P;
 }
-/* NGC 253: disco plateado y moteado de polvo, con barra, dos brazos abiertos llenos de zonas rosas y el viento de gas de su núcleo */
+/* NGC 253: disco plateado y moteado de polvo (huecos), con barra, dos brazos abiertos llenos de zonas rosas y el viento de gas de su núcleo */
 function buildMoneda(){
-  const{r,g,P,add,glow,haze,ball,stars}=galTools(253);
-  glow(0,0,0,[255,200,180],.8,.4);glow(0,0,0,[255,232,222],1.8,.11);
-  ball(900,.2,1.8,.45,1.2,(x,y,z)=>add(x,y,z,r()<.3?[255,140,140]:[255,222,195],.36,.7+r()));
-  for(let i=0;i<1500;i++){const t=r()*2-1;add(t*.44,g()*.022,g()*.085*(1.2-Math.abs(t)*.6),[255,218,180],.3,.7+r())} // barra
-  for(let i=0;i<600;i++){const q=Math.pow(r(),.7)*1.16,a=r()*6.283;haze(Math.cos(a)*q,g()*.02,Math.sin(a)*q,q<.35?[255,212,186]:[206,212,226],.085*Math.exp(-q*.45),.17)}
-  for(let i=0;i<3200;i++){const q=.1+Math.pow(r(),.7)*1.25,a=r()*6.283;add(Math.cos(a)*q,g()*.03,Math.sin(a)*q,r()<.5?[230,235,244]:[190,202,226],.4*Math.exp(-q*.4),.7+r())}
+  const r=mkRand(253),g=()=>(r()+r()+r()+r()-2)*.9,P=[],M=[];
+  for(let i=0;i<46;i++){const q=.2+r()*.9,a=r()*6.283;M.push([Math.cos(a)*q,Math.sin(a)*q,Math.cos(a+1.92),Math.sin(a+1.92),.08+r()*.08,.02+r()*.016])} // manchas: centro, direccion, largo y ancho
+  const polvo=(x,z)=>M.some(m=>{const dx=x-m[0],dz=z-m[1],u=(dx*m[2]+dz*m[3])/m[4],v=(dz*m[2]-dx*m[3])/m[5];return u*u+v*v<1})&&r()<.93;
+  const add=(x,y,z,col,a,sz)=>{if(!polvo(x,z))P.push({x,y,z,col,a,sz})};
+  P.push({x:0,y:0,z:0,col:[255,180,160],a:1,sz:7,star:true});
+  for(let i=0;i<600;i++){const d=Math.pow(r(),1.6)*.2,ct=r()*2-1,ph=r()*6.283,st=Math.sqrt(1-ct*ct);add(d*st*Math.cos(ph)*1.2,d*ct*.45,d*st*Math.sin(ph),r()<.35?[255,120,130]:[255,208,176],.22,.7+r()*.8)}
+  for(let i=0;i<850;i++){const t=r()*2-1;add(t*.44,g()*.022,g()*.085*(1.2-Math.abs(t)*.6),[255,206,160],.24,.7+r()*.8)} // barra
+  for(let i=0;i<2900;i++){ // disco plateado
+    const q=.12+Math.pow(r(),.85)*1.23,a=r()*6.283;
+    add(Math.cos(a)*q,g()*.03,Math.sin(a)*q,r()<.5?[205,214,234]:[160,180,216],.36*Math.exp(-q*.55),.8+r()*.9);
+  }
   const wind=q=>Math.log(q/.42)/.42; // espiral abierta (unos 23 grados), nace en los extremos de la barra
-  for(let i=0;i<4400;i++){
-    const q=.42+Math.pow(r(),.8)*.96,a=wind(q)+(i%2)*Math.PI+g()*(.36+.18*q),hii=r()<.06;
-    add(Math.cos(a)*q+g()*.02,g()*.026,Math.sin(a)*q+g()*.02,hii?[255,70,120]:r()<.6?[226,232,246]:[168,198,255],hii?.85:.34,hii?1.2+r():.7+r());
+  for(let i=0;i<3000;i++){
+    const q=.42+Math.pow(r(),.8)*.96,a=wind(q)+(i%2)*Math.PI+g()*(.42+.16*q),hii=r()<.07;
+    add(Math.cos(a)*q+g()*.02,g()*.024,Math.sin(a)*q+g()*.02,hii?[255,70,120]:r()<.6?[218,226,244]:[160,192,255],hii?.65:.22,hii?1.1+r()*.7:.8+r()*.8);
   }
-  for(let i=0;i<90;i++){ // manchas de polvo por todo el disco
-    const q=.16+r()*.9,a=r()*6.283,cx=Math.cos(a)*q,cz=Math.sin(a)*q;
-    for(let k=0;k<20;k++){const s=g()*.14,t=g()*.03;add(cx-Math.sin(a+.35)*s+Math.cos(a)*t,g()*.016,cz+Math.cos(a+.35)*s+Math.sin(a)*t,[0,0,0],.3,1.6+r()*2.4,1)}
-  }
-  for(let i=0;i<1500;i++){ // viento galáctico: dos conos de gas caliente
+  for(let i=0;i<700;i++){ // viento galáctico: dos conos de gas caliente
     const t=Math.pow(r(),1.1),s=i%2?1:-1,h=.05+t*.62,ph=r()*6.283,R=(.04+h*.36)*(r()<.65?.85+r()*.15:r());
-    add(Math.cos(ph)*R,s*h,Math.sin(ph)*R,r()<.6?[255,80,110]:[185,105,255],.42*Math.pow(1-t,1.1)+.04,.8+r()*1.1);
+    P.push({x:Math.cos(ph)*R,y:s*h,z:Math.sin(ph)*R,col:r()<.6?[255,80,110]:[185,105,255],a:.3*Math.pow(1-t,1.1)+.03,sz:.8+r()*1.1});
   }
-  stars();return P;
+  bgStars(P,70,4);return P;
 }
 /* ---- esferas con textura procedural: Luna, Saturno y Sol ---- */
 function h3(a,b,c){let n=Math.imul(a,374761393)^Math.imul(b,668265263)^Math.imul(c,1274126177);n=Math.imul(n^(n>>>13),1274126177);return((n^(n>>>16))>>>0)/4294967296}
@@ -792,7 +741,7 @@ function sky(){
   let out='<svg viewBox="-150 -150 300 300" role="img" aria-label="'+T('Ubicación celeste')+'">';
   out+='<defs><radialGradient id="mg"><stop offset="0" stop-color="#ff7aa8" stop-opacity=".9"/><stop offset="1" stop-color="#ff7aa8" stop-opacity="0"/></radialGradient></defs>';
   (d.segs||[]).forEach(s=>{out+='<polyline fill="none" stroke="#4f5c9c" stroke-width="1.2" stroke-linejoin="round" points="'+s.map(p=>X(p[0]).toFixed(1)+','+Y(p[1]).toFixed(1)).join(' ')+'"/>';s.forEach(p=>{out+='<circle cx="'+X(p[0]).toFixed(1)+'" cy="'+Y(p[1]).toFixed(1)+'" r="1.8" fill="#9fb0ea"/>'})});
-  d.stars.forEach(([n,ra,de,m])=>{const x=X(ra),y=Y(de),rad=Math.max(1.6,4.6-m*.9);out+='<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="'+rad.toFixed(1)+'" fill="#e6ecff"/><text x="'+(x+rad+4).toFixed(1)+'" y="'+(y+4).toFixed(1)+'" fill="#8f98c0" font-size="10" font-family="system-ui" data-no-i18n>'+T(n)+'</text>'});
+  d.stars.forEach(([n,ra,de,m])=>{const x=X(ra),y=Y(de),rad=Math.max(1.6,4.6-m*.9),izq=x+rad+4+T(n).length*5.4>149;/* si el nombre no cabe a la derecha, se pone a la izquierda */out+='<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="'+rad.toFixed(1)+'" fill="#e6ecff"/><text x="'+(izq?x-rad-4:x+rad+4).toFixed(1)+'"'+(izq?' text-anchor="end"':'')+' y="'+(y+4).toFixed(1)+'" fill="#8f98c0" font-size="10" font-family="system-ui" data-no-i18n>'+T(n)+'</text>'});
   const mx0=X(d.ra).toFixed(1),my0=Y(d.dec).toFixed(1);
   out+='<circle cx="'+mx0+'" cy="'+my0+'" r="22" fill="url(#mg)"/><circle cx="'+mx0+'" cy="'+my0+'" r="7" fill="none" stroke="#ff7aa8" stroke-width="1.8"/><text x="'+(X(d.ra)+12).toFixed(1)+'" y="'+(Y(d.dec)-10).toFixed(1)+'" fill="#ffb3cc" font-size="11" font-weight="700" font-family="system-ui" data-no-i18n>'+(data.name.split(' · ')[0])+'</text></svg>';
   $('sky').innerHTML=out;
@@ -963,8 +912,8 @@ function startModel(){
   const m=data.model,norm=v=>{const l=Math.hypot(...v);return v.map(x=>x/l)};
   if(m==='nebula')run(pointRender(buildNebula(data.palette)));
   else if(m==='globular'){V.rx=-.2;run(pointRender(buildGlobular()))}
-  else if(m==='galaxy'&&data.palette==='andromeda'){V.rx=-.36;V.rz=-.6;V.ry=.4;V.speed=.0014;run(galaxyRender(buildAndromeda()))}
-  else if(m==='galaxy'&&data.palette==='moneda'){V.rx=-.27;V.rz=.22;V.ry=.35;V.speed=.002;run(galaxyRender(buildMoneda()))}
+  else if(m==='galaxy'&&data.palette==='andromeda'){V.rx=-.36;V.rz=-.6;V.ry=.4;V.speed=.0014;run(pointRender(buildAndromeda()))}
+  else if(m==='galaxy'&&data.palette==='moneda'){V.rx=-.27;V.rz=.22;V.ry=.35;V.speed=.002;run(pointRender(buildMoneda()))}
   else if(m==='galaxy'){V.rx=-.42;V.ry=.5;V.speed=.002;run(pointRender(buildGalaxy()))}
   else if(m==='moon'){V.rx=0;V.ry=0;V.auto=false;V.sway=true;const ph=moonPhase(Date.now()),s=ph.waxing?1:-1;run(sphereRender('moon',[s*Math.sin(ph.psi),0,-Math.cos(ph.psi)],true));$('rc').hidden=false}
   else if(m==='saturn'){V.rx=.45;V.ry=.4;V.speed=.004;run(sphereRender('saturn',norm([.6,.45,.7])))}
@@ -983,12 +932,12 @@ window.addEventListener('vc-lang',()=>{
 /* ---------- arranque ---------- */
 (async function(){
   let all={};
-  try{all=await(await fetch('fichas.json?v=7')).json()}catch(e){}
+  try{all=await(await fetch('fichas.json?v=8')).json()}catch(e){}
   data=all[slug];
   if(!data){post({vc:'close'});return}
   const info=await pageInfo();
   fill(info);
-  startModel();
+  startModel();V.rx0=V.rx;V.ry0=V.ry;
   requestAnimationFrame(()=>$('wrap').classList.add('in'));
   post({vc:'ready'});
 })();

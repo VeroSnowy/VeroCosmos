@@ -821,7 +821,6 @@ const DICT={
     "Estrella de Andrómeda que sirve de referencia para encontrar la galaxia.":"A star in Andromeda that serves as a reference point for finding the galaxy.",
     "La Galaxia de Andrómeda se trata de la galaxia grande más cercana a la Vía Láctea, situada a unos 2,5 millones de años luz de la Tierra. Con un diámetro de 220.000 años luz, su apariencia en el cielo es de seis veces el tamaño de la Luna.":"The Andromeda Galaxy is the closest large galaxy to the Milky Way, located about 2.5 million light-years from Earth. With a diameter of 220,000 light-years, it appears six times the size of the Moon in the sky.",
     "La Galaxia de Andrómeda, también referenciada como Messier 31, M31 o NGC 224, es la galaxia espiral más cercana a la Vía Láctea. Esta es uno de los objetos de espacio profundo de mayor longitud que podemos avistar en el firmamento desde la Tierra. Con un diámetro de 220.000 años luz, su tamaño en el cielo es de aproximadamente 6 lunas, aunque en cielos oscuros a simple vista solo podemos notar una pequeña mancha. Esta galaxia se encuentra a 2,5 millones de años luz de nuestra posición, aunque estudios confirman su acercamiento progresivo a la Vía Láctea que podría culminar en una fusión de ambas galaxias en una megagalaxia llamada provisionalmente «Lactómeda».":"The Andromeda Galaxy, also referred to as Messier 31, M31 or NGC 224, is the closest spiral galaxy to the Milky Way. It is one of the longest deep-sky objects that we can see in the sky from Earth. With a diameter of 220,000 light-years, its size in the sky is approximately 6 Moons, although with the naked eye under dark skies we can only make out a small patch. This galaxy lies 2.5 million light-years from us, although studies confirm that it is gradually approaching the Milky Way, which could culminate in a merger of both galaxies into a megagalaxy provisionally called “Milkomeda”.",
-    "Su núcleo es doble: el telescopio Hubble encontró dos puntos brillantes donde se esperaba ver uno solo.":"Its nucleus is double: the Hubble telescope found two bright points where only one was expected.",
     "Su luz salió hace unos 2,5 millones de años, cuando nuestros antepasados empezaban a fabricar herramientas de piedra.":"Its light left about 2.5 million years ago, when our ancestors were starting to make stone tools.",
     "Si algún día se fusionara con la Vía Láctea, casi ninguna estrella chocaría con otra: hay muchísimo espacio vacío entre ellas.":"If it ever merged with the Milky Way, almost no stars would collide with each other: there is a huge amount of empty space between them.",
     "M31 - Galaxia de Andrómeda":"M31 - Andromeda Galaxy",
@@ -833,7 +832,8 @@ const DICT={
     "λ Andrómeda":"λ Andromedae",
     "μ Andrómeda":"μ Andromedae",
     "ζ Andrómeda":"ζ Andromedae",
-    "κ Andrómeda":"κ Andromedae"
+    "κ Andrómeda":"κ Andromedae",
+    "¡Es mi objeto favorito de todo el cielo! ¿Será casualidad que me apellide Andromedasis?":"It’s my favourite object in the whole sky! Could it be a coincidence that my surname is Andromedasis?"
   },
   fr:{
     /* PAGINA PRINCIPAL */
@@ -1670,7 +1670,6 @@ const DICT={
     "Estrella de Andrómeda que sirve de referencia para encontrar la galaxia.":"Étoile d'Andromède qui sert de repère pour trouver la galaxie.",
     "La Galaxia de Andrómeda se trata de la galaxia grande más cercana a la Vía Láctea, situada a unos 2,5 millones de años luz de la Tierra. Con un diámetro de 220.000 años luz, su apariencia en el cielo es de seis veces el tamaño de la Luna.":"La galaxie d'Andromède est la grande galaxie la plus proche de la Voie lactée, située à environ 2,5 millions d'années-lumière de la Terre. Avec un diamètre de 220 000 années-lumière, elle apparaît dans le ciel six fois plus grande que la Lune.",
     "La Galaxia de Andrómeda, también referenciada como Messier 31, M31 o NGC 224, es la galaxia espiral más cercana a la Vía Láctea. Esta es uno de los objetos de espacio profundo de mayor longitud que podemos avistar en el firmamento desde la Tierra. Con un diámetro de 220.000 años luz, su tamaño en el cielo es de aproximadamente 6 lunas, aunque en cielos oscuros a simple vista solo podemos notar una pequeña mancha. Esta galaxia se encuentra a 2,5 millones de años luz de nuestra posición, aunque estudios confirman su acercamiento progresivo a la Vía Láctea que podría culminar en una fusión de ambas galaxias en una megagalaxia llamada provisionalmente «Lactómeda».":"La galaxie d'Andromède, également référencée comme Messier 31, M31 ou NGC 224, est la galaxie spirale la plus proche de la Voie lactée. C'est l'un des objets du ciel profond les plus étendus que nous puissions observer dans le firmament depuis la Terre. Avec un diamètre de 220 000 années-lumière, sa taille dans le ciel est d'environ 6 lunes, bien qu'à l'œil nu, sous un ciel sombre, nous ne puissions distinguer qu'une petite tache. Cette galaxie se trouve à 2,5 millions d'années-lumière de nous, mais des études confirment son rapprochement progressif de la Voie lactée, qui pourrait aboutir à la fusion des deux galaxies en une mégagalaxie appelée provisoirement « Lactomède ».",
-    "Su núcleo es doble: el telescopio Hubble encontró dos puntos brillantes donde se esperaba ver uno solo.":"Son noyau est double : le télescope Hubble a trouvé deux points brillants là où l'on s'attendait à n'en voir qu'un seul.",
     "Su luz salió hace unos 2,5 millones de años, cuando nuestros antepasados empezaban a fabricar herramientas de piedra.":"Sa lumière est partie il y a environ 2,5 millions d'années, lorsque nos ancêtres commençaient à fabriquer des outils de pierre.",
     "Si algún día se fusionara con la Vía Láctea, casi ninguna estrella chocaría con otra: hay muchísimo espacio vacío entre ellas.":"Si elle fusionnait un jour avec la Voie lactée, presque aucune étoile n'en percuterait une autre : il y a énormément d'espace vide entre elles.",
     "M31 - Galaxia de Andrómeda":"M31 - Galaxie d'Andromède",
@@ -1682,7 +1681,8 @@ const DICT={
     "λ Andrómeda":"λ Andromède",
     "μ Andrómeda":"μ Andromède",
     "ζ Andrómeda":"ζ Andromède",
-    "κ Andrómeda":"κ Andromède"
+    "κ Andrómeda":"κ Andromède",
+    "¡Es mi objeto favorito de todo el cielo! ¿Será casualidad que me apellide Andromedasis?":"C’est mon objet préféré de tout le ciel ! Serait-ce un hasard si je m’appelle Andromedasis ?"
   }
 };
 const DICTH={
